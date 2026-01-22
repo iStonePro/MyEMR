@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>病历模板助手 v3.28（移动端：打开弹窗自动收起侧边栏）</title>
+  <title>MyEMR V3.29</title>
 
   <style>
     :root {
@@ -307,7 +307,7 @@
       background: rgba(0,0,0,0.55);
       justify-content: center;
       align-items: center;
-      z-index: 1000;
+      z-index: 2000;
       padding: 18px;
     }
     .modal-content {
@@ -883,7 +883,51 @@ body.modal-open {
   }
 }
 
-  </style>
+  
+
+/* ===== Sidebar app badge ===== */
+.app-badge{
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.90);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .2px;
+  text-align: center;
+  user-select: none;
+}
+
+
+
+@media (max-width: 680px) {
+  /* Ensure modal overlays the fixed top-bar and fits the viewport on iPhone */
+  .modal{
+    padding: calc(12px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom));
+    align-items: flex-start;
+  }
+  .modal-content{
+    width: 100%;
+    max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 24px);
+    padding: 14px;
+    border-radius: 14px;
+  }
+  /* Sticky footer should not be covered by Safari bottom bar */
+  .modal-footer{
+    bottom: 0;
+    padding: 12px 0 calc(10px + env(safe-area-inset-bottom));
+    margin-bottom: 0;
+  }
+}
+
+
+
+/* Close button: always keep text horizontal */
+.btn-close, .btn-close span { white-space: nowrap; }
+
+</style>
 </head>
 
 <body>
@@ -916,6 +960,8 @@ body.modal-open {
       </button>
 
       <input type="file" id="fileInput" style="display:none" onchange="importData(this)" accept=".json" />
+    
+      <div class="app-badge">MyEMR V3.29</div>
     </div>
   </div>
   <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
@@ -3707,7 +3753,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `病历助手备份_v3.28_${new Date().toISOString().slice(0,10)}.json`;
+  a.download = `MyEMR_backup_v3.29_${new Date().toISOString().slice(0,10)}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -3727,7 +3773,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `病历书写辅助系统_模板备份_v3.28_${new Date().toISOString().slice(0,10)}.doc`;
+  a.download = `MyEMR_backup_word_v3.29_${new Date().toISOString().slice(0,10)}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -3756,7 +3802,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'v3.28';
+  const versionLabel = 'v3.29';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -3867,7 +3913,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>病历书写辅助系统 模板备份 ${versionLabel}</title>
+<title>MyEMR V3.29</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
@@ -3895,7 +3941,7 @@ function buildWordBackupHtml(data) {
 </head>
 <body>
   <div>
-    <div class="cover-title">病历书写辅助系统</div>
+    <div class="cover-title">MyEMR</div>
     <div class="cover-sub">模板备份（Word 可阅读存档） · ${escapeHtmlForWord(versionLabel)} · ${escapeHtmlForWord(ts)}</div>
     <div class="info">
       <div class="info-row">系统版本：${escapeHtmlForWord(versionLabel)}</div>
