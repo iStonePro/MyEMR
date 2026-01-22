@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V3.29</title>
+  <title>MyEMR V3.30</title>
 
   <style>
     :root {
@@ -624,18 +624,53 @@ body.modal-open {
       gap:6px;
       font-size: 12px;
     }
+    /* More (overflow) button for mobile compact layout */
+    .icon-btn.more { display: none; }
+    .more-menu { display: none; }
+
     .icon-btn.icon-only { padding: 6px; gap: 0; }
 
     /* Mobile: prevent category name being squeezed/covered by control buttons in Manage Categories */
-    @media (max-width: 560px) {
-      .manage-item { flex-direction: column; align-items: stretch; }
-      .manage-item-left { width: 100%; }
-      .item-controls {
-        width: 100%;
-        justify-content: flex-end;
-        flex-wrap: wrap;
-        gap: 6px;
+    
+@media (max-width: 560px) {
+      /* Keep one-line row; make buttons compact; fold less-used actions into "更多" */
+      .manage-item { flex-direction: row; align-items: center; flex-wrap: nowrap; position: relative; }
+      .manage-item-left { flex: 1 1 auto; min-width: 0; }
+      .manage-item-left .name { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .item-controls { width: auto; justify-content: flex-end; flex-wrap: nowrap; gap: 4px; }
+      .item-controls .icon-btn { padding: 6px; width: 34px; height: 34px; }
+      .item-controls .icon-btn .ico svg { width: 18px; height: 18px; }
+
+      /* show "更多" only on mobile */
+      .item-controls .icon-btn.more { display: inline-flex; }
+
+      /* hide the less-used inline buttons on mobile (available in the more menu) */
+      .item-controls .icon-btn:not(.iconpick):not(.rename):not(.more) { display: none; }
+
+      .more-menu { display: none; position: absolute; right: 10px; top: calc(100% - 6px);
+        background: #fff; border: 1px solid rgba(0,0,0,0.10); border-radius: 12px;
+        padding: 6px; box-shadow: 0 12px 32px rgba(0,0,0,0.14); width: 160px; z-index: 30000;
       }
+      .manage-item.show-more-menu .more-menu { display: block; }
+
+      .more-menu-item {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 10px;
+        border-radius: 10px;
+        border: none;
+        background: transparent;
+        color: #111827;
+        font-size: 14px;
+        cursor: pointer;
+      }
+      .more-menu-item:hover { background: #f3f4f6; }
+      .more-menu-item .ico svg { width: 18px; height: 18px; }
+      .more-menu-item.danger { color: #b91c1c; }
+      .more-menu-item.danger:hover { background: rgba(185,28,28,0.08); }
+    }
       .item-controls .icon-btn { padding: 6px; }
       /* give the name line a little breathing room */
       .manage-item-left .name { padding-right: 2px; }
@@ -961,7 +996,7 @@ body.modal-open {
 
       <input type="file" id="fileInput" style="display:none" onchange="importData(this)" accept=".json" />
     
-      <div class="app-badge">MyEMR V3.29</div>
+      <div class="app-badge">MyEMR V3.30</div>
     </div>
   </div>
   <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
@@ -1228,6 +1263,7 @@ const ICONS = (() => {
     chevronUp: s(`<path d="M6 15l6-6 6 6"/>`),
     chevronRight: s(`<path d="M9 6l6 6-6 6"/>`),
     menu: s(`<path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/>`),
+    more: s(`<path d="M6 12h.01"/><path d="M12 12h.01"/><path d="M18 12h.01"/>`),
 
     folder: s(`<path d="M3 7h6l2 2h10v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/>`),
     folderOpen: s(`<path d="M3 7h6l2 2h10"/><path d="M4 20l2-9h16l-2 9H4z"/>`),
@@ -1409,6 +1445,7 @@ const ICONS = (() => {
   // 扩展列表：尽量覆盖“可能用到的模板”
   const list = [
     meta('menu', '菜单', '菜单/侧边栏'),
+    meta('more', '更多', '更多操作/折叠菜单'),
     meta('folder', '目录', '分类/目录'),
     meta('folderOpen', '展开', '展开目录'),
     meta('clipboard', '病历', '病历要点/摘要'),
@@ -3123,8 +3160,7 @@ function renderManageMainList() {
       renderManageSubList(c);
     };
 
-    item.innerHTML = `
-      <div class="manage-item-left">
+    item.innerHTML = `      <div class="manage-item-left">
         <span class="ico">${ICONS.svg(c.iconKey || 'folder')}</span>
         <span class="name cat-name" title="双击编辑名称" ondblclick="event.stopPropagation(); startInlineRenameMain(${index});">${escapeHtml(c.name)}</span>
       </div>
@@ -3132,14 +3168,31 @@ function renderManageMainList() {
         <button class="icon-btn iconpick icon-only" type="button" title="更换图标" aria-label="更换图标" onclick="openIconPickerForMain(${index})">
           <span class="ico">${ICONS.svg('palette')}</span>
         </button>
-        <button class="icon-btn rename icon-only" type="button" title="重命名" aria-label="重命名" onclick="startInlineRenameMain(${index})">
+        <button class="icon-btn rename icon-only" type="button" title="编辑名称" aria-label="编辑名称" onclick="startInlineRenameMain(${index})">
           <span class="ico">${ICONS.svg('pen')}</span>
         </button>
-        <button class="icon-btn" type="button" onclick="moveMainCat(${index}, -1)">↑</button>
-        <button class="icon-btn" type="button" onclick="moveMainCat(${index}, 1)">↓</button>
-        <button class="icon-btn delete" type="button" onclick="deleteMainCat(${index})">
+
+        <button class="icon-btn more icon-only" type="button" title="更多" aria-label="更多" onclick="toggleRowMoreMenu(this)">
+          <span class="ico">${ICONS.svg('more')}</span>
+        </button>
+
+        <button class="icon-btn" type="button" title="上移" onclick="moveMainCat(${index}, -1)">↑</button>
+        <button class="icon-btn" type="button" title="下移" onclick="moveMainCat(${index}, 1)">↓</button>
+        <button class="icon-btn delete" type="button" title="删除" onclick="deleteMainCat(${index})">
           <span class="ico">${ICONS.svg('trash')}</span>
         </button>
+
+        <div class="more-menu" onclick="event.stopPropagation()">
+          <button class="more-menu-item" type="button" onclick="moveMainCat(${index}, -1); closeAllRowMoreMenus();">
+            <span class="ico">${ICONS.svg('chevronUp')}</span><span>上移</span>
+          </button>
+          <button class="more-menu-item" type="button" onclick="moveMainCat(${index}, 1); closeAllRowMoreMenus();">
+            <span class="ico">${ICONS.svg('chevronDown')}</span><span>下移</span>
+          </button>
+          <button class="more-menu-item danger" type="button" onclick="deleteMainCat(${index}); closeAllRowMoreMenus();">
+            <span class="ico">${ICONS.svg('trash')}</span><span>删除</span>
+          </button>
+        </div>
       </div>
     `;
     list.appendChild(item);
@@ -3179,8 +3232,7 @@ function renderManageSubList(catObj) {
     item.className = 'manage-item';
     item.setAttribute('data-sub-index', index);
 
-    item.innerHTML = `
-      <div class="manage-item-left">
+    item.innerHTML = `      <div class="manage-item-left">
         <span class="ico">${ICONS.svg(iconKey)}</span>
         <span class="name cat-name" title="点击编辑名称" onclick="event.stopPropagation(); startInlineRenameSub(${index});">${escapeHtml(subName)}</span>
       </div>
@@ -3188,14 +3240,31 @@ function renderManageSubList(catObj) {
         <button class="icon-btn iconpick icon-only" type="button" title="更换图标" aria-label="更换图标" onclick="openIconPickerForSub(${index})">
           <span class="ico">${ICONS.svg('palette')}</span>
         </button>
-        <button class="icon-btn rename icon-only" type="button" title="重命名" aria-label="重命名" onclick="startInlineRenameSub(${index})">
+        <button class="icon-btn rename icon-only" type="button" title="编辑名称" aria-label="编辑名称" onclick="startInlineRenameSub(${index})">
           <span class="ico">${ICONS.svg('pen')}</span>
         </button>
-        <button class="icon-btn" type="button" onclick="moveSubCat(${index}, -1)">↑</button>
-        <button class="icon-btn" type="button" onclick="moveSubCat(${index}, 1)">↓</button>
-        <button class="icon-btn delete" type="button" onclick="deleteSubCat(${index})">
+
+        <button class="icon-btn more icon-only" type="button" title="更多" aria-label="更多" onclick="toggleRowMoreMenu(this)">
+          <span class="ico">${ICONS.svg('more')}</span>
+        </button>
+
+        <button class="icon-btn" type="button" title="上移" onclick="moveSubCat(${index}, -1)">↑</button>
+        <button class="icon-btn" type="button" title="下移" onclick="moveSubCat(${index}, 1)">↓</button>
+        <button class="icon-btn delete" type="button" title="删除" onclick="deleteSubCat(${index})">
           <span class="ico">${ICONS.svg('trash')}</span>
         </button>
+
+        <div class="more-menu" onclick="event.stopPropagation()">
+          <button class="more-menu-item" type="button" onclick="moveSubCat(${index}, -1); closeAllRowMoreMenus();">
+            <span class="ico">${ICONS.svg('chevronUp')}</span><span>上移</span>
+          </button>
+          <button class="more-menu-item" type="button" onclick="moveSubCat(${index}, 1); closeAllRowMoreMenus();">
+            <span class="ico">${ICONS.svg('chevronDown')}</span><span>下移</span>
+          </button>
+          <button class="more-menu-item danger" type="button" onclick="deleteSubCat(${index}); closeAllRowMoreMenus();">
+            <span class="ico">${ICONS.svg('trash')}</span><span>删除</span>
+          </button>
+        </div>
       </div>
     `;
     list.appendChild(item);
@@ -3913,7 +3982,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V3.29</title>
+<title>MyEMR V3.30</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
@@ -4156,6 +4225,27 @@ function saveCategories() { localStorage.setItem('med_categories_v3', JSON.strin
     saveCategories();
   }
 })();
+
+/* ===== Mobile: compact row actions (more menu) ===== */
+function closeAllRowMoreMenus() {
+  document.querySelectorAll('.manage-item.show-more-menu').forEach(el => el.classList.remove('show-more-menu'));
+}
+function toggleRowMoreMenu(btn) {
+  if (!btn) return;
+  const row = btn.closest('.manage-item');
+  if (!row) return;
+  const willOpen = !row.classList.contains('show-more-menu');
+  closeAllRowMoreMenus();
+  if (willOpen) row.classList.add('show-more-menu');
+}
+
+// close on outside click / scroll
+document.addEventListener('click', (e) => {
+  if (e.target.closest('.more-menu') || e.target.closest('.icon-btn.more')) return;
+  closeAllRowMoreMenus();
+}, true);
+document.addEventListener('scroll', () => closeAllRowMoreMenus(), true);
+
 </script>
 
 </body>
