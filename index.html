@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>病历模板助手 v3.25（修复：iOS 弹窗滚动不带动底层页面）</title>
+  <title>病历模板助手 v3.26（移动端：顶栏固定·关闭按钮横排）</title>
 
   <style>
     :root {
@@ -361,8 +361,11 @@ body.modal-open {
       user-select:none;
       border: 1px solid #e5e7eb;
       background: #fff;
+          white-space: nowrap;
+      flex-wrap: nowrap;
     }
     .modal-close:hover { background: #f3f4f6; color:#111827; }
+    .modal-close span{ white-space: nowrap; }
 
     .form-row { display: flex; gap: 10px; margin-bottom: 12px; }
     .form-col { flex: 1; min-width: 0; }
@@ -848,16 +851,20 @@ body.modal-open {
     -webkit-overflow-scrolling: auto;
     min-height: auto;
   }
-  /* 顶栏在页面滚动时保持可见，提升移动端可用性 */
+    /* 顶栏固定（iOS 小屏更稳定，便于随时呼出侧边栏/搜索） */
   .top-bar{
-    position: sticky;
-    top: 0;
+    position: fixed;
+    top: env(safe-area-inset-top);
+    left: 0;
+    right: 0;
     z-index: 1050;
     backdrop-filter: blur(10px);
     border-bottom: 1px solid rgba(229,231,235,0.65);
   }
-
-
+  /* 为固定顶栏留出空间，避免内容被遮挡（高度由 JS 动态写入 --topbar-h） */
+  .main-content{
+    padding-top: calc(env(safe-area-inset-top) + var(--topbar-h, 64px));
+  }
 }
 
   </style>
@@ -1682,6 +1689,7 @@ let newSubIconKey = 'folderOpen';
    ========================= */
 window.onload = function() {
   mountTopIcons();
+  updateTopbarHeight();
   normalizeDataForCompatibility();
   normalizeCategoryTreeForCompatibility();
 
@@ -1694,6 +1702,7 @@ window.onload = function() {
   rebuildTagPool([]);
   renderSidebar();
   renderTemplates();
+  updateTopbarHeight();
   updateTagPoolToggleVisibility();
   syncNewCategoryIconRemember();
 };
@@ -1812,6 +1821,15 @@ if (!window.__modalTouchBound) {
 function isMobile() {
   return window.matchMedia && window.matchMedia('(max-width: 680px)').matches;
 }
+
+function updateTopbarHeight() {
+  if (!isMobile()) { document.documentElement.style.removeProperty('--topbar-h'); return; }
+  const tb = document.querySelector('.top-bar');
+  if (!tb) return;
+  // 使用 getBoundingClientRect，兼容 iOS 缩放/动态栏高度变化
+  const h = Math.ceil(tb.getBoundingClientRect().height);
+  if (h > 0) document.documentElement.style.setProperty('--topbar-h', h + 'px');
+}
 function openSidebar() {
   if (!isMobile()) return;
   const sb = document.querySelector('.sidebar');
@@ -1831,7 +1849,7 @@ function toggleSidebar() {
   if (sb.classList.contains('open')) closeSidebar();
   else openSidebar();
 }
-window.addEventListener('resize', () => { if (!isMobile()) closeSidebar(); });
+window.addEventListener('resize', () => { if (!isMobile()) closeSidebar(); updateTopbarHeight(); });
 
 function bindEscToClose() {
   document.addEventListener('keydown', (e) => {
@@ -2727,6 +2745,7 @@ function setFilter(type, value, el) {
     document.getElementById('currentFilterLabel').textContent = `${value} 模板`;
   }
   renderTemplates();
+  updateTopbarHeight();
   if (isMobile()) closeSidebar();
 }
 
@@ -2825,6 +2844,7 @@ function saveTemplate(silentClose = false) {
   takeTemplateModalSnapshot();
   if (!silentClose) closeModalDirect('templateModal');
   renderTemplates();
+  updateTopbarHeight();
   return true;
 }
 
@@ -2840,6 +2860,7 @@ function deleteTemplate() {
     templateModalSnapshot = null;
     closeModalDirect('templateModal');
     renderTemplates();
+  updateTopbarHeight();
   }
 }
 
@@ -3011,6 +3032,7 @@ function confirmMoveTemplate(silentClose = false) {
   moveModalSnapshot = null;
   if (!silentClose) closeModalDirect('moveModal');
   renderTemplates();
+  updateTopbarHeight();
   return true;
 }
 
@@ -3190,6 +3212,7 @@ function deleteMainCat(index) {
     renderManageMainList();
     renderSidebar();
     renderTemplates();
+  updateTopbarHeight();
   }
 }
 
@@ -3247,6 +3270,7 @@ function deleteSubCat(index) {
   renderManageSubList(editingCategoryMain);
   renderSidebar();
   renderTemplates();
+  updateTopbarHeight();
 }
 
 function startInlineRenameMain(index) {
@@ -3326,6 +3350,7 @@ function startInlineRenameMain(index) {
     renderManageMainList();
     renderManageSubList(editingCategoryMain);
     renderTemplates();
+  updateTopbarHeight();
   };
 
   input.addEventListener('keydown', (e) => {
@@ -3433,6 +3458,7 @@ function startInlineRenameSub(index) {
     renderSidebar();
     renderManageSubList(editingCategoryMain);
     renderTemplates();
+  updateTopbarHeight();
   };
 
   input.addEventListener('keydown', (e) => {
@@ -3663,7 +3689,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `病历助手备份_v3.25_${new Date().toISOString().slice(0,10)}.json`;
+  a.download = `病历助手备份_v3.26_${new Date().toISOString().slice(0,10)}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -3683,7 +3709,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `病历书写辅助系统_模板备份_v3.25_${new Date().toISOString().slice(0,10)}.doc`;
+  a.download = `病历书写辅助系统_模板备份_v3.26_${new Date().toISOString().slice(0,10)}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -3712,7 +3738,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'v3.25';
+  const versionLabel = 'v3.26';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
