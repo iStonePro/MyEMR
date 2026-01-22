@@ -1,0 +1,4072 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>病历模板助手 v3.25（修复：iOS 弹窗滚动不带动底层页面）</title>
+
+  <style>
+    :root {
+      --sidebar-bg: #202123;
+      --sidebar-hover: #2A2B32;
+      --main-bg: #f7f7f8;
+      --panel-bg: #ffffff;
+
+      --text-primary: #111827;
+      --text-muted: #6b7280;
+      --text-invert: #ececf1;
+
+      --accent-color: #10a37f;
+      --border-color: #e5e7eb;
+      --danger-color: #ef4444;
+
+      --chip-bg: #f3f4f6;
+      --chip-border: #e5e7eb;
+      --chip-text: #374151;
+      --chip-active-bg: rgba(16,163,127,0.12);
+      --chip-active-border: rgba(16,163,127,0.45);
+      --chip-active-text: #0d8a6a;
+
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
+      --shadow-md: 0 8px 24px rgba(0,0,0,0.10);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      height: 100vh;
+      height: 100dvh;
+      min-height: 100vh;
+      display: flex;
+      color: var(--text-primary);
+      background-color: var(--main-bg);
+      overflow: hidden;
+    }
+
+    /* ===== Scrollbar 美化 ===== */
+    * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.18) transparent; }
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0,0,0,0.18);
+      border-radius: 999px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.28); background-clip: padding-box; }
+    .sidebar * { scrollbar-color: rgba(255,255,255,0.22) transparent; }
+    .sidebar ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); }
+    .sidebar ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.26); }
+
+    /* ===== Icons（线性）===== */
+    .ico {
+      width: 16px; height: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .ico svg {
+      width: 16px; height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* Icon Picker: ensure inline SVGs render correctly (not only inside .ico) */
+    .icon-badge svg,
+    .new-icon-preview svg {
+      width: 18px; height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* --- 侧边栏 --- */
+    .sidebar {
+      width: 280px;
+      background-color: var(--sidebar-bg);
+      color: var(--text-invert);
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+      flex-shrink: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .sidebar-header { margin-bottom: 16px; }
+
+    .action-btn {
+      border: 1px solid rgba(255,255,255,0.18);
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.18s;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--text-invert);
+      margin-bottom: 8px;
+      background: rgba(255,255,255,0.02);
+      width: 100%;
+      user-select: none;
+    }
+    .action-btn:hover { background-color: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.22); }
+    .btn-green {
+      background-color: rgba(16,163,127,0.96);
+      border: 1px solid rgba(16,163,127,0.8);
+      color: white;
+    }
+    .btn-green:hover { background-color: #0d8a6a; border-color: rgba(16,163,127,1); }
+
+    .sidebar-section-title{
+      font-size: 13px;
+      font-weight: 800;
+      color: rgba(236,236,241,0.90);
+      margin: 12px 0 10px;
+      padding: 10px 10px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.10);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: .06em;
+    }
+    .sidebar-section-title::before{
+      content: "";
+      width: 4px;
+      height: 16px;
+      border-radius: 999px;
+      background: rgba(16,163,127,0.95);
+      box-shadow: 0 0 0 3px rgba(16,163,127,0.14);
+      flex-shrink: 0;
+    }
+
+    .category-tree { flex: 1; overflow-y: auto; margin-top: 4px; }
+
+    .cat-header {
+      padding: 8px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 10px;
+      user-select: none;
+      cursor: pointer;
+      gap: 10px;
+    }
+    .cat-left { display:flex; align-items:center; gap: 8px; min-width: 0; }
+    .cat-name { font-size: 13px; font-weight: 700; color: inherit; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sidebar .cat-name { color: rgba(236,236,241,0.98); }
+
+    .cat-header:hover, .cat-header.active { background-color: var(--sidebar-hover); }
+
+    .cat-right { display:flex; align-items:center; gap: 6px; flex-shrink: 0; }
+    .cat-arrow {
+      font-size: 0;
+      color: rgba(236,236,241,0.5);
+      padding: 4px 6px;
+      border-radius: 8px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .cat-arrow:hover { background: rgba(255,255,255,0.08); color: rgba(236,236,241,0.85); }
+
+    .sub-cat-list { display: none; padding-left: 22px; margin: 4px 0 6px; }
+    .sub-cat-list.expanded { display: block; }
+    .sub-cat-item {
+      padding: 7px 10px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: rgba(236,236,241,0.88);
+      border-radius: 10px;
+      cursor: pointer;
+      user-select: none;
+      display:flex;
+      align-items:center;
+      gap: 8px;
+    }
+    .sub-cat-item:hover, .sub-cat-item.active { background-color: rgba(255,255,255,0.10); color: rgba(236,236,241,0.95); }
+
+    .sidebar-footer {
+      margin-top: auto;
+      border-top: 1px solid rgba(255,255,255,0.14);
+      padding-top: 10px;
+    }
+
+    /* --- 主区域 --- */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-width: 0;
+      min-height: 0;
+    }
+    .top-bar {
+      padding: 14px 18px;
+      background-color: var(--panel-bg);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .current-filter {
+      font-weight: 800;
+      color: #374151;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 40%;
+    }
+    .search-box {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 14px;
+      outline: none;
+      background: #fbfbfc;
+    }
+    .search-box:focus { border-color: rgba(16,163,127,0.65); box-shadow: 0 0 0 3px rgba(16,163,127,0.10); background: #fff; }
+
+    .content-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px;
+      background-color: var(--main-bg);
+      -webkit-overflow-scrolling: touch;
+      min-height: 0;
+    }
+    .content-container { max-width: 980px; margin: 0 auto; }
+
+    /* --- 卡片 --- */
+    .template-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow-sm);
+      transition: 0.18s;
+    }
+    .template-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+
+    .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 10px; }
+    .card-title { font-weight: 800; font-size: 15px; color: #111827; line-height: 1.3; }
+    .card-actions { display:flex; gap:8px; align-items:center; flex-shrink:0; }
+
+    .card-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+    .tag { font-size: 11px; padding: 3px 8px; border-radius: 999px; color: #374151; background: #f3f4f6; border: 1px solid #eef0f3; }
+    .tag-main { background: rgba(2,132,199,0.10); color: #0369a1; border-color: rgba(2,132,199,0.18); }
+    .tag-sub { background: rgba(22,163,74,0.10); color: #15803d; border-color: rgba(22,163,74,0.18); }
+
+    .card-body {
+      font-size: 14px;
+      line-height: 1.65;
+      color: #374151;
+      background-color: #fbfbfc;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px dashed #e5e7eb;
+      cursor: pointer;
+      overflow-wrap: anywhere;
+    }
+    .card-body:hover { border-color: rgba(16,163,127,0.55); }
+
+    .btn-copy, .btn-move {
+      padding: 7px 10px;
+      font-size: 12px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      border-radius: 10px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #374151;
+      transition: .15s;
+      user-select:none;
+    }
+    .btn-copy:hover, .btn-move:hover { border-color: rgba(16,163,127,0.45); background: rgba(16,163,127,0.04); }
+    .btn-copy.copied { background: rgba(16,163,127,0.12); color: #0d8a6a; border-color: rgba(16,163,127,0.45); }
+
+    /* --- 模态框（遮罩点击不关闭） --- */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.55);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 18px;
+    }
+    .modal-content {
+      background: var(--panel-bg);
+      border: 1px solid rgba(255,255,255,0.05);
+      padding: 18px;
+      border-radius: 16px;
+      width: 720px;
+      max-width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Mobile/iOS: prevent background scrolling when a modal is open */
+    
+    html.modal-open {
+      position: fixed;
+      left: 0; right: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+body.modal-open {
+      position: fixed;
+      left: 0; right: 0;
+      width: 100%;
+      overflow: hidden;
+    }
+    .modal-content {
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
+    .modal-title {
+      font-size: 16px;
+      font-weight: 900;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .modal-close {
+      cursor:pointer;
+      color: #6b7280;
+      padding: 6px 8px;
+      border-radius: 10px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      user-select:none;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+    }
+    .modal-close:hover { background: #f3f4f6; color:#111827; }
+
+    .form-row { display: flex; gap: 10px; margin-bottom: 12px; }
+    .form-col { flex: 1; min-width: 0; }
+    .form-label { display: block; margin-bottom: 6px; font-weight: 800; font-size: 12px; color: #374151; }
+    .form-input, .form-select {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 13px;
+      outline: none;
+      background: #fff;
+    }
+
+    /* 下拉框箭头美化（含移动模板界面） */
+    .form-select {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      padding-right: 36px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M7 10l5 5 5-5' stroke='%236b7280' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 16px 16px;
+      cursor: pointer;
+    }
+    .form-select:hover {
+      border-color: rgba(107,114,128,0.45);
+    }
+    .form-select:disabled {
+      cursor: not-allowed;
+      background-color: #f9fafb;
+      color: #9ca3af;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M7 10l5 5 5-5' stroke='%23cbd5e1' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    }
+
+    .form-input:focus, .form-select:focus {
+      border-color: rgba(16,163,127,0.65);
+      box-shadow: 0 0 0 3px rgba(16,163,127,0.10);
+    }
+    .hint { font-size: 12px; color: var(--text-muted); margin-top: 8px; line-height: 1.55; }
+
+    /* ====== 模板编辑：底部按钮始终可见（sticky）====== */
+    .modal-footer {
+      position: sticky;
+      bottom: -18px;
+      background: linear-gradient(to top, rgba(255,255,255,0.98), rgba(255,255,255,0.86));
+      padding: 12px 0 0;
+      margin-top: 14px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      border-top: 1px solid rgba(229,231,235,0.65);
+      backdrop-filter: blur(6px);
+    }
+
+    /* ====== 模板编辑弹窗：正文可滚动 + 底部按钮固定（兼容 iOS）====== */
+    .modal-content-editor{
+      display: flex;
+      flex-direction: column;
+      overflow: hidden; /* 让滚动只发生在 .modal-body，避免 sticky 在 iOS 下抖动 */
+    }
+    .modal-content-editor .modal-body{
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 6px;
+      padding-bottom: 6px;
+    }
+    .modal-content-editor .modal-footer{
+      position: relative;
+      bottom: auto;
+      margin: 0 -18px -18px;
+      padding: 12px 18px calc(12px + env(safe-area-inset-bottom));
+      background: linear-gradient(to top, rgba(255,255,255,0.98), rgba(255,255,255,0.92));
+      border-top: 1px solid rgba(229,231,235,0.85);
+      border-radius: 0 0 16px 16px;
+      box-shadow: 0 -10px 24px rgba(0,0,0,0.08);
+      backdrop-filter: blur(8px);
+    }
+
+    .btn {
+      padding: 9px 14px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      user-select:none;
+    }
+    .btn-primary { background: rgba(16,163,127,0.96); color: white; }
+    .btn-primary:hover { background: #0d8a6a; }
+    .btn-secondary { background: #f3f4f6; color: #374151; }
+    .btn-secondary:hover { background: #e9edf2; }
+    .btn-danger { background: rgba(239,68,68,0.96); color: white; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-sm { padding: 6px 10px; font-size: 12px; border-radius: 10px; }
+
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; filter: grayscale(0.10); }
+
+    /* 富文本编辑器 */
+    .rte-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 8px;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px 12px 0 0;
+      background: #fbfbfc;
+    }
+    .rte-btn {
+      padding: 7px 10px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 12px;
+      line-height: 1;
+      color: #374151;
+      user-select:none;
+      transition: .15s;
+    }
+    .rte-btn:hover { border-color: rgba(16,163,127,0.45); background: rgba(16,163,127,0.04); }
+    .rte-divider { width: 1px; background: #e5e7eb; margin: 0 2px; }
+
+    .rte-editor {
+      border: 1px solid #e5e7eb;
+      border-top: none;
+      border-radius: 0 0 12px 12px;
+      min-height: 180px;
+      padding: 12px;
+      outline: none;
+      background: #fff;
+      color: #111827;
+      line-height: 1.7;
+      overflow-y: auto;
+    }
+    .rte-editor:focus { box-shadow: 0 0 0 3px rgba(16,163,127,0.10); }
+
+    /* 标签选择器 */
+    .tag-picker {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 10px;
+      background: #fff;
+    }
+    .tag-selected-row { display:flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .tag-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--chip-border);
+      background: var(--chip-bg);
+      color: var(--chip-text);
+      cursor: pointer;
+      user-select: none;
+      font-size: 12px;
+      transition: .15s;
+      max-width: 100%;
+    }
+    .tag-chip:hover { border-color: #cbd5e1; }
+    .tag-chip.active {
+      background: var(--chip-active-bg);
+      border-color: var(--chip-active-border);
+      color: var(--chip-active-text);
+      font-weight: 800;
+    }
+    .tag-chip .x { font-weight: 900; opacity: .55; }
+    .tag-chip.active .x { opacity: .75; }
+
+    .tag-add-row { display:flex; gap:8px; margin-top:8px; align-items: center; }
+    /* 标签新增行：避免按钮被挤到逐字换行 */
+    .tag-add-row .form-input{ flex: 1 1 auto; width: auto; min-width: 0; }
+    #btnAddTag{ flex: 0 0 auto; white-space: nowrap; }
+    #btnAddTag span{ white-space: nowrap; }
+
+
+    .tag-pool-wrap { margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e5e7eb; }
+    .tag-pool { display:flex; flex-wrap: wrap; gap: 6px; overflow: visible; padding-bottom: 2px; }
+    .tag-pool.collapsed { max-height: 80px; overflow: hidden; }
+    .tag-pool-toggle {
+      margin-top: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      color: #4b5563;
+      user-select: none;
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      width: fit-content;
+    }
+    .tag-pool-toggle:hover { border-color: rgba(16,163,127,0.45); background: rgba(16,163,127,0.04); color: #111827; }
+
+    /* 分类管理 */
+    .manage-layout { display: flex; gap: 15px; height: 420px; }
+    .manage-col { flex: 1; border: 1px solid #e5e7eb; border-radius: 14px; display: flex; flex-direction: column; overflow:hidden; background:#fff; }
+    .manage-header { padding: 10px; background: #fbfbfc; border-bottom: 1px solid #e5e7eb; font-weight: 900; font-size: 13px; color:#374151; }
+    .manage-list { flex: 1; overflow-y: auto; padding: 6px; }
+
+    .manage-item {
+      padding: 8px 10px;
+      border-radius: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      user-select:none;
+      gap: 10px;
+      color:#111827;
+    }
+    .manage-item:hover { background: #f3f4f6; }
+    .manage-item.active { background: rgba(2,132,199,0.10); border-color: rgba(2,132,199,0.16); color: #0369a1; }
+
+    .manage-item-left { display:flex; align-items:center; gap:8px; min-width:0; }
+    .manage-item-left span.name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+
+    .inline-rename-input {
+      font-size: 13px;
+      padding: 6px 8px;
+      border-radius: 10px;
+      border: 1px solid rgba(16,163,127,0.45);
+      background: #fff;
+      color: var(--text-primary);
+      outline: none;
+      min-width: 80px;
+      width: 100%;
+    }
+    .inline-rename-input:focus {
+      box-shadow: 0 0 0 3px rgba(16,163,127,0.14);
+      border-color: rgba(16,163,127,0.65);
+    }
+    .manage-item-left .inline-rename-input { flex: 1; }
+
+    .item-controls { display: flex; gap: 6px; }
+    .icon-btn {
+      cursor: pointer;
+      padding: 6px 8px;
+      color: #6b7280;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      user-select:none;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-size: 12px;
+    }
+    .icon-btn.icon-only { padding: 6px; gap: 0; }
+    .icon-btn:hover { background: #f3f4f6; color: #111827; }
+    .icon-btn.delete:hover { background: rgba(239,68,68,0.10); border-color: rgba(239,68,68,0.22); color: #b91c1c; }
+    .icon-btn.rename:hover { background: rgba(2,132,199,0.10); border-color: rgba(2,132,199,0.22); color: #0369a1; }
+    .icon-btn.iconpick:hover { background: rgba(16,163,127,0.08); border-color: rgba(16,163,127,0.22); color: #0d8a6a; }
+
+    .manage-input-row {
+      padding: 10px;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      gap: 8px;
+      background:#fff;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .new-icon-preview {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color: #374151;
+    }
+
+    /* Icon Picker */
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .icon-item {
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 10px;
+      background: #fff;
+      cursor: pointer;
+      user-select:none;
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      transition: .15s;
+      min-height: 56px;
+    }
+    .icon-item:hover { border-color: rgba(16,163,127,0.45); background: rgba(16,163,127,0.04); }
+    .icon-item.disabled { opacity: 0.45; cursor: not-allowed; background: #fbfbfc; }
+    .icon-item.disabled:hover { border-color: #e5e7eb; background: #fbfbfc; }
+
+    .icon-badge {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color: #374151;
+      background: #fff;
+      flex-shrink: 0;
+    }
+    .icon-text { display:flex; flex-direction: column; gap: 2px; min-width:0; }
+    .icon-text .label { font-weight: 900; font-size: 12px; color: #111827; }
+    .icon-text .desc { font-size: 12px; color: #6b7280; white-space: nowrap; overflow:hidden; text-overflow: ellipsis; }
+
+    /* Icon Picker: inline filtering + close button always visible */
+    .modal-content-iconpicker{
+      display: flex;
+      flex-direction: column;
+      overflow: hidden; /* header stays visible; body scrolls */
+    }
+    .modal-content-iconpicker .icon-picker-body{
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 6px;
+      padding-bottom: 6px;
+    }
+    /* Title bar stays visually separated from scrolling grid */
+    #iconPickerModal .modal-title{
+      margin-bottom: 0;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(229,231,235,0.65);
+      background: linear-gradient(to bottom, rgba(255,255,255,0.98), rgba(255,255,255,0.92));
+      backdrop-filter: blur(8px);
+    }
+    #iconPickerModal .icon-picker-body{ padding-top: 12px; }
+
+
+    /* 三选项确认 */
+    .confirm3-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.62);
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      padding: 18px;
+    }
+    .confirm3-box {
+      width: 460px;
+      max-width: 100%;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+    .confirm3-header {
+      padding: 12px 14px;
+      background: #fbfbfc;
+      border-bottom: 1px solid #e5e7eb;
+      font-weight: 900;
+      font-size: 14px;
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      gap: 10px;
+    }
+    .confirm3-body {
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #374151;
+      line-height: 1.65;
+      white-space: pre-wrap;
+    }
+    .confirm3-footer {
+      padding: 12px 14px;
+      border-top: 1px solid #e5e7eb;
+      display:flex;
+      gap: 10px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      background: #fff;
+    }
+    .confirm3-x {
+      cursor: pointer;
+      color: #6b7280;
+      padding: 6px 8px;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      user-select:none;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-weight: 800;
+      font-size: 12px;
+      line-height: 1;
+    }
+    .confirm3-x .ico { display:inline-flex; }
+    .confirm3-x:hover { background: #f3f4f6; color:#111827; }
+
+    @media (max-width: 820px) {
+      .sidebar { width: 240px; }
+      .modal-content { width: 96vw; }
+      .current-filter { max-width: 38%; }
+    }
+    /* ===== Mobile (iPhone) 兼容：侧边栏抽屉 + 顶部按钮 ===== */
+.sidebar-toggle { display:none; align-items:center; justify-content:center; padding: 8px; border-radius: 10px; }
+.sidebar-toggle .ico svg{ width:20px; height:20px; }
+.sidebar-backdrop { display:none; position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 1100; }
+
+@media (max-width: 680px) {
+  /* Mobile menu button polish */
+  .sidebar-toggle{ background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10); }
+  .sidebar-toggle:active{ transform: scale(0.98); }
+
+  /* iOS Safari 100vh 适配 */
+  body { height: 100dvh; }
+  @supports (-webkit-touch-callout: none) {
+    html, body { height: -webkit-fill-available; }
+    body { height: -webkit-fill-available; }
+  }
+
+  .sidebar { 
+    display:block;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    height: 100dvh;
+    width: min(82vw, 320px);
+    transform: translateX(-105%);
+    transition: transform .25s ease;
+    z-index: 1200;
+    box-shadow: 0 12px 30px rgba(0,0,0,.18);
+    padding-top: calc(12px + env(safe-area-inset-top));
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+    overscroll-behavior: contain;
+  }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-backdrop.show { display:block; }
+
+  .main-content { width: 100%; }
+  .sidebar-toggle { display: inline-flex; }
+
+  .current-filter { max-width: 44%; }
+  .top-bar { padding: 10px 12px; gap: 10px; }
+  .content-area { padding: 12px; }
+
+
+  /* ===== Mobile scrolling reliability (iOS Safari) =====
+     在小屏端改为“页面滚动”为主，避免 iOS 在 flex + overflow 容器中出现无法滑动的问题（必须放大才可滚动）。
+  */
+  html, body { overflow-x: hidden; }
+  body{
+    display: block;
+    height: auto;
+    min-height: 100dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: auto;
+  }
+  .main-content{
+    height: auto;
+    min-height: 100dvh;
+  }
+  /* 让内容随页面滚动，而不是依赖内部滚动容器（iOS 更稳定） */
+  .content-area{
+    overflow: visible;
+    -webkit-overflow-scrolling: auto;
+    min-height: auto;
+  }
+  /* 顶栏在页面滚动时保持可见，提升移动端可用性 */
+  .top-bar{
+    position: sticky;
+    top: 0;
+    z-index: 1050;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(229,231,235,0.65);
+  }
+
+
+}
+
+  </style>
+</head>
+
+<body>
+
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <button class="action-btn btn-green" onclick="openTemplateModal()">
+        <span class="ico" id="icoPlus"></span>
+        <span>新建模板</span>
+      </button>
+
+      <button class="action-btn" onclick="openCategoryManager()">
+        <span class="ico" id="icoManage"></span>
+        <span>管理分类与排序</span>
+      </button>
+    </div>
+
+    <div class="sidebar-section-title">目录导航</div>
+    <div class="category-tree" id="sidebarTree"></div>
+
+    <div class="sidebar-footer">
+      <button class="action-btn" onclick="exportData()">
+        <span class="ico" id="icoReceipt"></span>
+        <span>备份数据（导出）</span>
+      </button>
+
+      <button class="action-btn" onclick="document.getElementById('fileInput').click()">
+        <span class="ico" id="icoRestore"></span>
+        <span>恢复数据（导入）</span>
+      </button>
+
+      <input type="file" id="fileInput" style="display:none" onchange="importData(this)" accept=".json" />
+    </div>
+  </div>
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+
+  <div class="main-content">
+    <div class="top-bar">
+      <button class="icon-btn sidebar-toggle" type="button" onclick="toggleSidebar()" title="打开目录" aria-label="打开目录">
+        <span class="ico" id="icoMenu"></span>
+      </button>
+      <div class="current-filter" id="currentFilterLabel">全部模板</div>
+      <input type="text" class="search-box" id="searchInput" placeholder="搜索内容、标题、关键词或分类..." oninput="renderTemplates()" />
+    </div>
+
+    <div class="content-area">
+      <div class="content-container" id="templateList"></div>
+    </div>
+  </div>
+
+  <!-- 模板编辑/新建 -->
+  <div class="modal" id="templateModal" onclick="noopClose(event)">
+    <div class="modal-content modal-content-editor" onclick="event.stopPropagation()">
+      <div class="modal-title">
+        <span id="modalTitleText">编辑模板</span>
+        <span class="modal-close" onclick="requestCloseModal('templateModal')">
+          <span class="ico" id="icoClose1"></span>
+          <span>关闭</span>
+        </span>
+      </div>
+
+      <div class="modal-body">
+
+      <input type="hidden" id="editId" />
+
+      <div class="form-row">
+        <div class="form-col">
+          <label class="form-label">一级分类</label>
+          <select class="form-select" id="inputMainCat" onchange="updateSubCatOptions()"></select>
+        </div>
+        <div class="form-col">
+          <label class="form-label">二级分类</label>
+          <select class="form-select" id="inputSubCat"></select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-col">
+          <label class="form-label">标题 / 关键词</label>
+          <input type="text" class="form-input" id="inputTitle" placeholder="例如：高血压-病例特点汇总" />
+        </div>
+      </div>
+
+      <!-- 标签：输入新增 + 下方点击选择（多选） -->
+      <div class="form-row">
+        <div class="form-col">
+          <label class="form-label">其他标签（常用优先；点击可多选；也可新增）</label>
+
+          <div class="tag-picker">
+            <div class="tag-add-row">
+              <input type="text" class="form-input" id="newTagInput" placeholder="输入新标签（回车或点添加）" />
+              <button class="btn btn-primary btn-sm" id="btnAddTag" type="button" onclick="addNewTagFromInput()" disabled>
+                <span class="ico" id="icoPlusTag"></span>
+                <span>添加</span>
+              </button>
+            </div>
+
+            <div class="hint">
+              标签池默认仅显示两行；常用标签排在前面；可“展开/收起”。保存后仍以“逗号分隔”存储，兼容已有数据。
+            </div>
+
+            <div class="tag-selected-row" id="selectedTagsRow"></div>
+
+            <div class="tag-pool-wrap">
+              <div class="tag-pool collapsed" id="tagPool"></div>
+              <div class="tag-pool-toggle" id="tagPoolToggle" onclick="toggleTagPool()">
+                <span class="ico" id="icoChevron"></span>
+                <span id="tagPoolToggleText">展开标签池</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 富文本编辑器 -->
+      <div class="form-col">
+        <label class="form-label">模板内容（富文本）</label>
+        <div class="rte-toolbar">
+          <button class="rte-btn" type="button" onclick="rteCmd('bold')"><b>B</b></button>
+          <button class="rte-btn" type="button" onclick="rteCmd('italic')"><i>I</i></button>
+          <button class="rte-btn" type="button" onclick="rteCmd('underline')"><u>U</u></button>
+          <span class="rte-divider"></span>
+          <button class="rte-btn" type="button" onclick="rteCmd('insertUnorderedList')">• 列表</button>
+          <button class="rte-btn" type="button" onclick="rteCmd('insertOrderedList')">1. 列表</button>
+          <span class="rte-divider"></span>
+          <button class="rte-btn" type="button" onclick="rteColor('#ef4444')">红色</button>
+          <button class="rte-btn" type="button" onclick="rteColor('#111827')">黑色</button>
+          <span class="rte-divider"></span>
+          <button class="rte-btn" type="button" onclick="rteCmd('removeFormat')">清除格式</button>
+          <button class="rte-btn" type="button" onclick="rteCmd('undo')">撤销</button>
+          <button class="rte-btn" type="button" onclick="rteCmd('redo')">重做</button>
+        </div>
+        <div class="rte-editor" id="inputContentEditor" contenteditable="true"></div>
+        <div class="hint">复制按钮默认复制“纯文本”版本，便于粘贴到病历系统。</div>
+      </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-danger" id="btnDelete" onclick="deleteTemplate()" style="display:none; margin-right:auto">
+          <span class="ico" id="icoTrash"></span> 删除
+        </button>
+        <button class="btn btn-secondary" onclick="requestCloseModal('templateModal')">
+          <span class="ico" id="icoX"></span> 取消
+        </button>
+        <button class="btn btn-primary" onclick="saveTemplate()">
+          <span class="ico" id="icoSave"></span> 保存
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 移动模板 -->
+  <div class="modal" id="moveModal" onclick="noopClose(event)">
+    <div class="modal-content" style="width:560px;" onclick="event.stopPropagation()">
+      <div class="modal-title">
+        <span>移动模板到其他分类</span>
+        <span class="modal-close" onclick="requestCloseModal('moveModal')">
+          <span class="ico" id="icoClose2"></span>
+          <span>关闭</span>
+        </span>
+      </div>
+      <input type="hidden" id="moveId" />
+
+      <div class="form-row">
+        <div class="form-col">
+          <label class="form-label">目标一级分类</label>
+          <select class="form-select" id="moveMainCat" onchange="updateMoveSubCatOptions()"></select>
+        </div>
+        <div class="form-col">
+          <label class="form-label">目标二级分类</label>
+          <select class="form-select" id="moveSubCat"></select>
+        </div>
+      </div>
+
+      <div class="hint">仅移动分类归属，不改动标题、内容与标签。</div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="requestCloseModal('moveModal')">
+          <span class="ico" id="icoX2"></span> 取消
+        </button>
+        <button class="btn btn-primary" onclick="confirmMoveTemplate()">
+          <span class="ico" id="icoMove"></span> 确认移动
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 分类管理 -->
+  <div class="modal" id="categoryModal" onclick="noopClose(event)">
+    <div class="modal-content" style="width: 860px;" onclick="event.stopPropagation()">
+      <div class="modal-title">
+        <span>管理分类与排序（支持重命名 / 选图标 / 二级分类图标）</span>
+        <span class="modal-close" onclick="requestCloseModal('categoryModal')">
+          <span class="ico" id="icoClose3"></span>
+          <span>关闭</span>
+        </span>
+      </div>
+
+      <div class="hint" style="margin-top:-4px; margin-bottom:10px;">
+        说明：一级分类图标全局不重复；二级分类图标全局也不重复。点击“调色盘”按钮可重新选择图标。
+      </div>
+
+      <div class="manage-layout">
+        <div class="manage-col">
+          <div class="manage-header">一级分类（点击选中）</div>
+          <div class="manage-list" id="manageMainList"></div>
+
+          <div class="manage-input-row">
+            <div class="new-icon-preview" id="newMainIconPreview"></div>
+            <button class="icon-btn iconpick" type="button" onclick="openIconPickerForNewMain()">
+              <span class="ico" id="icoPalette1"></span> 图标
+            </button>
+            <input type="text" id="newMainCatName" class="form-input" placeholder="新一级分类名" style="flex:1; min-width:180px;" />
+            <button class="btn btn-primary btn-sm" onclick="addMainCategory()">
+              <span class="ico" id="icoPlus3"></span> 添加
+            </button>
+          </div>
+        </div>
+
+        <div class="manage-col">
+          <div class="manage-header">二级分类（<span id="selectedMainCatName" style="color:var(--accent-color)">未选择</span>）</div>
+          <div class="manage-list" id="manageSubList">
+            <div style="padding:10px; color:#9ca3af; text-align:center">请先在左侧选择一级分类</div>
+          </div>
+
+          <div class="manage-input-row">
+            <div class="new-icon-preview" id="newSubIconPreview"></div>
+            <button class="icon-btn iconpick" type="button" id="btnPickNewSubIcon" onclick="openIconPickerForNewSub()" disabled>
+              <span class="ico" id="icoPalette2"></span> 图标
+            </button>
+            <input type="text" id="newSubCatName" class="form-input" placeholder="新二级分类名" style="flex:1; min-width:180px;" disabled />
+            <button class="btn btn-primary btn-sm" id="btnAddSub" onclick="addSubCategory()" disabled>
+              <span class="ico" id="icoPlus4"></span> 添加
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 图标选择器 -->
+  <div class="modal" id="iconPickerModal" onclick="noopClose(event)" style="z-index:1600;">
+    <div class="modal-content modal-content-iconpicker" style="width: 920px;" onclick="event.stopPropagation()">
+      <div class="modal-title">
+        <span id="iconPickerTitle">选择图标</span>
+        <span class="modal-close" onclick="closeModalDirect('iconPickerModal')" title="关闭" aria-label="关闭">
+          <span class="ico" id="icoClose4"></span>
+          <span>关闭</span>
+        </span>
+      </div>
+
+      <div class="icon-picker-body">
+        <div class="hint" id="iconPickerHint">点击图标即可应用。</div>
+
+        <div class="form-row" style="margin-top:10px;">
+          <div class="form-col">
+            <label class="form-label">搜索图标（按名称/描述）</label>
+            <input type="text" class="form-input" id="iconSearchInput" placeholder="例如：手术、药物、影像、风险..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" inputmode="search" enterkeyhint="search" oninput="renderIconPickerGrid()" />
+          </div>
+        </div>
+
+        <div class="icon-grid" id="iconGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 三选项确认弹窗 -->
+  <div class="confirm3-modal" id="confirm3Modal" onclick="closeConfirm3('cancel')">
+    <div class="confirm3-box" onclick="event.stopPropagation()">
+      <div class="confirm3-header">
+        <span id="confirm3Title">未保存的修改</span>
+        <span class="confirm3-x" onclick="closeConfirm3('cancel')" title="关闭" aria-label="关闭"><span class="ico" id="icoConfirmClose"></span><span>关闭</span></span>
+      </div>
+      <div class="confirm3-body" id="confirm3Body">你有未保存的修改。</div>
+      <div class="confirm3-footer">
+        <button class="btn btn-secondary" id="confirm3BtnContinue" type="button" onclick="closeConfirm3('continue')">继续编辑</button>
+        <button class="btn btn-danger" id="confirm3BtnDiscard" type="button" onclick="closeConfirm3('discard')">不保存关闭</button>
+        <button class="btn btn-primary" id="confirm3BtnSave" type="button" onclick="closeConfirm3('save')">保存并关闭</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* =========================
+   1) 图标库（扩展版）
+   ========================= */
+const ICONS = (() => {
+  const s = (paths) => `<svg viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`;
+  const P = {
+    plus: s(`<path d="M12 5v14"/><path d="M5 12h14"/>`),
+    plusCircle: s(`<circle cx="12" cy="12" r="9"/><path d="M12 8v8"/><path d="M8 12h8"/>`),
+    x: s(`<path d="M6 6l12 12"/><path d="M18 6l-12 12"/>`),
+    check: s(`<path d="M20 6L9 17l-5-5"/>`),
+    chevronDown: s(`<path d="M6 9l6 6 6-6"/>`),
+    chevronUp: s(`<path d="M6 15l6-6 6 6"/>`),
+    chevronRight: s(`<path d="M9 6l6 6-6 6"/>`),
+    menu: s(`<path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/>`),
+
+    folder: s(`<path d="M3 7h6l2 2h10v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/>`),
+    folderOpen: s(`<path d="M3 7h6l2 2h10"/><path d="M4 20l2-9h16l-2 9H4z"/>`),
+
+    clipboard: s(`<path d="M9 4h6"/><path d="M10 4a2 2 0 0 0-2 2v2h8V6a2 2 0 0 0-2-2"/><path d="M6 8h12v13H6z"/>`),
+    file: s(`<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>`),
+    tag: s(`<path d="M20 10l-8 8-9-9V4h5l12 6z"/><path d="M7.5 7.5h.01"/>`),
+    bookmark: s(`<path d="M7 3h10v18l-5-3-5 3z"/>`),
+
+    settings: s(`<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a7.8 7.8 0 0 0 .1-2l2-1.2-2-3.4-2.3.6a7.4 7.4 0 0 0-1.7-1l-.3-2.4H10l-.3 2.4a7.4 7.4 0 0 0-1.7 1l-2.3-.6-2 3.4L5.7 13a7.8 7.8 0 0 0 .1 2l-2 1.2 2 3.4 2.3-.6a7.4 7.4 0 0 0 1.7 1l.3 2.4h4.8l.3-2.4a7.4 7.4 0 0 0 1.7-1l2.3.6 2-3.4-2-1.2z"/>`),
+    sort: s(`<path d="M10 6H4"/><path d="M20 6h-6"/><path d="M14 18H4"/><path d="M20 18h-2"/><path d="M8 12H4"/><path d="M20 12H12"/>`),
+    upload: s(`<path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 21h14"/>`),
+    download: s(`<path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/>`),
+    receipt: s(`<path d="M6 2h12v20l-2-1-2 1-2-1-2 1-2-1-2 1V2z"/><path d="M9 7h6"/><path d="M9 11h6"/><path d="M9 15h4"/>`),
+    restore: s(`<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 3v6h6"/>`),
+
+    /* 医疗/病历常用：扩展 */
+    stethoscope: s(`<path d="M6 3v4a4 4 0 0 0 8 0V3"/><path d="M10 11v3a4 4 0 0 0 8 0v-1"/><circle cx="18" cy="13" r="2"/>`),
+    heart: s(`<path d="M12 21s-7-4.4-9-8.8C1.5 8 4 5.5 7 6c1.5.2 2.7 1.2 3 2 0.3-.8 1.5-1.8 3-2 3-.5 5.5 2 4 6.2C19 16.6 12 21 12 21z"/>`),
+    lungs: s(`<path d="M12 3v8"/><path d="M12 11c-2 0-4-3-6-3-2 0-3 2-3 4v6"/><path d="M12 11c2 0 4-3 6-3 2 0 3 2 3 4v6"/><path d="M12 21v-6"/>`),
+    brain: s(`<path d="M8 4a3 3 0 0 0-3 3v2a3 3 0 0 0 3 3"/><path d="M16 4a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3"/><path d="M8 4h8"/><path d="M9 14v6"/><path d="M15 14v6"/>`),
+    bone: s(`<path d="M6 8a2 2 0 1 1 2-2l8 8a2 2 0 1 1-2 2l-8-8z"/><path d="M16 6a2 2 0 1 1 2 2"/><path d="M8 16a2 2 0 1 1-2 2"/>`),
+    tooth: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/>`),
+    syringe: s(`<path d="M5 15l10-10"/><path d="M7 17l10-10"/><path d="M14 4l6 6"/><path d="M3 21l4-4"/><path d="M11 6l6 6"/>`),
+    pill: s(`<path d="M10 14l7-7a4 4 0 0 0-6-6l-7 7a4 4 0 0 0 6 6z"/><path d="M8 8l8 8"/>`),
+    infusion: s(`<path d="M12 2v6"/><path d="M9 8h6"/><path d="M8 22h8"/><path d="M12 8v14"/><path d="M16 12h4"/><path d="M4 12h4"/>`),
+    bandage: s(`<path d="M4 10l10-6 6 10-10 6z"/><path d="M7 12h.01"/><path d="M10 10h.01"/><path d="M13 8h.01"/><path d="M16 6h.01"/>`),
+
+    scalpel: s(`<path d="M4 20l6-6"/><path d="M6 18l-2 2"/><path d="M10 14L20 4"/><path d="M14 10l4 4"/>`),
+    anesthesia: s(`<path d="M4 7h16"/><path d="M6 7v10"/><path d="M18 7v10"/><path d="M8 17h8"/><path d="M10 12h4"/>`),
+    periop: s(`<path d="M12 2v4"/><path d="M12 18v4"/><path d="M4 12H2"/><path d="M22 12h-2"/><path d="M5 5l2 2"/><path d="M19 19l-2-2"/><path d="M19 5l-2 2"/><path d="M5 19l2-2"/><circle cx="12" cy="12" r="4"/>`),
+
+    lab: s(`<path d="M10 2v4l-4 8a6 6 0 0 0 5 8h2a6 6 0 0 0 5-8l-4-8V2"/><path d="M8 10h8"/>`),
+    microscope: s(`<path d="M6 20h10"/><path d="M8 20a4 4 0 0 1 8 0"/><path d="M10 14l3-3"/><path d="M12 6l2 2"/><path d="M14 8l-3 3"/><path d="M7 9l3 3"/><path d="M6 9h4"/>`),
+    dna: s(`<path d="M7 4c4 4 6 12 10 16"/><path d="M17 4c-4 4-6 12-10 16"/><path d="M9 7h6"/><path d="M9 17h6"/>`),
+
+    imaging: s(`<rect x="4" y="6" width="16" height="12" rx="2"/><path d="M8 10h8"/><path d="M8 14h6"/>`),
+    ct: s(`<circle cx="12" cy="12" r="8"/><path d="M12 4v8l6 6"/>`),
+    mri: s(`<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M8 9h8"/><path d="M8 13h8"/><path d="M8 17h5"/>`),
+    ultrasound: s(`<path d="M4 7h8v10H4z"/><path d="M12 9h3a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-3"/><path d="M6 10h4"/><path d="M6 13h4"/>`),
+
+    shield: s(`<path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6l8-4z"/>`),
+    alert: s(`<path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3h3.4L21 19H3L10.3 3z"/>`),
+    info: s(`<circle cx="12" cy="12" r="9"/><path d="M12 10v6"/><path d="M12 7h.01"/>`),
+
+    consult: s(`<path d="M4 5h16v10H7l-3 3V5z"/><path d="M8 9h8"/><path d="M8 12h5"/>`),
+    note: s(`<path d="M4 4h12l4 4v12a2 2 0 0 1-2 2H4z"/><path d="M16 4v4h4"/><path d="M7 12h10"/><path d="M7 16h8"/>`),
+    consent: s(`<path d="M7 3h10v18H7z"/><path d="M9 7h6"/><path d="M9 11h6"/><path d="M9 15h4"/><path d="M14 15l1 1 2-2"/>`),
+    notice: s(`<path d="M5 4h14v16H5z"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h5"/>`),
+
+    discharge: s(`<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6"/><path d="M12 10v6"/>`),
+    transfer: s(`<path d="M7 7h10"/><path d="M17 7l-2-2"/><path d="M17 7l-2 2"/><path d="M17 17H7"/><path d="M7 17l2-2"/><path d="M7 17l2 2"/>`),
+    followup: s(`<path d="M6 7h12"/><path d="M6 11h8"/><path d="M6 15h10"/><path d="M17 11l2 2-2 2"/>`),
+
+    calendar: s(`<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4"/><path d="M16 3v4"/><path d="M3 9h18"/>`),
+    phone: s(`<path d="M7 2h10v20H7z"/><path d="M11 18h2"/>`),
+    message: s(`<path d="M4 5h16v10H7l-3 3V5z"/>`),
+
+    move: s(`<path d="M15 6l4 4-4 4"/><path d="M19 10H10a6 6 0 0 0 0 12h1"/>`),
+    save: s(`<path d="M5 4h14l1 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4z"/><path d="M8 4v6h8V4"/><path d="M8 20v-6h8v6"/>`),
+    trash: s(`<path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M6 7l1-3h10l1 3"/><path d="M7 7v14h10V7"/>`),
+    palette: s(`<path d="M12 3a9 9 0 0 0 0 18h2a2 2 0 0 0 0-4h-1a2 2 0 0 1 0-4h1a4 4 0 0 0 0-8h-2z"/><path d="M7.5 10.5h.01"/><path d="M9.5 7.5h.01"/><path d="M12.5 6.5h.01"/><path d="M15.5 7.5h.01"/>`),
+
+
+    /* 常用 UI：新增 */
+    user: s(`<circle cx="12" cy="8" r="4"/><path d="M4 21c1.6-4.6 6.2-7 8-7s6.4 2.4 8 7"/>`),
+    users: s(`<circle cx="9" cy="8" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3.5 21c1.2-3.8 4.8-6 7.5-6"/><path d="M13 15c2.8 0 6 2.2 7.5 6"/>`),
+    search: s(`<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>`),
+    pen: s(`<path d="M12 20h9"/><path d="M16.5 3.5l4 4L7 21H3v-4L16.5 3.5z"/><path d="M15 5l4 4"/>`),
+    copy: s(`<rect x="9" y="9" width="10" height="10" rx="2"/><rect x="5" y="5" width="10" height="10" rx="2"/>`),
+    star: s(`<path d="M12 2l3 7 7 .6-5.3 4.6L18.6 22 12 18.2 5.4 22l1.9-7.2L2 9.6 9 9l3-7z"/>`),
+    clock: s(`<circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/>`),
+    eye: s(`<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>`),
+    lock: s(`<rect x="6" y="11" width="12" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>`),
+    unlock: s(`<rect x="6" y="11" width="12" height="10" rx="2"/><path d="M10 11V8a4 4 0 0 1 7-2"/>`),
+    home: s(`<path d="M3 11l9-8 9 8"/><path d="M5 10v11h14V10"/><path d="M10 21v-6h4v6"/>`),
+    hospital: s(`<path d="M5 22V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/><path d="M9 10h6"/><path d="M12 7v6"/><path d="M7 22v-6h10v6"/>`),
+    ambulance: s(`<path d="M3 16V8h10v8"/><path d="M13 12h5l3 3v1"/><path d="M5 16a2 2 0 1 0 4 0"/><path d="M15 16a2 2 0 1 0 4 0"/><path d="M16 10h2"/><path d="M9 10h.01"/><path d="M7 11h4"/><path d="M9 9v4"/>`),
+    bed: s(`<path d="M4 12V7a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v5"/><path d="M4 12h16v6"/><path d="M4 18v3"/><path d="M20 18v3"/><path d="M16 12V9h4a2 2 0 0 1 2 2v1"/>`),
+    droplet: s(`<path d="M12 2s7 8 7 13a7 7 0 0 1-14 0c0-5 7-13 7-13z"/>`),
+    thermometer: s(`<path d="M14 14.5a3.5 3.5 0 1 1-4 0V5a2 2 0 0 1 4 0v9.5z"/><path d="M12 6v8"/>`),
+    location: s(`<path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/>`),
+    link: s(`<path d="M10 13a5 5 0 0 1 0-7l1-1a5 5 0 0 1 7 7l-1 1"/><path d="M14 11a5 5 0 0 1 0 7l-1 1a5 5 0 0 1-7-7l1-1"/>`),
+    printer: s(`<path d="M7 8V3h10v5"/><rect x="6" y="14" width="12" height="8" rx="2"/><path d="M6 12H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-1"/><path d="M8 18h8"/>`),
+    image: s(`<rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="M20 16l-6-6-6 7"/>`),
+    share: s(`<path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/>`),
+
+
+    /* 更丰富的二级分类语义图标（用于全局去重与更精细匹配） */
+    activity: s(`<path d="M22 12h-4l-3 9-6-18-3 9H2"/>`),
+    gauge: s(`<circle cx="12" cy="12" r="9"/><path d="M12 12l4-2"/><path d="M6.5 15.5a7 7 0 0 1 11 0"/>`),
+    clipboardCheck: s(`<path d="M9 4h6"/><path d="M10 4a2 2 0 0 0-2 2v2h8V6a2 2 0 0 0-2-2"/><path d="M6 8h12v13H6z"/><path d="M9 14l2 2 4-4"/>`),
+    clipboardList: s(`<path d="M9 4h6"/><path d="M10 4a2 2 0 0 0-2 2v2h8V6a2 2 0 0 0-2-2"/><path d="M6 8h12v13H6z"/><path d="M9 12h6"/><path d="M9 16h6"/>`),
+    list: s(`<path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/>`),
+    listCheck: s(`<path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6l1 1 2-2"/><path d="M3 12l1 1 2-2"/><path d="M3 18l1 1 2-2"/>`),
+    filter: s(`<path d="M4 5h16"/><path d="M7 12l5 6 5-6"/><path d="M9 12V5"/><path d="M15 12V5"/>`),
+    route: s(`<path d="M4 7h6a3 3 0 0 1 3 3v7"/><path d="M20 17h-6a3 3 0 0 1-3-3V7"/><path d="M4 7l2-2"/><path d="M4 7l2 2"/><path d="M20 17l-2-2"/><path d="M20 17l-2 2"/>`),
+    ear: s(`<path d="M10 5a4 4 0 0 1 6 3c0 2-1 3-2 4"/><path d="M8 11c0-3 1-6 5-6"/><path d="M8 11v5a3 3 0 0 0 6 0"/><path d="M10 16a1.5 1.5 0 0 0 3 0"/>`),
+    venus: s(`<circle cx="12" cy="8" r="4"/><path d="M12 12v6"/><path d="M10 16h4"/>`),
+    utensils: s(`<path d="M7 3v8"/><path d="M5 3v8"/><path d="M9 3v8"/><path d="M7 11v10"/><path d="M15 3v18"/><path d="M18 3v6a3 3 0 0 1-3 3h0"/>`),
+    nurse: s(`<path d="M12 3c3 0 5 2 5 5v2"/><path d="M7 10V8c0-3 2-5 5-5"/><path d="M6 21v-4a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v4"/><path d="M12 12v4"/><path d="M10 14h4"/>`),
+    handover: s(`<path d="M7 7h10"/><path d="M17 7l-2-2"/><path d="M17 7l-2 2"/><path d="M17 17H7"/><path d="M7 17l2-2"/><path d="M7 17l2 2"/>`),
+    rounds: s(`<circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M3 21c1.2-4 4-6 5-6"/><path d="M21 21c-1.2-4-4-6-5-6"/><path d="M9 14c1 .2 2 .5 3 .5s2-.3 3-.5"/>`),
+    report: s(`<path d="M6 2h9l3 3v17H6z"/><path d="M15 2v3h3"/><path d="M9 10h6"/><path d="M9 14h6"/><path d="M9 18h4"/>`),
+    barChart: s(`<path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-8"/><path d="M22 20H2"/>`),
+    pieChart: s(`<path d="M12 2v10h10"/><path d="M12 12a10 10 0 1 1 0-10"/><path d="M12 12l7 7"/>`),
+    fileText: s(`<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8 13h8"/><path d="M8 17h6"/>`),
+    fileCheck: s(`<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 14l2 2 4-4"/>`),
+    fileSearch: s(`<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><circle cx="11" cy="14" r="3"/><path d="M15 18l2 2"/>`),
+    checkSquare: s(`<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 12l3 3 5-6"/>`),
+    minusCircle: s(`<circle cx="12" cy="12" r="9"/><path d="M8 12h8"/>`),
+    plusSquare: s(`<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 8v8"/><path d="M8 12h8"/>`),
+    zap: s(`<path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/>`),
+    flag: s(`<path d="M5 22V4"/><path d="M5 4h11l-2 4 2 4H5"/>`),
+    layers: s(`<path d="M12 2l9 5-9 5-9-5 9-5z"/><path d="M3 12l9 5 9-5"/><path d="M3 17l9 5 9-5"/>`),
+    target: s(`<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="M12 7v10"/><path d="M7 12h10"/>`),
+    stomach: s(`<path d="M8 3v5a4 4 0 0 0 4 4h2a3 3 0 0 1 0 6h-1a4 4 0 0 0-4 4"/><path d="M16 3c0 2-1 3-1 5a5 5 0 0 0 2 4"/>`),
+
+    /* 扩展：更多通用/医疗/管理图标（用于后期分类扩展支撑） */
+    mail: s(`<rect x="4" y="6" width="16" height="12" rx="2"/><path d="M4 7l8 6 8-6"/>`),
+    bell: s(`<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>`),
+    bellOff: s(`<path d="M18 8a6 6 0 0 0-10.5-3.8"/><path d="M6 8c0 7-3 7-3 7h12"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/><path d="M3 3l18 18"/>`),
+    camera: s(`<path d="M4 7h4l2-2h4l2 2h4v12H4z"/><circle cx="12" cy="13" r="3"/>`),
+    video: s(`<rect x="3" y="7" width="14" height="10" rx="2"/><path d="M17 10l4-2v8l-4-2"/>`),
+    paperclip: s(`<path d="M21 12l-8.5 8.5a5 5 0 0 1-7.1-7.1L14 4.8a3.5 3.5 0 0 1 5 5L10.4 18.4a2 2 0 0 1-2.8-2.8L15 8.2"/>`),
+
+    database: s(`<ellipse cx="12" cy="5" rx="7" ry="3"/><path d="M5 5v6c0 1.7 3.1 3 7 3s7-1.3 7-3V5"/><path d="M5 11v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/>`),
+    cloud: s(`<path d="M18 18H6a4 4 0 0 1 0-8 5 5 0 0 1 9.7-1.5A4 4 0 0 1 18 18z"/>`),
+    server: s(`<rect x="4" y="4" width="16" height="6" rx="2"/><rect x="4" y="14" width="16" height="6" rx="2"/><path d="M8 7h.01"/><path d="M8 17h.01"/>`),
+    wifi: s(`<path d="M5 10a11 11 0 0 1 14 0"/><path d="M8 13a7 7 0 0 1 8 0"/><path d="M11 16a3 3 0 0 1 2 0"/><path d="M12 19h.01"/>`),
+    refresh: s(`<path d="M21 12a9 9 0 0 0-15-6"/><path d="M3 12a9 9 0 0 0 15 6"/><path d="M6 6H3V3"/><path d="M18 18h3v3"/>`),
+    undo: s(`<path d="M9 14H5l4-4"/><path d="M5 14c0-4 3-7 7-7h5"/>`),
+    redo: s(`<path d="M15 10h4l-4 4"/><path d="M19 10c0 4-3 7-7 7H7"/>`),
+    archive: s(`<path d="M4 4h16v4H4z"/><path d="M6 8v12h12V8"/><path d="M10 12h4"/>`),
+    inbox: s(`<path d="M4 4h16v16H4z"/><path d="M4 14h5l2 2h2l2-2h5"/><path d="M12 7v6"/><path d="M9 10l3 3 3-3"/>`),
+    send: s(`<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/>`),
+
+    book: s(`<path d="M4 19a2 2 0 0 0 2 2h14"/><path d="M6 3h14v18H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>`),
+    bookOpen: s(`<path d="M2 5a2 2 0 0 1 2-2h7v18H4a2 2 0 0 0-2 2V5z"/><path d="M22 5a2 2 0 0 0-2-2h-7v18h7a2 2 0 0 1 2 2V5z"/>`),
+    graduationCap: s(`<path d="M3 8l9-4 9 4-9 4-9-4z"/><path d="M21 10v6"/><path d="M6 12v5c0 2 3 4 6 4s6-2 6-4v-5"/>`),
+
+    wrench: s(`<path d="M21 7a5 5 0 0 1-7 4L7 18a2 2 0 0 1-3-3l7-7a5 5 0 0 1 4-7l-2 2 3 3 2-2z"/>`),
+    key: s(`<path d="M7 14a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/><path d="M11 10h10"/><path d="M18 10v3"/><path d="M15 10v2"/>`),
+    idCard: s(`<rect x="4" y="6" width="16" height="12" rx="2"/><path d="M8 10h.01"/><path d="M8 14h6"/><path d="M14 10h4"/>`),
+    stamp: s(`<path d="M7 21h10"/><path d="M8 21v-2a4 4 0 0 1 8 0v2"/><path d="M9 7a3 3 0 0 1 6 0c0 2-1 3-1 5H10c0-2-1-3-1-5z"/>`),
+    signature: s(`<path d="M4 16c2-3 4-6 6-6 2 0 2 3 4 3s3-4 6-8"/><path d="M4 21h16"/>`),
+    scan: s(`<path d="M7 3H5a2 2 0 0 0-2 2v2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M17 21h2a2 2 0 0 0 2-2v-2"/><path d="M6 12h12"/>`),
+    qr: s(`<rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2h-2z"/><path d="M18 14h2v6h-6v-2h4z"/>`),
+    barcode: s(`<path d="M4 7v10"/><path d="M7 7v10"/><path d="M10 7v10"/><path d="M14 7v10"/><path d="M17 7v10"/><path d="M20 7v10"/>`),
+
+    calculator: s(`<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8"/><path d="M8 11h.01"/><path d="M12 11h.01"/><path d="M16 11h.01"/><path d="M8 15h.01"/><path d="M12 15h.01"/><path d="M16 15h.01"/><path d="M8 19h8"/>`),
+    creditCard: s(`<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/><path d="M7 15h4"/>`),
+    wallet: s(`<path d="M4 7h14a2 2 0 0 1 2 2v2H6a2 2 0 0 0 0 4h14v2a2 2 0 0 1-2 2H4z"/><path d="M20 11v6"/><path d="M16 14h.01"/>`),
+
+    package: s(`<path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v10l9 5 9-5V8"/><path d="M12 13v10"/>`),
+    truck: s(`<path d="M3 16V6h11v10"/><path d="M14 10h5l3 3v3h-8"/><path d="M5 16a2 2 0 1 0 4 0"/><path d="M15 16a2 2 0 1 0 4 0"/>`),
+
+    cigarette: s(`<path d="M3 14h12"/><path d="M18 14h3"/><path d="M15 12v4"/><path d="M21 12v4"/><path d="M6 10c0-2 2-2 2-4s-2-2-2-4"/>`),
+    baby: s(`<circle cx="12" cy="8" r="3"/><path d="M8 21a4 4 0 0 1 8 0"/><path d="M7 12c1.5 2 3.2 3 5 3s3.5-1 5-3"/>`),
+    mars: s(`<circle cx="10" cy="14" r="5"/><path d="M14 10l7-7"/><path d="M16 3h5v5"/>`),
+    wheelchair: s(`<circle cx="10" cy="19" r="3"/><path d="M10 10a2 2 0 1 0-4 0 2 2 0 0 0 4 0z"/><path d="M8 12h4l2 6h4"/><path d="M14 18l2 4"/>`),
+    crutch: s(`<path d="M8 3l4 4"/><path d="M10 5l-5 5a3 3 0 0 0 0 4l6 6a3 3 0 0 0 4 0l1-1"/><path d="M16 20l3 3"/>`),
+
+    mask: s(`<path d="M4 12c2-5 14-5 16 0"/><path d="M6 12v5c0 2 3 4 6 4s6-2 6-4v-5"/><path d="M4 12l-2-1"/><path d="M20 12l2-1"/><path d="M8 15h8"/>`),
+    handWash: s(`<path d="M6 12h10a3 3 0 0 1 3 3v6H9a3 3 0 0 1-3-3v-6z"/><path d="M6 12V9a2 2 0 0 1 4 0v3"/><path d="M10 12V8a2 2 0 0 1 4 0v4"/><path d="M14 12V9a2 2 0 0 1 4 0v3"/><path d="M5 6h.01"/><path d="M8 5h.01"/><path d="M11 6h.01"/>`),
+    virus: s(`<circle cx="12" cy="12" r="5"/><path d="M12 2v3"/><path d="M12 19v3"/><path d="M2 12h3"/><path d="M19 12h3"/><path d="M4.6 4.6l2.1 2.1"/><path d="M17.3 17.3l2.1 2.1"/><path d="M19.4 4.6l-2.1 2.1"/><path d="M6.7 17.3l-2.1 2.1"/>`),
+    bug: s(`<path d="M9 9V7a3 3 0 0 1 6 0v2"/><path d="M8 12h8"/><path d="M7 15h10"/><path d="M12 9v12"/><path d="M4 13h3"/><path d="M17 13h3"/><path d="M7 4l2 2"/><path d="M17 4l-2 2"/>`),
+
+    clipboardSignature: s(`<path d="M9 4h6"/><path d="M10 4a2 2 0 0 0-2 2v2h8V6a2 2 0 0 0-2-2"/><path d="M6 8h12v13H6z"/><path d="M8 16c2-2 3-4 4-4 1 0 1 2 2 2s2-2 4-5"/>`),
+    clipboardPulse: s(`<path d="M9 4h6"/><path d="M10 4a2 2 0 0 0-2 2v2h8V6a2 2 0 0 0-2-2"/><path d="M6 8h12v13H6z"/><path d="M7.5 14h2l1.2 3 2-6 1.6 5 1-2H17"/>`),
+    radiation: s(`<circle cx="12" cy="12" r="2"/><path d="M12 2a10 10 0 0 1 8.7 5"/><path d="M3.3 7A10 10 0 0 1 12 2"/><path d="M12 22a10 10 0 0 1-8.7-5"/><path d="M20.7 17A10 10 0 0 1 12 22"/>`),
+    xray: s(`<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M9 9c0 3 6 3 6 6"/><path d="M15 9c0 3-6 3-6 6"/><path d="M12 7v10"/>`),
+
+  };
+
+  // 图标元数据（用于搜索/分组/语义）
+  const meta = (key, label, desc) => ({ key, label, desc, svg: P[key] });
+
+  // 扩展列表：尽量覆盖“可能用到的模板”
+  const list = [
+    meta('menu', '菜单', '菜单/侧边栏'),
+    meta('folder', '目录', '分类/目录'),
+    meta('folderOpen', '展开', '展开目录'),
+    meta('clipboard', '病历', '病历要点/摘要'),
+    meta('file', '文书', '记录/文档'),
+    meta('note', '记录', '病程/笔记'),
+    meta('stethoscope', '查体', '体格检查/听诊'),
+    meta('heart', '心脏', '心内科/循环'),
+    meta('lungs', '呼吸', '呼吸科/肺'),
+    meta('brain', '神经', '神经系统'),
+    meta('bone', '骨科', '骨科/骨'),
+    meta('tooth', '口腔', '口腔/牙'),
+    meta('lab', '化验', '实验室检查'),
+    meta('microscope', '病理', '病理/显微'),
+    meta('dna', '遗传', '基因/分子'),
+    meta('imaging', '影像', '影像检查'),
+    meta('ct', 'CT', 'CT/时间线'),
+    meta('mri', 'MRI', '核磁/结构'),
+    meta('ultrasound', '超声', '超声/床旁'),
+    meta('syringe', '注射', '注射/疫苗'),
+    meta('pill', '药物', '口服用药'),
+    meta('infusion', '输液', '静脉治疗'),
+    meta('bandage', '换药', '敷料/伤口'),
+    meta('scalpel', '手术', '手术相关'),
+    meta('anesthesia', '麻醉', '麻醉/镇静'),
+    meta('periop', '围手术期', '术前术后管理'),
+    meta('shield', '风险', '风险/防护'),
+    meta('alert', '危重', '病危/警示'),
+    meta('info', '提示', '说明/注意事项'),
+    meta('consent', '同意', '知情同意'),
+    meta('notice', '告知', '告知书/宣教'),
+    meta('consult', '会诊', '会诊/多学科'),
+    meta('discharge', '出院', '出院记录/医嘱'),
+    meta('transfer', '转科', '转科/转院'),
+    meta('followup', '随访', '复诊/随访'),
+    meta('calendar', '计划', '计划/排程'),
+    meta('phone', '沟通', '电话/联系'),
+    meta('message', '沟通', '信息/沟通'),
+    meta('tag', '标签', '标签/关键词'),
+    meta('bookmark', '收藏', '收藏/常用'),
+    meta('settings', '设置', '设置/管理'),
+    meta('sort', '排序', '排序/调整'),
+    meta('upload', '导入', '导入/恢复'),
+    meta('download', '导出', '导出/备份'),
+    meta('receipt', '收据', '备份收据/清单'),
+    meta('restore', '恢复', '恢复/回滚'),
+    meta('user', '个人', '个人/患者'),
+    meta('users', '人群', '人群/家族'),
+    meta('search', '搜索', '搜索/查找'),
+    meta('pen', '编辑', '编辑/重命名'),
+    meta('copy', '复制', '复制/重复'),
+    meta('star', '星标', '星标/重点'),
+    meta('clock', '时间', '时间/时钟'),
+    meta('eye', '查看', '查看/预览'),
+    meta('lock', '锁定', '锁定/权限'),
+    meta('unlock', '解锁', '解锁/开放'),
+    meta('home', '主页', '主页/首页'),
+    meta('hospital', '医院', '医院/科室'),
+    meta('ambulance', '急救', '急救/救护车'),
+    meta('bed', '病床', '病床/住院'),
+    meta('droplet', '血滴', '血液/出血'),
+    meta('thermometer', '体温', '体温/发热'),
+    meta('location', '定位', '定位/地址'),
+    meta('link', '链接', '链接/关联'),
+    meta('printer', '打印', '打印/输出'),
+    meta('image', '图片', '图片/图像'),
+    meta('share', '分享', '分享/转发'),
+
+    meta('mail', '邮件', '邮件/通知'),
+    meta('bell', '提醒', '提醒/通知'),
+    meta('bellOff', '静音', '静音/免打扰'),
+    meta('camera', '拍照', '拍照/影像记录'),
+    meta('video', '视频', '视频/视频随访'),
+    meta('paperclip', '附件', '附件/上传'),
+
+    meta('database', '数据库', '数据/存储'),
+    meta('cloud', '云端', '云端/同步'),
+    meta('server', '服务器', '服务器/系统'),
+    meta('wifi', '网络', '网络/连接'),
+    meta('refresh', '同步', '同步/刷新'),
+    meta('undo', '撤销', '撤销/回退'),
+    meta('redo', '重做', '重做/前进'),
+    meta('archive', '归档', '归档/封存'),
+    meta('inbox', '收件', '收件/待处理'),
+    meta('send', '发送', '发送/提交'),
+
+    meta('book', '手册', '指南/手册'),
+    meta('bookOpen', '指南', '指南/阅读'),
+    meta('graduationCap', '教学', '教学/培训'),
+
+    meta('wrench', '工具', '工具/维护'),
+    meta('key', '密钥', '密钥/权限'),
+    meta('idCard', '身份', '身份/信息卡'),
+    meta('stamp', '盖章', '盖章/签章'),
+    meta('signature', '签名', '签名/手写'),
+    meta('scan', '扫描', '扫描/录入'),
+    meta('qr', '二维码', '二维码/识别'),
+    meta('barcode', '条码', '条码/编号'),
+
+    meta('calculator', '计算', '计算/评分'),
+    meta('creditCard', '支付', '支付/费用'),
+    meta('wallet', '费用', '费用/结算'),
+
+    meta('package', '物资', '物资/耗材'),
+    meta('truck', '转运', '转运/物流'),
+
+    meta('cigarette', '吸烟', '个人史/吸烟'),
+    meta('baby', '儿科', '儿科/新生儿'),
+    meta('mars', '男性', '男性/男'),
+    meta('wheelchair', '轮椅', '行动不便'),
+    meta('crutch', '拐杖', '康复/辅助'),
+    meta('mask', '口罩', '防护/感染控制'),
+    meta('handWash', '洗手', '洗手/消毒'),
+    meta('virus', '感染', '感染/病毒'),
+    meta('bug', '问题', '问题/故障'),
+
+    meta('clipboardSignature', '签署', '签署/签名'),
+    meta('clipboardPulse', '监测', '监测/生命体征'),
+    meta('radiation', '放射', '放射/辐射'),
+    meta('xray', 'X光', 'X光/放射'),
+
+
+    meta('activity', '生命体征', '生命体征/监护'),
+    meta('gauge', '血压', '血压/压力表'),
+    meta('clipboardCheck', '核对', '核对/检查清单'),
+    meta('clipboardList', '清单', '清单/列表'),
+    meta('list', '列表', '列表/条目'),
+    meta('listCheck', '完成清单', '清单/勾选'),
+    meta('filter', '筛选', '筛选/鉴别'),
+    meta('route', '路径', '流程/路径/经过'),
+    meta('ear', '耳鼻喉', '耳鼻喉/耳'),
+    meta('venus', '妇科', '妇科/女性'),
+    meta('utensils', '饮食', '饮食/营养'),
+    meta('nurse', '护理', '护理/照护'),
+    meta('handover', '交接', '交接班/交接'),
+    meta('rounds', '查房', '查房/团队'),
+    meta('report', '总结', '摘要/汇总/小结'),
+    meta('barChart', '统计', '统计/趋势'),
+    meta('pieChart', '构成', '构成/比例'),
+    meta('fileText', '文本', '文本/说明'),
+    meta('fileCheck', '已确认', '确认/诊断依据'),
+    meta('fileSearch', '检索', '检索/查找'),
+    meta('checkSquare', '勾选', '勾选/确认项'),
+    meta('minusCircle', '排除', '排除/阴性'),
+    meta('plusSquare', '补充', '补充/新增'),
+    meta('zap', '疼痛', '疼痛/电击样'),
+    meta('flag', '标记', '标记/异常'),
+    meta('layers', '分层', '分层/多级'),
+    meta('target', '目标', '目标/诊疗目标'),
+    meta('stomach', '腹部', '腹部/消化'),
+
+    meta('move', '移动', '移动/迁移'),
+    meta('save', '保存', '保存'),
+    meta('trash', '删除', '删除'),
+    meta('palette', '图标', '图标/选择'),
+    meta('plus', '添加', '添加'),
+    meta('plusCircle', '新增', '新增/创建'),
+    meta('x', '关闭', '关闭/取消'),
+    meta('check', '确认', '确认/完成'),
+    meta('chevronDown', '展开', '展开'),
+    meta('chevronUp', '收起', '收起'),
+    meta('chevronRight', '进入', '进入/右箭头'),
+  ];
+
+  const map = new Map();
+  list.forEach(i => map.set(i.key, i));
+  return {
+    get: (key) => map.get(key),
+    all: () => Array.from(map.values()),
+    svg: (key) => (map.get(key)?.svg || P.folder),
+    exists: (key) => map.has(key)
+  };
+})();
+
+/* =========================
+   2) 默认分类（含你新增）
+   - main: iconKey
+   - subs: {name, iconKey}
+   ========================= */
+const DEFAULT_CATEGORIES = [
+  { name: "主诉", iconKey: "message", subs: [
+    { name:"一般主诉", iconKey:"clipboard" },
+    { name:"急诊主诉", iconKey:"alert" },
+    { name:"复诊主诉", iconKey:"followup" },
+  ]},
+  { name: "现病史", iconKey: "note", subs: [
+    { name:"发病情况", iconKey:"info" },
+    { name:"诊疗经过", iconKey:"file" },
+    { name:"症状描述", iconKey:"stethoscope" },
+    { name:"阴性鉴别", iconKey:"shield" },
+  ]},
+  { name: "病例特点", iconKey: "bookmark", subs: [
+    { name:"阳性体征汇总", iconKey:"check" },
+    { name:"病史摘要", iconKey:"clipboard" },
+    { name:"辅助检查汇总", iconKey:"lab" },
+  ]},
+  { name: "既往史", iconKey: "calendar", subs: [
+    { name:"疾病史", iconKey:"heart" },
+    { name:"手术史", iconKey:"scalpel" },
+    { name:"过敏史", iconKey:"alert" },
+    { name:"输血史", iconKey:"infusion" },
+  ]},
+  { name: "个人史/家族史", iconKey: "users", subs: [
+    { name:"个人史", iconKey:"info" },
+    { name:"婚育史", iconKey:"calendar" },
+    { name:"家族史", iconKey:"dna" },
+    { name:"月经史", iconKey:"calendar" },
+  ]},
+  { name: "体格检查", iconKey: "stethoscope", subs: [
+    { name:"生命体征", iconKey:"heart" },
+    { name:"一般检查", iconKey:"check" },
+    { name:"头颈部", iconKey:"brain" },
+    { name:"心肺听诊", iconKey:"lungs" },
+    { name:"腹部", iconKey:"info" },
+    { name:"神经系统", iconKey:"brain" },
+  ]},
+  { name: "专科检查", iconKey: "stethoscope", subs: [
+    { name:"眼科检查", iconKey:"imaging" },
+    { name:"耳鼻喉", iconKey:"message" },
+    { name:"妇科检查", iconKey:"info" },
+    { name:"骨科查体", iconKey:"bone" },
+    { name:"皮肤科", iconKey:"shield" },
+  ]},
+  { name: "辅助检查", iconKey: "lab", subs: [
+    { name:"实验室检查", iconKey:"lab" },
+    { name:"影像学检查", iconKey:"imaging" },
+    { name:"病理检查", iconKey:"microscope" },
+    { name:"特殊检查", iconKey:"info" },
+  ]},
+  { name: "初步诊断", iconKey: "check", subs: [
+    { name:"中医诊断", iconKey:"bookmark" },
+    { name:"西医诊断", iconKey:"check" },
+    { name:"补充诊断", iconKey:"info" },
+  ]},
+  { name: "鉴别诊断", iconKey: "shield", subs: [
+    { name:"常见病鉴别", iconKey:"info" },
+    { name:"疑难病鉴别", iconKey:"alert" },
+    { name:"危急重症鉴别", iconKey:"alert" },
+  ]},
+  { name: "诊断依据", iconKey: "file", subs: [
+    { name:"症状依据", iconKey:"stethoscope" },
+    { name:"体征依据", iconKey:"check" },
+    { name:"检查依据", iconKey:"lab" },
+  ]},
+  { name: "诊疗计划", iconKey: "calendar", subs: [
+    { name:"检查计划", iconKey:"lab" },
+    { name:"药物治疗", iconKey:"pill" },
+    { name:"手术计划", iconKey:"scalpel" },
+    { name:"护理级别", iconKey:"shield" },
+    { name:"饮食医嘱", iconKey:"info" },
+  ]},
+  { name: "围手术期", iconKey: "periop", subs: [
+    { name:"术前评估", iconKey:"check" },
+    { name:"术前准备", iconKey:"folderOpen" },
+    { name:"术后管理", iconKey:"shield" },
+    { name:"疼痛管理", iconKey:"pill" },
+  ]},
+  { name: "手术记录", iconKey: "scalpel", subs: [
+    { name:"术前诊断", iconKey:"check" },
+    { name:"术中要点", iconKey:"note" },
+    { name:"术后诊断", iconKey:"check" },
+    { name:"术后医嘱", iconKey:"discharge" },
+  ]},
+  { name: "会诊处置", iconKey: "consult", subs: [
+    { name:"会诊意见", iconKey:"consult" },
+    { name:"处置记录", iconKey:"note" },
+    { name:"多学科讨论", iconKey:"message" },
+  ]},
+  { name: "病程描述", iconKey: "note", subs: [
+    { name:"病情变化", iconKey:"info" },
+    { name:"治疗反应", iconKey:"check" },
+    { name:"特殊情况记录", iconKey:"alert" },
+  ]},
+  { name: "病程记录", iconKey: "file", subs: [
+    { name:"首次病程", iconKey:"file" },
+    { name:"日常病程", iconKey:"note" },
+    { name:"上级医师查房", iconKey:"stethoscope" },
+    { name:"交接班记录", iconKey:"transfer" },
+    { name:"抢救记录", iconKey:"alert" },
+    { name:"阶段小结", iconKey:"bookmark" },
+  ]},
+  { name: "知情同意", iconKey: "consent", subs: [
+    { name:"手术同意书", iconKey:"consent" },
+    { name:"输血同意书", iconKey:"infusion" },
+    { name:"特殊检查同意", iconKey:"imaging" },
+    { name:"自费药同意", iconKey:"pill" },
+  ]},
+  { name: "告知书", iconKey: "notice", subs: [
+    { name:"病危/病重告知", iconKey:"alert" },
+    { name:"入院告知", iconKey:"info" },
+    { name:"拒绝治疗告知", iconKey:"shield" },
+  ]},
+  { name: "处理意见", iconKey: "discharge", subs: [
+    { name:"出院医嘱", iconKey:"discharge" },
+    { name:"转科意见", iconKey:"transfer" },
+    { name:"门诊随访", iconKey:"followup" },
+  ]},
+];
+
+/* =========================
+   3) 全局数据
+   ========================= */
+let templates = JSON.parse(localStorage.getItem('med_templates_v3')) || [];
+let categoryTree = JSON.parse(localStorage.getItem('med_categories_v3')) || DEFAULT_CATEGORIES;
+
+let currentFilter = { type: 'ALL', value: '' }; // ALL/MAIN/SUB
+let editingCategoryMain = null;
+
+// 标签
+let selectedTags = new Set();
+let allTagsCache = [];
+let tagUsageMap = new Map();
+let tagPoolExpanded = false;
+
+// 未保存快照
+let templateModalSnapshot = null;
+let moveModalSnapshot = null;
+let listenersBound = false;
+
+// 三选项上下文
+let confirm3Context = null;
+
+// icon picker 上下文
+let iconPickerContext = null;
+/*
+  iconPickerContext = {
+    scope: 'MAIN' | 'SUB' | 'NEW_MAIN' | 'NEW_SUB',
+    mainIndex,
+    subIndex,
+    usedKeys: Set,
+    onPick: (key) => void
+  }
+*/
+
+// 新增分类临时选择
+let newMainIconKey = 'folder';
+let newSubIconKey = 'folderOpen';
+
+/* =========================
+   4) 初始化
+   ========================= */
+window.onload = function() {
+  mountTopIcons();
+  normalizeDataForCompatibility();
+  normalizeCategoryTreeForCompatibility();
+
+  bindDirtyListenersOnce();
+  setupTagInputEnter();
+  bindTagAddButtonDisable();
+
+  bindEscToClose();
+
+  rebuildTagPool([]);
+  renderSidebar();
+  renderTemplates();
+  updateTagPoolToggleVisibility();
+  syncNewCategoryIconRemember();
+};
+
+/* =========================
+   5) 顶部固定图标挂载
+   ========================= */
+function setIcon(elId, key) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.innerHTML = ICONS.svg(key);
+}
+function mountTopIcons() {
+  setIcon('icoPlus', 'plusCircle');
+  setIcon('icoManage', 'settings');      // 你要匹配“管理分类与排序”
+  setIcon('icoReceipt', 'receipt');      // 备份收据
+  setIcon('icoRestore', 'restore');      // 恢复数据
+  setIcon('icoMenu', 'menu');               // 移动端菜单按钮
+
+  setIcon('icoClose1', 'x');
+  setIcon('icoClose2', 'x');
+  setIcon('icoClose3', 'x');
+  setIcon('icoClose4', 'x');
+  setIcon('icoConfirmClose', 'x');
+
+  setIcon('icoPlusTag', 'plus');         // 标签添加按钮图标更合适（+）
+  setIcon('icoChevron', 'chevronDown');
+
+  setIcon('icoTrash', 'trash');
+  setIcon('icoSave', 'save');
+  setIcon('icoX', 'x');
+  setIcon('icoX2', 'x');
+  setIcon('icoMove', 'move');
+
+  setIcon('icoPalette1', 'palette');
+  setIcon('icoPalette2', 'palette');
+  setIcon('icoPlus3', 'plus');
+  setIcon('icoPlus4', 'plus');
+}
+
+/* =========================
+   6) 遮罩点击不关闭 + ESC 关闭
+   ========================= */
+function noopClose(e) {
+  if (e) { e.stopPropagation(); e.preventDefault(); }
+  return false;
+}
+function isModalOpen(id) {
+  const el = document.getElementById(id);
+  return el && el.style.display === 'flex';
+}
+let __modalLockCount = 0;
+let __bodyScrollY = 0;
+
+function anyModalVisible() {
+  return Array.from(document.querySelectorAll('.modal'))
+    .some(m => m && m.style && m.style.display === 'flex');
+}
+
+function lockBodyScrollForModal() {
+  // Robust iOS scroll lock: lock BOTH <html> and <body>.
+  if (document.documentElement.classList.contains('modal-open')) return;
+  __bodyScrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+
+  document.documentElement.classList.add('modal-open');
+  document.body.classList.add('modal-open');
+
+  // Freeze the page at the current scroll position.
+  document.documentElement.style.top = `-${__bodyScrollY}px`;
+  document.body.style.top = `-${__bodyScrollY}px`;
+}
+
+function unlockBodyScrollForModal() {
+  if (!document.documentElement.classList.contains('modal-open')) return;
+
+  document.documentElement.classList.remove('modal-open');
+  document.body.classList.remove('modal-open');
+
+  const y = __bodyScrollY || 0;
+  document.documentElement.style.top = '';
+  document.body.style.top = '';
+
+  window.scrollTo(0, y);
+}
+
+function openModal(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = 'flex';
+  __modalLockCount++;
+  // On mobile we use page scrolling; lock it to prevent background move while scrolling the modal.
+  if (isMobile()) lockBodyScrollForModal();
+}
+
+function closeModalDirect(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'none';
+  __modalLockCount = Math.max(0, __modalLockCount - 1);
+  // If no modal is visible, unlock the page scroll.
+  if (isMobile() && !anyModalVisible()) unlockBodyScrollForModal();
+}
+
+// iOS Safari: prevent scroll from propagating to the background while a modal is open.
+if (!window.__modalTouchBound) {
+  window.__modalTouchBound = true;
+  document.addEventListener('touchmove', function(e) {
+    if (!isMobile()) return;
+    if (!anyModalVisible()) return;
+    // Allow scrolling inside modal content.
+    const inModal = e.target && e.target.closest && e.target.closest('.modal-content');
+    if (inModal) return;
+    e.preventDefault();
+  }, { passive: false });
+}
+
+function isMobile() {
+  return window.matchMedia && window.matchMedia('(max-width: 680px)').matches;
+}
+function openSidebar() {
+  if (!isMobile()) return;
+  const sb = document.querySelector('.sidebar');
+  const bd = document.getElementById('sidebarBackdrop');
+  if (sb) sb.classList.add('open');
+  if (bd) bd.classList.add('show');
+}
+function closeSidebar() {
+  const sb = document.querySelector('.sidebar');
+  const bd = document.getElementById('sidebarBackdrop');
+  if (sb) sb.classList.remove('open');
+  if (bd) bd.classList.remove('show');
+}
+function toggleSidebar() {
+  const sb = document.querySelector('.sidebar');
+  if (!sb) return;
+  if (sb.classList.contains('open')) closeSidebar();
+  else openSidebar();
+}
+window.addEventListener('resize', () => { if (!isMobile()) closeSidebar(); });
+
+function bindEscToClose() {
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    // 移动端：优先关闭侧边栏抽屉
+    const sb = document.querySelector('.sidebar');
+    if (isMobile() && sb && sb.classList.contains('open')) { closeSidebar(); return; }
+
+    if (isModalOpen('confirm3Modal')) return closeConfirm3('cancel');
+    if (isModalOpen('iconPickerModal')) return closeModalDirect('iconPickerModal');
+
+    if (isModalOpen('templateModal')) return requestCloseModal('templateModal');
+    if (isModalOpen('moveModal')) return requestCloseModal('moveModal');
+    if (isModalOpen('categoryModal')) return requestCloseModal('categoryModal');
+  });
+}
+
+/* =========================
+   7) 三选项弹窗
+   ========================= */
+const CONFIRM3_DEFAULT_LABELS = { continue: '继续编辑', discard: '不保存关闭', save: '保存并关闭' };
+function openConfirm3({ title, body, targetModalId, onSave, onDiscard, onContinue, labels }) {
+  confirm3Context = { targetModalId, onSave, onDiscard, onContinue };
+  document.getElementById('confirm3Title').textContent = title || '未保存的修改';
+  document.getElementById('confirm3Body').textContent = body || '你有未保存的修改。';
+
+  const l = labels || {};
+  const btnC = document.getElementById('confirm3BtnContinue');
+  const btnD = document.getElementById('confirm3BtnDiscard');
+  const btnS = document.getElementById('confirm3BtnSave');
+  if (btnC) btnC.textContent = l.continue || CONFIRM3_DEFAULT_LABELS.continue;
+  if (btnD) btnD.textContent = l.discard || CONFIRM3_DEFAULT_LABELS.discard;
+  if (btnS) btnS.textContent = l.save || CONFIRM3_DEFAULT_LABELS.save;
+
+  openModal('confirm3Modal');
+}
+function closeConfirm3(action) {
+  closeModalDirect('confirm3Modal');
+  if (!confirm3Context) return;
+
+  const ctx = confirm3Context;
+  confirm3Context = null;
+
+  if (action === 'cancel') return;
+  if (action === 'continue') return (typeof ctx.onContinue === 'function') ? ctx.onContinue() : undefined;
+  if (action === 'discard') return (typeof ctx.onDiscard === 'function') ? ctx.onDiscard() : undefined;
+  if (action === 'save') return (typeof ctx.onSave === 'function') ? ctx.onSave() : undefined;
+}
+
+function requestCloseModal(id) {
+  if (id === 'templateModal') {
+    if (isTemplateModalDirty()) {
+      openConfirm3({
+        title: '未保存的修改',
+        body: '检测到你在“模板编辑”中有未保存的更改。\n\n请选择：保存并关闭 / 不保存关闭 / 继续编辑。',
+        targetModalId: 'templateModal',
+        onSave: () => {
+          const ok = saveTemplate(true);
+          if (ok) closeModalDirect('templateModal');
+        },
+        onDiscard: () => {
+          templateModalSnapshot = null;
+          closeModalDirect('templateModal');
+        }
+      });
+      return;
+    }
+    closeModalDirect('templateModal');
+    return;
+  }
+
+  if (id === 'moveModal') {
+    if (isMoveModalDirty()) {
+      openConfirm3({
+        title: '未确认的移动',
+        body: '你修改了移动目标但尚未确认。\n\n请选择：确认移动并关闭 / 不移动关闭 / 继续编辑。',
+        targetModalId: 'moveModal',
+        onSave: () => {
+          const ok = confirmMoveTemplate(true);
+          if (ok) closeModalDirect('moveModal');
+        },
+        onDiscard: () => {
+          moveModalSnapshot = null;
+          closeModalDirect('moveModal');
+        }
+      });
+      return;
+    }
+    closeModalDirect('moveModal');
+    return;
+  }
+
+  closeModalDirect(id);
+}
+
+/* =========================
+   8) 兼容旧数据：templates
+   ========================= */
+function normalizeDataForCompatibility() {
+  templates = (templates || []).map(t => ({
+    id: (t.id ?? Date.now().toString()) + "",
+    mainCat: (t.mainCat ?? ""),
+    subCat: (t.subCat ?? ""),
+    title: (t.title ?? ""),
+    tags: (t.tags ?? ""),
+    content: (t.content ?? "")
+  }));
+  saveToLocal();
+}
+
+/* =========================
+   9) 兼容旧数据：categoryTree（关键）
+   - 旧 subs: ["a","b"] => subs: [{name:"a", iconKey:"..."}, ...]
+   - 旧 main 没 iconKey => 自动分配
+   ========================= */
+function normalizeCategoryTreeForCompatibility() {
+  if (!Array.isArray(categoryTree)) categoryTree = DEFAULT_CATEGORIES;
+
+  // 收集已使用的主图标（一级分类全局不重复）
+  const usedMain = new Set();
+
+  // 收集已使用的子图标（二级分类全局不重复）
+  const usedSubGlobal = new Set();
+
+  categoryTree.forEach((c, mainIndex) => {
+    if (!c.iconKey || !ICONS.exists(c.iconKey)) c.iconKey = guessMainIcon(c.name);
+    if (usedMain.has(c.iconKey)) c.iconKey = pickFreeIcon(usedMain, guessMainIcon(c.name));
+    usedMain.add(c.iconKey);
+
+    if (!Array.isArray(c.subs)) c.subs = [];
+
+    // 子分类兼容（统一对象结构）+ 二级分类图标全局不重复
+    c.subs = c.subs.map((sub, subIndex) => {
+      if (typeof sub === 'string') {
+        const preferred = guessSubIcon(sub);
+        const iconKey = pickFreeSubIcon(usedSubGlobal, sub, preferred);
+        usedSubGlobal.add(iconKey);
+        return { name: sub, iconKey };
+      }
+
+      const name = (sub?.name ?? '').toString();
+      let iconKey = (sub?.iconKey ?? '').toString();
+      if (!ICONS.exists(iconKey)) iconKey = guessSubIcon(name);
+
+      // 全局不重复：如果已被占用，则按语义候选集再挑一个
+      iconKey = pickFreeSubIcon(usedSubGlobal, name, iconKey);
+      usedSubGlobal.add(iconKey);
+
+      return { name, iconKey };
+    });
+  });
+
+  saveCategories();
+}
+
+function guessMainIcon(name) {
+  const n = (name || '').toString();
+  if (/主诉|沟通|问诊/.test(n)) return 'message';
+  if (/现病史|病程|记录|描述/.test(n)) return 'note';
+  if (/体格|查体|专科检查/.test(n)) return 'stethoscope';
+  if (/辅助检查|化验|检验|实验室/.test(n)) return 'lab';
+  if (/影像|CT|MRI|超声/.test(n)) return 'imaging';
+  if (/诊断/.test(n)) return 'check';
+  if (/鉴别/.test(n)) return 'shield';
+  if (/计划/.test(n)) return 'calendar';
+  if (/围手术期/.test(n)) return 'periop';
+  if (/手术记录|手术/.test(n)) return 'scalpel';
+  if (/会诊/.test(n)) return 'consult';
+  if (/知情同意/.test(n)) return 'consent';
+  if (/告知/.test(n)) return 'notice';
+  if (/处理意见|出院|医嘱/.test(n)) return 'discharge';
+  if (/既往史/.test(n)) return 'calendar';
+  if (/个人史|家族史/.test(n)) return 'dna';
+  return 'folder';
+}
+
+function guessSubIcon(name) {
+  const n = (name || '').toString();
+
+  // 更细的语义映射：优先把常见二级分类映射到更专用图标
+  if (/生命体征|血压|脉搏|呼吸|氧饱和|SpO2|体温/.test(n)) return 'activity';
+  if (/疼痛/.test(n)) return 'zap';
+  if (/护理/.test(n)) return 'nurse';
+  if (/饮食|营养/.test(n)) return 'utensils';
+  if (/交接班/.test(n)) return 'handover';
+  if (/查房/.test(n)) return 'rounds';
+  if (/小结|摘要|汇总|总结/.test(n)) return 'report';
+  if (/阴性|排除|鉴别/.test(n)) return 'filter';
+  if (/诊疗经过|经过|流程|路径/.test(n)) return 'route';
+
+  if (/急诊|抢救|危重|病危/.test(n)) return 'ambulance';
+  if (/过敏/.test(n)) return 'alert';
+  if (/输血|输液|静脉/.test(n)) return 'infusion';
+  if (/影像|CT|MRI|超声/.test(n)) return 'imaging';
+  if (/病理/.test(n)) return 'microscope';
+  if (/实验室|化验|检验/.test(n)) return 'lab';
+  if (/药物|用药/.test(n)) return 'pill';
+  if (/手术|术中|切开/.test(n)) return 'scalpel';
+  if (/麻醉/.test(n)) return 'anesthesia';
+  if (/随访|复诊/.test(n)) return 'followup';
+  if (/会诊|讨论/.test(n)) return 'consult';
+  if (/出院|医嘱/.test(n)) return 'discharge';
+  if (/转科|转院/.test(n)) return 'transfer';
+  if (/体征|查体|听诊/.test(n)) return 'stethoscope';
+  if (/心肺/.test(n)) return 'lungs';
+  if (/神经/.test(n)) return 'brain';
+  if (/骨/.test(n)) return 'bone';
+  if (/口腔|牙/.test(n)) return 'tooth';
+
+  if (/眼科/.test(n)) return 'eye';
+  if (/耳鼻喉|耳/.test(n)) return 'ear';
+  if (/妇科|月经|婚育/.test(n)) return 'venus';
+  if (/腹部|消化|胃肠/.test(n)) return 'stomach';
+
+  if (/计划/.test(n)) return 'calendar';
+  return 'file';
+}
+
+// 从图标库挑一个未使用的（优先给候选key，否则给任意可用）
+// 默认会避开纯控制类图标（如关闭/箭头等），优先用于“分类图标”。
+const CATEGORY_ICON_EXCLUDE = new Set([
+  'plus','plusCircle','x','chevronDown','chevronUp','chevronRight',
+  'move','save','trash','palette','settings','sort','upload','download','receipt','restore'
+]);
+function getCategoryIconKeys() {
+  return ICONS.all().map(x => x.key).filter(k => !CATEGORY_ICON_EXCLUDE.has(k));
+}
+
+function pickFreeIcon(usedSet, preferredKey, poolKeys) {
+  const all = (Array.isArray(poolKeys) && poolKeys.length) ? poolKeys : getCategoryIconKeys();
+  if (preferredKey && !usedSet.has(preferredKey) && ICONS.exists(preferredKey)) return preferredKey;
+  for (const k of all) if (!usedSet.has(k) && ICONS.exists(k)) return k;
+  // 兜底：如果图标池被完全占满，则返回一个存在的图标（可能重复）
+  if (preferredKey && ICONS.exists(preferredKey)) return preferredKey;
+  return 'folder';
+}
+
+function pushUniq(arr, ...keys) {
+  for (const k of keys) {
+    if (!k) continue;
+    if (!arr.includes(k)) arr.push(k);
+  }
+}
+
+function subIconCandidates(name, preferredKey) {
+  const n = (name || '').toString();
+  const c = [];
+  pushUniq(c, preferredKey, guessSubIcon(n));
+
+  if (/生命体征|血压|脉搏|呼吸|氧饱和|SpO2|体温/.test(n)) pushUniq(c, 'activity','gauge','heart','thermometer');
+  if (/疼痛/.test(n)) pushUniq(c, 'zap','pill');
+  if (/护理/.test(n)) pushUniq(c, 'nurse','bed','shield');
+  if (/饮食|营养/.test(n)) pushUniq(c, 'utensils','info');
+  if (/交接班/.test(n)) pushUniq(c, 'handover','transfer');
+  if (/查房/.test(n)) pushUniq(c, 'rounds','stethoscope','users');
+  if (/小结|摘要|汇总|总结/.test(n)) pushUniq(c, 'report','fileText','barChart','star','bookmark');
+  if (/阴性|排除|鉴别/.test(n)) pushUniq(c, 'filter','minusCircle','shield','info');
+  if (/诊疗经过|经过|流程|路径/.test(n)) pushUniq(c, 'route','layers','fileText');
+
+  if (/急诊|抢救|危重|病危/.test(n)) pushUniq(c, 'ambulance','alert');
+  if (/过敏/.test(n)) pushUniq(c, 'alert','shield');
+  if (/输血|输液|静脉/.test(n)) pushUniq(c, 'infusion','droplet');
+  if (/影像|CT|MRI|超声/.test(n)) pushUniq(c, 'imaging','ct','mri','ultrasound','image');
+  if (/实验室|化验|检验/.test(n)) pushUniq(c, 'lab','barChart','droplet');
+  if (/病理/.test(n)) pushUniq(c, 'microscope','fileSearch');
+  if (/药物|用药/.test(n)) pushUniq(c, 'pill','clipboardList');
+  if (/手术|术中|术前|术后|切开/.test(n)) pushUniq(c, 'scalpel','periop','clipboardCheck','clipboardList');
+  if (/麻醉/.test(n)) pushUniq(c, 'anesthesia','shield');
+  if (/随访|复诊/.test(n)) pushUniq(c, 'followup','calendar');
+  if (/会诊|讨论/.test(n)) pushUniq(c, 'consult','message','users');
+  if (/出院|医嘱/.test(n)) pushUniq(c, 'discharge','fileCheck','printer');
+  if (/转科|转院/.test(n)) pushUniq(c, 'transfer','handover','route');
+  if (/计划/.test(n)) pushUniq(c, 'calendar','clipboardList','listCheck','target');
+  if (/耳鼻喉|耳/.test(n)) pushUniq(c, 'ear','stethoscope');
+  if (/眼科/.test(n)) pushUniq(c, 'eye','imaging');
+  if (/妇科|月经|婚育/.test(n)) pushUniq(c, 'venus','calendar');
+  if (/腹部|消化|胃肠/.test(n)) pushUniq(c, 'stomach','info');
+
+  // 仅保留当前版本存在的 key
+  return c.filter(k => ICONS.exists(k));
+}
+
+function pickFreeSubIcon(usedSet, name, preferredKey) {
+  const candidates = subIconCandidates(name, preferredKey);
+  for (const k of candidates) if (!usedSet.has(k)) return k;
+  return pickFreeIcon(usedSet, preferredKey);
+}
+
+/* =========================
+   10) 安全自动备份（最近5次）
+   ========================= */
+function autoBackup(reason) {
+  try {
+    const key = 'med_auto_backups_v3';
+    const backups = JSON.parse(localStorage.getItem(key)) || [];
+    backups.unshift({
+      ts: new Date().toLocaleString(),
+      reason,
+      categories: categoryTree,
+      templates: templates
+    });
+    localStorage.setItem(key, JSON.stringify(backups.slice(0, 5)));
+  } catch (e) {}
+}
+
+/* =========================
+   11) 富文本编辑器（与3.5保持）
+   ========================= */
+function rteCmd(cmd) {
+  const editor = document.getElementById('inputContentEditor');
+  editor.focus();
+  document.execCommand(cmd, false, null);
+  refreshTemplateDirtyFlag();
+}
+function normalizeCssColor(color) {
+  const t = document.createElement('span');
+  t.style.color = color;
+  t.style.position = 'fixed';
+  t.style.left = '-9999px';
+  t.style.top = '-9999px';
+  document.body.appendChild(t);
+  const rgb = window.getComputedStyle(t).color;
+  t.remove();
+  return rgb;
+}
+
+function caretHasColor(editor, color) {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return false;
+  if (!sel.isCollapsed) return true;
+  const range = sel.getRangeAt(0);
+  let node = range.startContainer;
+  if (node.nodeType === 3) node = node.parentElement;
+  if (!node || !editor.contains(node)) return false;
+  const cs = window.getComputedStyle(node);
+  if (!cs || !cs.color) return false;
+  return normalizeCssColor(cs.color) === normalizeCssColor(color);
+}
+
+function normalizeRteFontTags(editor) {
+  const fonts = Array.from(editor.querySelectorAll('font'));
+  fonts.forEach(f => {
+    const c = f.getAttribute('color') || f.style.color;
+    const span = document.createElement('span');
+    if (c) span.style.color = c;
+    while (f.firstChild) span.appendChild(f.firstChild);
+    f.replaceWith(span);
+  });
+}
+
+function ensureCaretColorSpan(editor, color) {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return;
+  if (!sel.isCollapsed) return;
+  const range = sel.getRangeAt(0);
+  if (!editor.contains(range.commonAncestorContainer)) return;
+
+  // 如果光标所在位置已经是目标颜色，则不插入零宽字符
+  try {
+    const has = caretHasColor(editor, color);
+    if (has) return;
+  } catch(e) {}
+
+  const span = document.createElement('span');
+  span.style.color = color;
+  span.appendChild(document.createTextNode('​'));
+  range.insertNode(span);
+
+  // 将光标移动到 span 内部，位于零宽字符之后
+  const nr = document.createRange();
+  nr.setStart(span.firstChild, 1);
+  nr.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(nr);
+}
+
+function rteColor(color) {
+  const editor = document.getElementById('inputContentEditor');
+  editor.focus();
+
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return;
+
+  const range = sel.getRangeAt(0);
+  if (!editor.contains(range.commonAncestorContainer)) {
+    // 强制将光标放入编辑器末尾
+    const r = document.createRange();
+    r.selectNodeContents(editor);
+    r.collapse(false);
+    sel.removeAllRanges();
+    sel.addRange(r);
+  }
+
+  // 尽可能使用 CSS 样式（部分浏览器仍会插入 <font>）
+  try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
+  try { document.execCommand('foreColor', false, color); } catch(e) {}
+
+  // 兼容 iOS/Safari：可能生成 <font color="...">，这里统一转为 <span style="color:...">
+  normalizeRteFontTags(editor);
+
+  // 某些移动端在 selection collapsed 时不会影响后续输入：插入一个零宽字符携带颜色
+  try { ensureCaretColorSpan(editor, color); } catch(e) {}
+
+  refreshTemplateDirtyFlag();
+}
+
+/* =========================
+   12) HTML安全与转换
+   ========================= */
+function filterStyle(styleText) {
+  if (!styleText) return '';
+  const allowed = new Set(['color','background-color','font-weight','text-decoration','font-style']);
+  const parts = styleText.split(';').map(s => s.trim()).filter(Boolean);
+  const kept = [];
+  for (const p of parts) {
+    const idx = p.indexOf(':');
+    if (idx === -1) continue;
+    const prop = p.slice(0, idx).trim().toLowerCase();
+    let val = p.slice(idx + 1).trim();
+    if (!allowed.has(prop)) continue;
+    const vlow = val.toLowerCase();
+    if (vlow.includes('expression') || vlow.includes('url(') || vlow.includes('javascript:')) continue;
+    if (val.length > 80) val = val.slice(0, 80);
+    kept.push(`${prop}:${val}`);
+  }
+  return kept.join('; ');
+}
+function sanitizeHtml(inputHtml) {
+  const html = (inputHtml ?? '').toString();
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(`<div>${html}</div>`, 'text/html');
+  const root = doc.body.firstChild;
+
+  const allowedTags = new Set(['b','strong','i','em','u','s','br','p','div','span','ul','ol','li','blockquote','pre','code']);
+
+  const walk = (node) => {
+    const children = Array.from(node.childNodes);
+    for (const child of children) {
+      if (child.nodeType === Node.ELEMENT_NODE) {
+        const tag = child.tagName.toLowerCase();
+
+        // 将 <font color="..."> 统一转换为 <span style="color:...">，避免颜色信息丢失
+        if (tag === 'font') {
+          const span = doc.createElement('span');
+          const colorAttr = child.getAttribute('color');
+          const styleAttr = child.getAttribute('style') || '';
+          const merged = [];
+          if (colorAttr) merged.push(`color:${colorAttr}`);
+          if (styleAttr) merged.push(styleAttr);
+          const fs = filterStyle(merged.join(';'));
+          if (fs) span.setAttribute('style', fs);
+          while (child.firstChild) span.appendChild(child.firstChild);
+          child.replaceWith(span);
+          walk(span);
+          continue;
+        }
+
+        if (!allowedTags.has(tag)) {
+          const text = doc.createTextNode(child.textContent || '');
+          child.replaceWith(text);
+          continue;
+        }
+        const attrs = Array.from(child.attributes);
+        for (const a of attrs) {
+          const name = a.name.toLowerCase();
+          if (name.startsWith('on')) { child.removeAttribute(a.name); continue; }
+          if (name === 'style') {
+            const fs = filterStyle(a.value);
+            if (fs) child.setAttribute('style', fs);
+            else child.removeAttribute('style');
+            continue;
+          }
+          child.removeAttribute(a.name);
+        }
+        walk(child);
+      } else if (child.nodeType === Node.COMMENT_NODE) {
+        child.remove();
+      }
+    }
+  };
+  walk(root);
+  return root.innerHTML;
+}
+function isProbablyHtml(str) {
+  const s = (str ?? '').toString();
+  return /<\/?(p|br|div|span|b|strong|i|em|u|ul|ol|li|pre|code|blockquote)\b/i.test(s);
+}
+function escapeHtml(str) {
+  return (str ?? '').toString()
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+function plainTextToHtml(text) {
+  const escaped = escapeHtml(text ?? '');
+  return escaped.replace(/\r\n|\n|\r/g, '<br>');
+}
+function htmlToPlainText(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = sanitizeHtml(html);
+  return (tmp.innerText || '').trimEnd();
+}
+function getEditorHtmlForSave() {
+  const editor = document.getElementById('inputContentEditor');
+  const raw = (editor.innerHTML || '').replace(/\u200B/g, '');
+  return sanitizeHtml(raw);
+}
+function setEditorContentFromStored(stored) {
+  const editor = document.getElementById('inputContentEditor');
+  const s = (stored ?? '').toString();
+  if (!s) { editor.innerHTML = ''; return; }
+  if (isProbablyHtml(s)) editor.innerHTML = sanitizeHtml(s);
+  else editor.innerHTML = plainTextToHtml(s);
+}
+
+/* =========================
+   13) 未保存判断
+   ========================= */
+function bindDirtyListenersOnce() {
+  if (listenersBound) return;
+  listenersBound = true;
+
+  const title = document.getElementById('inputTitle');
+  const main  = document.getElementById('inputMainCat');
+  const sub   = document.getElementById('inputSubCat');
+  const editor= document.getElementById('inputContentEditor');
+  const newTag= document.getElementById('newTagInput');
+
+  if (title) title.addEventListener('input', refreshTemplateDirtyFlag);
+  if (main)  main.addEventListener('change', refreshTemplateDirtyFlag);
+  if (sub)   sub.addEventListener('change', refreshTemplateDirtyFlag);
+  if (editor) editor.addEventListener('input', refreshTemplateDirtyFlag);
+  if (newTag) newTag.addEventListener('input', refreshTemplateDirtyFlag);
+}
+
+function takeTemplateModalSnapshot() {
+  templateModalSnapshot = getTemplateModalState();
+  updateTemplateModalTitleDirty(false);
+}
+
+function getTemplateModalState() {
+  const mainCat = document.getElementById('inputMainCat')?.value || '';
+  const subCat  = document.getElementById('inputSubCat')?.value || '';
+  const title   = document.getElementById('inputTitle')?.value || '';
+
+  const tagsArr = Array.from(selectedTags).map(s => s.trim()).filter(Boolean)
+    .sort((a,b)=>a.localeCompare(b,'zh-Hans-CN'));
+  const tags = tagsArr.join(', ');
+
+  const contentHtml = getEditorHtmlForSave();
+  return { mainCat, subCat, title, tags, contentHtml };
+}
+
+function isTemplateModalDirty() {
+  if (!templateModalSnapshot) return false;
+  const pendingTag = (document.getElementById('newTagInput')?.value || '').trim();
+  if (pendingTag) return true;
+
+  const now = getTemplateModalState();
+  return JSON.stringify(now) !== JSON.stringify(templateModalSnapshot);
+}
+
+function updateTemplateModalTitleDirty(isDirty) {
+  const titleEl = document.getElementById('modalTitleText');
+  if (!titleEl) return;
+  const raw = titleEl.textContent.replace(/\s*\*\s*$/, '');
+  titleEl.textContent = isDirty ? (raw + ' *') : raw;
+}
+
+function refreshTemplateDirtyFlag() {
+  if (!isModalOpen('templateModal')) return;
+  updateTemplateModalTitleDirty(isTemplateModalDirty());
+}
+
+function takeMoveModalSnapshot() { moveModalSnapshot = getMoveModalState(); }
+function getMoveModalState() {
+  const mainCat = document.getElementById('moveMainCat')?.value || '';
+  const subCat  = document.getElementById('moveSubCat')?.value || '';
+  return { mainCat, subCat };
+}
+function isMoveModalDirty() {
+  if (!moveModalSnapshot) return false;
+  if (!isModalOpen('moveModal')) return false;
+  const now = getMoveModalState();
+  return JSON.stringify(now) !== JSON.stringify(moveModalSnapshot);
+}
+
+/* =========================
+   14) 标签：按钮禁用逻辑（你新增要求）
+   ========================= */
+function bindTagAddButtonDisable() {
+  const input = document.getElementById('newTagInput');
+  const btn = document.getElementById('btnAddTag');
+  if (!input || !btn) return;
+
+  const apply = () => {
+    const v = (input.value || '').trim();
+    btn.disabled = !v;
+  };
+  input.addEventListener('input', apply);
+  apply();
+}
+
+function setupTagInputEnter() {
+  const input = document.getElementById('newTagInput');
+  if (!input) return;
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addNewTagFromInput();
+    }
+  });
+}
+
+function parseTags(tagStr) {
+  if (!tagStr) return [];
+  return tagStr.split(',').map(s => s.trim()).filter(Boolean);
+}
+function buildTagUsageMap() {
+  const map = new Map();
+  templates.forEach(t => {
+    parseTags(t.tags).forEach(tag => {
+      map.set(tag, (map.get(tag) || 0) + 1);
+    });
+  });
+  return map;
+}
+function getAllTagsByUsage() {
+  const map = buildTagUsageMap();
+  const tags = Array.from(map.keys());
+  tags.sort((a, b) => {
+    const da = map.get(a) || 0;
+    const db = map.get(b) || 0;
+    if (db !== da) return db - da;
+    return a.localeCompare(b, 'zh-Hans-CN');
+  });
+  tagUsageMap = map;
+  return tags;
+}
+function rebuildTagPool(preselect = []) {
+  allTagsCache = getAllTagsByUsage();
+  selectedTags = new Set(preselect);
+
+  renderSelectedTagsRow();
+  renderTagPool();
+
+  tagPoolExpanded = false;
+  applyTagPoolCollapsedState();
+  updateTagPoolToggleVisibility();
+
+  refreshTemplateDirtyFlag();
+}
+
+function renderSelectedTagsRow() {
+  const row = document.getElementById('selectedTagsRow');
+  row.innerHTML = '';
+
+  if (selectedTags.size === 0) {
+    row.innerHTML = `<div style="color:#9ca3af; font-size:12px;">未选择标签</div>`;
+    return;
+  }
+
+  Array.from(selectedTags)
+    .sort((a,b)=>a.localeCompare(b,'zh-Hans-CN'))
+    .forEach(tag => {
+      const chip = document.createElement('span');
+      chip.className = 'tag-chip active';
+      chip.innerHTML = `<span>${escapeHtml(tag)}</span><span class="x">×</span>`;
+      chip.title = '点击取消选择';
+      chip.onclick = () => {
+        selectedTags.delete(tag);
+        renderSelectedTagsRow();
+        syncPoolActiveStates();
+        refreshTemplateDirtyFlag();
+      };
+      row.appendChild(chip);
+    });
+}
+
+function renderTagPool() {
+  const pool = document.getElementById('tagPool');
+  pool.innerHTML = '';
+
+  if (allTagsCache.length === 0) {
+    pool.innerHTML = `<div style="color:#9ca3af; font-size:12px;">暂无已有标签（可在上方输入并添加）</div>`;
+    return;
+  }
+
+  allTagsCache.forEach(tag => {
+    const chip = document.createElement('span');
+    chip.className = 'tag-chip' + (selectedTags.has(tag) ? ' active' : '');
+    chip.textContent = tag;
+    const count = tagUsageMap.get(tag) || 0;
+    chip.title = `点击选择/取消（多选）${count ? '；使用次数：' + count : ''}`;
+    chip.onclick = () => {
+      if (selectedTags.has(tag)) selectedTags.delete(tag);
+      else selectedTags.add(tag);
+      chip.classList.toggle('active');
+      renderSelectedTagsRow();
+      refreshTemplateDirtyFlag();
+    };
+    pool.appendChild(chip);
+  });
+
+  setTimeout(updateTagPoolToggleVisibility, 0);
+}
+
+function syncPoolActiveStates() {
+  const pool = document.getElementById('tagPool');
+  const chips = Array.from(pool.querySelectorAll('.tag-chip'));
+  chips.forEach(chip => {
+    const tag = chip.textContent;
+    if (selectedTags.has(tag)) chip.classList.add('active');
+    else chip.classList.remove('active');
+  });
+}
+
+function normalizeTagInputToList(raw) {
+  return (raw || '').split(',').map(s => s.trim()).filter(Boolean);
+}
+
+function addNewTagFromInput() {
+  const input = document.getElementById('newTagInput');
+  const btn = document.getElementById('btnAddTag');
+  const raw = (input.value || '').trim();
+  if (!raw) return;
+
+  const newTags = normalizeTagInputToList(raw);
+  if (newTags.length === 0) return;
+
+  newTags.forEach(tag => selectedTags.add(tag));
+
+  const existing = new Set(allTagsCache);
+  newTags.forEach(tag => {
+    if (!existing.has(tag)) {
+      allTagsCache.push(tag);
+      tagUsageMap.set(tag, 1);
+    }
+  });
+
+  allTagsCache.sort((a,b) => {
+    const da = tagUsageMap.get(a) || 0;
+    const db = tagUsageMap.get(b) || 0;
+    if (db !== da) return db - da;
+    return a.localeCompare(b, 'zh-Hans-CN');
+  });
+
+  input.value = '';
+  if (btn) btn.disabled = true;
+
+  renderSelectedTagsRow();
+  renderTagPool();
+  refreshTemplateDirtyFlag();
+}
+
+function toggleTagPool() {
+  tagPoolExpanded = !tagPoolExpanded;
+  applyTagPoolCollapsedState();
+  setIcon('icoChevron', tagPoolExpanded ? 'chevronUp' : 'chevronDown');
+}
+function applyTagPoolCollapsedState() {
+  const pool = document.getElementById('tagPool');
+  const text = document.getElementById('tagPoolToggleText');
+  if (!pool || !text) return;
+
+  if (tagPoolExpanded) {
+    pool.classList.remove('collapsed');
+    text.textContent = '收起标签池';
+  } else {
+    pool.classList.add('collapsed');
+    text.textContent = '展开标签池';
+  }
+}
+function updateTagPoolToggleVisibility() {
+  const pool = document.getElementById('tagPool');
+  const toggle = document.getElementById('tagPoolToggle');
+  if (!pool || !toggle) return;
+
+  const collapsedMax = 64;
+  const needToggle = pool.scrollHeight > collapsedMax + 2;
+  toggle.style.display = needToggle ? 'inline-flex' : 'none';
+
+  if (!needToggle) {
+    pool.classList.remove('collapsed');
+  } else {
+    applyTagPoolCollapsedState();
+    setIcon('icoChevron', tagPoolExpanded ? 'chevronUp' : 'chevronDown');
+  }
+}
+
+/* =========================
+   15) 侧边栏：一级点击筛选 + 展开/收起
+       - 无子分类：不显示箭头（你新增要求）
+       - 二级分类显示图标（你新增要求）
+   ========================= */
+function renderSidebar() {
+  const container = document.getElementById('sidebarTree');
+  container.innerHTML = `
+    <div class="cat-header active" onclick="setFilter('ALL', '', this)">
+      <div class="cat-left">
+        <span class="ico">${ICONS.svg('folder')}</span>
+        <span class="cat-name">全部显示</span>
+      </div>
+    </div>
+  `;
+
+  categoryTree.forEach((main, idx) => {
+    const mainDiv = document.createElement('div');
+
+    const hasSubs = Array.isArray(main.subs) && main.subs.length > 0;
+
+    const subDiv = document.createElement('div');
+    subDiv.className = 'sub-cat-list';
+
+    if (hasSubs) {
+      main.subs.forEach(subObj => {
+        const subName = typeof subObj === 'string' ? subObj : subObj.name;
+        const iconKey = (typeof subObj === 'object' && subObj.iconKey) ? subObj.iconKey : guessSubIcon(subName);
+
+        const subItem = document.createElement('div');
+        subItem.className = 'sub-cat-item';
+        subItem.innerHTML = `
+          <span class="ico">${ICONS.svg(iconKey)}</span>
+          <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(subName)}</span>
+        `;
+        subItem.onclick = (e) => {
+          e.stopPropagation();
+          setFilter('SUB', subName, subItem);
+        };
+        subDiv.appendChild(subItem);
+      });
+    }
+
+    const header = document.createElement('div');
+    header.className = 'cat-header';
+    header.innerHTML = `
+      <div class="cat-left">
+        <span class="ico">${ICONS.svg(main.iconKey || 'folder')}</span>
+        <span class="cat-name">${escapeHtml(main.name)}</span>
+      </div>
+      <div class="cat-right" ${hasSubs ? '' : 'style="display:none"'}></div>
+    `;
+
+    if (hasSubs) {
+      const right = header.querySelector('.cat-right');
+      right.innerHTML = `
+        <span class="cat-arrow" title="展开/收起">
+          <span class="ico">${ICONS.svg('chevronDown')}</span>
+        </span>
+      `;
+      const arrow = right.querySelector('.cat-arrow');
+      arrow.onclick = (e) => {
+        e.stopPropagation();
+        subDiv.classList.toggle('expanded');
+        const isEx = subDiv.classList.contains('expanded');
+        arrow.innerHTML = `<span class="ico">${ICONS.svg(isEx ? 'chevronUp' : 'chevronDown')}</span>`;
+      };
+    }
+
+    header.onclick = () => {
+      setFilter('MAIN', main.name, header);
+      if (hasSubs) {
+        subDiv.classList.toggle('expanded');
+        const arrow = header.querySelector('.cat-arrow');
+        if (arrow) {
+          const isEx = subDiv.classList.contains('expanded');
+          arrow.innerHTML = `<span class="ico">${ICONS.svg(isEx ? 'chevronUp' : 'chevronDown')}</span>`;
+        }
+      }
+    };
+
+    mainDiv.appendChild(header);
+    mainDiv.appendChild(subDiv);
+    container.appendChild(mainDiv);
+  });
+}
+
+/* =========================
+   16) 筛选与渲染模板
+   ========================= */
+function setFilter(type, value, el) {
+  currentFilter = { type, value };
+  document.querySelectorAll('.cat-header, .sub-cat-item').forEach(d => d.classList.remove('active'));
+
+  if (type === 'ALL') {
+    el.classList.add('active');
+    document.getElementById('currentFilterLabel').textContent = "全部模板";
+  } else {
+    el.classList.add('active');
+    if (type === 'SUB') el.parentElement.previousElementSibling.classList.add('active');
+    document.getElementById('currentFilterLabel').textContent = `${value} 模板`;
+  }
+  renderTemplates();
+  if (isMobile()) closeSidebar();
+}
+
+function renderTemplates() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const container = document.getElementById('templateList');
+  container.innerHTML = '';
+
+  const filtered = templates.filter(t => {
+    const contentText = htmlToPlainText(t.content || '');
+    const catText = (t.mainCat || '') + ' ' + (t.subCat || '');
+    const textMatch = (t.title + ' ' + contentText + ' ' + (t.tags || '') + ' ' + catText)
+      .toLowerCase()
+      .includes(search);
+
+    let catMatch = true;
+    if (currentFilter.type === 'MAIN') catMatch = t.mainCat === currentFilter.value;
+    else if (currentFilter.type === 'SUB') catMatch = t.subCat === currentFilter.value;
+
+    return textMatch && catMatch;
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div style="text-align:center; color:#9ca3af; margin-top:50px;">暂无内容</div>`;
+    return;
+  }
+
+  filtered.forEach(t => {
+    const tags = parseTags(t.tags);
+    const tagHtml = tags.map(x => `<span class="tag">${escapeHtml(x)}</span>`).join('');
+    const bodyHtml = isProbablyHtml(t.content) ? sanitizeHtml(t.content) : plainTextToHtml(t.content);
+
+    const card = document.createElement('div');
+    card.className = 'template-card';
+    card.innerHTML = `
+      <div class="card-header">
+        <div class="card-title">${escapeHtml(t.title)}</div>
+        <div class="card-actions">
+          <button class="btn-move" onclick="openMoveModal('${t.id}')">
+            <span class="ico">${ICONS.svg('move')}</span> 移动
+          </button>
+          <button class="btn-copy" onclick="copyContent('${t.id}', this)">
+            <span class="ico">${ICONS.svg('copy')}</span> 复制
+          </button>
+        </div>
+      </div>
+      <div class="card-meta">
+        <span class="tag tag-main">${escapeHtml(t.mainCat || '未分类')}</span>
+        ${t.subCat ? `<span class="tag tag-sub">${escapeHtml(t.subCat)}</span>` : ''}
+        ${tagHtml}
+      </div>
+      <div class="card-body" onclick="editTemplate('${t.id}')" title="点击编辑">${bodyHtml}</div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+/* =========================
+   17) CRUD：模板
+   ========================= */
+function saveTemplate(silentClose = false) {
+  const id = document.getElementById('editId').value;
+  const mainCat = document.getElementById('inputMainCat').value;
+  const subCat = document.getElementById('inputSubCat').value;
+  const title = document.getElementById('inputTitle').value;
+
+  const pending = (document.getElementById('newTagInput').value || '').trim();
+  if (pending) addNewTagFromInput();
+
+  const tagsArr = Array.from(selectedTags)
+    .map(s => s.trim())
+    .filter(Boolean)
+    .sort((a,b)=>a.localeCompare(b,'zh-Hans-CN'));
+  const tags = tagsArr.join(', ');
+
+  const contentHtml = getEditorHtmlForSave();
+  const contentText = htmlToPlainText(contentHtml);
+
+  if (!title || !mainCat || !contentText.trim()) {
+    alert("请至少填写分类、标题和内容");
+    return false;
+  }
+
+  const data = { id: id || Date.now().toString(), mainCat, subCat, title, tags, content: contentHtml };
+
+  if (id) {
+    const index = templates.findIndex(t => t.id === id);
+    if (index > -1) templates[index] = data;
+  } else {
+    templates.unshift(data);
+  }
+
+  saveToLocal();
+  rebuildTagPool(tagsArr);
+
+  takeTemplateModalSnapshot();
+  if (!silentClose) closeModalDirect('templateModal');
+  renderTemplates();
+  return true;
+}
+
+function deleteTemplate() {
+  const id = document.getElementById('editId').value;
+  const t = templates.find(x => x.id === id);
+  const title = t ? t.title : '';
+  if (confirm(`确定要删除该模板吗？\n\n标题：${title}\n\n此操作不可撤销。`)) {
+    autoBackup('delete_template');
+    templates = templates.filter(x => x.id !== id);
+    saveToLocal();
+    rebuildTagPool([]);
+    templateModalSnapshot = null;
+    closeModalDirect('templateModal');
+    renderTemplates();
+  }
+}
+
+function editTemplate(id) {
+  const t = templates.find(i => i.id === id);
+  if(!t) return;
+
+  document.getElementById('editId').value = t.id;
+  document.getElementById('inputTitle').value = t.title;
+  document.getElementById('modalTitleText').textContent = "编辑模板";
+  document.getElementById('btnDelete').style.display = 'inline-flex';
+
+  populateCatSelects(t.mainCat, t.subCat);
+
+  const preTags = parseTags(t.tags);
+  document.getElementById('newTagInput').value = '';
+  document.getElementById('btnAddTag').disabled = true;
+  rebuildTagPool(preTags);
+
+  setEditorContentFromStored(t.content);
+
+  openModal('templateModal');
+  takeTemplateModalSnapshot();
+}
+
+function openTemplateModal() {
+  document.getElementById('editId').value = '';
+  document.getElementById('inputTitle').value = '';
+  document.getElementById('modalTitleText').textContent = "新建模板";
+  document.getElementById('btnDelete').style.display = 'none';
+
+  let defaultMain = categoryTree[0]?.name || '';
+  let defaultSub = '';
+  if (currentFilter.type === 'MAIN') defaultMain = currentFilter.value;
+  if (currentFilter.type === 'SUB') {
+    const parent = categoryTree.find(c => Array.isArray(c.subs) && c.subs.some(s => (typeof s === 'string' ? s : s.name) === currentFilter.value));
+    if (parent) { defaultMain = parent.name; defaultSub = currentFilter.value; }
+  }
+
+  populateCatSelects(defaultMain, defaultSub);
+
+  document.getElementById('newTagInput').value = '';
+  document.getElementById('btnAddTag').disabled = true;
+  rebuildTagPool([]);
+
+  setEditorContentFromStored('');
+
+  openModal('templateModal');
+  takeTemplateModalSnapshot();
+}
+
+function populateCatSelects(selectedMain, selectedSub) {
+  const mainSel = document.getElementById('inputMainCat');
+  mainSel.innerHTML = '';
+
+  const mainNames = categoryTree.map(c => c.name);
+  const selectedMainExists = mainNames.includes(selectedMain);
+
+  if (selectedMain && !selectedMainExists) {
+    const opt = document.createElement('option');
+    opt.value = selectedMain;
+    opt.textContent = `${selectedMain} (已不存在，请选择新分类)`;
+    opt.selected = true;
+    mainSel.appendChild(opt);
+  }
+
+  categoryTree.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.name;
+    opt.textContent = c.name;
+    if(c.name === selectedMain) opt.selected = true;
+    mainSel.appendChild(opt);
+  });
+
+  updateSubCatOptions(selectedSub);
+}
+
+function updateSubCatOptions(selectedSub = '') {
+  const mainVal = document.getElementById('inputMainCat').value;
+  const subSel = document.getElementById('inputSubCat');
+  subSel.innerHTML = '<option value="">(无)</option>';
+
+  const catObj = categoryTree.find(c => c.name === mainVal);
+  const subs = (catObj && Array.isArray(catObj.subs)) ? catObj.subs : [];
+  const subNames = subs.map(s => (typeof s === 'string' ? s : s.name));
+
+  if (selectedSub && !subNames.includes(selectedSub)) {
+    const opt = document.createElement('option');
+    opt.value = selectedSub;
+    opt.textContent = `${selectedSub} (已不存在)`;
+    opt.selected = true;
+    subSel.appendChild(opt);
+  }
+
+  subs.forEach(s => {
+    const name = typeof s === 'string' ? s : s.name;
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    if(name === selectedSub) opt.selected = true;
+    subSel.appendChild(opt);
+  });
+
+  refreshTemplateDirtyFlag();
+}
+
+/* =========================
+   18) 移动模板
+   ========================= */
+function openMoveModal(id) {
+  const t = templates.find(x => x.id === id);
+  if (!t) return;
+
+  document.getElementById('moveId').value = id;
+
+  const mainSel = document.getElementById('moveMainCat');
+  mainSel.innerHTML = '';
+  categoryTree.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.name;
+    opt.textContent = c.name;
+    if (c.name === t.mainCat) opt.selected = true;
+    mainSel.appendChild(opt);
+  });
+
+  updateMoveSubCatOptions(t.subCat);
+  openModal('moveModal');
+  takeMoveModalSnapshot();
+}
+
+function updateMoveSubCatOptions(selectedSub = '') {
+  const mainVal = document.getElementById('moveMainCat').value;
+  const subSel = document.getElementById('moveSubCat');
+  subSel.innerHTML = '<option value="">(无)</option>';
+
+  const catObj = categoryTree.find(c => c.name === mainVal);
+  const subs = (catObj && Array.isArray(catObj.subs)) ? catObj.subs : [];
+  subs.forEach(s => {
+    const name = typeof s === 'string' ? s : s.name;
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    if (name === selectedSub) opt.selected = true;
+    subSel.appendChild(opt);
+  });
+}
+
+function confirmMoveTemplate(silentClose = false) {
+  const id = document.getElementById('moveId').value;
+  const t = templates.find(x => x.id === id);
+  if (!t) return false;
+
+  const newMain = document.getElementById('moveMainCat').value;
+  const newSub = document.getElementById('moveSubCat').value;
+
+  const msg =
+    `确认移动该模板吗？\n\n` +
+    `标题：${t.title}\n` +
+    `从：${t.mainCat}${t.subCat ? ' / ' + t.subCat : ''}\n` +
+    `到：${newMain}${newSub ? ' / ' + newSub : ''}`;
+
+  if (!confirm(msg)) return false;
+
+  autoBackup('move_template');
+  t.mainCat = newMain;
+  t.subCat = newSub;
+
+  saveToLocal();
+  moveModalSnapshot = null;
+  if (!silentClose) closeModalDirect('moveModal');
+  renderTemplates();
+  return true;
+}
+
+/* =========================
+   19) 分类管理（重命名/排序/删除/选图标/二级选图标）
+   ========================= */
+function openCategoryManager() {
+  openModal('categoryModal');
+  renderManageMainList();
+  renderManageSubList(null);
+}
+
+function renderManageMainList() {
+  const list = document.getElementById('manageMainList');
+  list.innerHTML = '';
+
+  categoryTree.forEach((c, index) => {
+    const item = document.createElement('div');
+    item.className = `manage-item ${editingCategoryMain === c ? 'active' : ''}`;
+    item.setAttribute('data-main-index', index);
+    item.onclick = () => {
+      editingCategoryMain = c;
+      renderManageMainList();
+      renderManageSubList(c);
+    };
+
+    item.innerHTML = `
+      <div class="manage-item-left">
+        <span class="ico">${ICONS.svg(c.iconKey || 'folder')}</span>
+        <span class="name cat-name" title="双击编辑名称" ondblclick="event.stopPropagation(); startInlineRenameMain(${index});">${escapeHtml(c.name)}</span>
+      </div>
+      <div class="item-controls" onclick="event.stopPropagation()">
+        <button class="icon-btn iconpick icon-only" type="button" title="更换图标" aria-label="更换图标" onclick="openIconPickerForMain(${index})">
+          <span class="ico">${ICONS.svg('palette')}</span>
+        </button>
+        <button class="icon-btn rename icon-only" type="button" title="重命名" aria-label="重命名" onclick="startInlineRenameMain(${index})">
+          <span class="ico">${ICONS.svg('pen')}</span>
+        </button>
+        <button class="icon-btn" type="button" onclick="moveMainCat(${index}, -1)">↑</button>
+        <button class="icon-btn" type="button" onclick="moveMainCat(${index}, 1)">↓</button>
+        <button class="icon-btn delete" type="button" onclick="deleteMainCat(${index})">
+          <span class="ico">${ICONS.svg('trash')}</span>
+        </button>
+      </div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+function renderManageSubList(catObj) {
+  const list = document.getElementById('manageSubList');
+  const input = document.getElementById('newSubCatName');
+  const btn = document.getElementById('btnAddSub');
+  const btnPick = document.getElementById('btnPickNewSubIcon');
+
+  list.innerHTML = '';
+
+  if (!catObj) {
+    list.innerHTML = '<div style="padding:10px; color:#9ca3af; text-align:center">请先在左侧选择一级分类</div>';
+    document.getElementById('selectedMainCatName').textContent = "未选择";
+    document.getElementById('selectedMainCatName').style.color = "#9ca3af";
+    input.disabled = true;
+    btn.disabled = true;
+    btnPick.disabled = true;
+    return;
+  }
+
+  document.getElementById('selectedMainCatName').textContent = catObj.name;
+  document.getElementById('selectedMainCatName').style.color = "var(--accent-color)";
+  input.disabled = false;
+  btn.disabled = false;
+  btnPick.disabled = false;
+
+  const subs = Array.isArray(catObj.subs) ? catObj.subs : [];
+  subs.forEach((sub, index) => {
+    const subName = (typeof sub === 'string') ? sub : sub.name;
+    const iconKey = (typeof sub === 'object' && sub.iconKey) ? sub.iconKey : guessSubIcon(subName);
+
+    const item = document.createElement('div');
+    item.className = 'manage-item';
+    item.setAttribute('data-sub-index', index);
+
+    item.innerHTML = `
+      <div class="manage-item-left">
+        <span class="ico">${ICONS.svg(iconKey)}</span>
+        <span class="name cat-name" title="点击编辑名称" onclick="event.stopPropagation(); startInlineRenameSub(${index});">${escapeHtml(subName)}</span>
+      </div>
+      <div class="item-controls" onclick="event.stopPropagation()">
+        <button class="icon-btn iconpick icon-only" type="button" title="更换图标" aria-label="更换图标" onclick="openIconPickerForSub(${index})">
+          <span class="ico">${ICONS.svg('palette')}</span>
+        </button>
+        <button class="icon-btn rename icon-only" type="button" title="重命名" aria-label="重命名" onclick="startInlineRenameSub(${index})">
+          <span class="ico">${ICONS.svg('pen')}</span>
+        </button>
+        <button class="icon-btn" type="button" onclick="moveSubCat(${index}, -1)">↑</button>
+        <button class="icon-btn" type="button" onclick="moveSubCat(${index}, 1)">↓</button>
+        <button class="icon-btn delete" type="button" onclick="deleteSubCat(${index})">
+          <span class="ico">${ICONS.svg('trash')}</span>
+        </button>
+      </div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+function moveMainCat(index, direction) {
+  if (direction === -1 && index === 0) return;
+  if (direction === 1 && index === categoryTree.length - 1) return;
+
+  autoBackup('move_main_category');
+  const temp = categoryTree[index];
+  categoryTree[index] = categoryTree[index + direction];
+  categoryTree[index + direction] = temp;
+
+  saveCategories();
+  renderManageMainList();
+  renderSidebar();
+}
+
+function moveSubCat(index, direction) {
+  if (!editingCategoryMain) return;
+  const subs = editingCategoryMain.subs;
+  if (direction === -1 && index === 0) return;
+  if (direction === 1 && index === subs.length - 1) return;
+
+  autoBackup('move_sub_category');
+  const temp = subs[index];
+  subs[index] = subs[index + direction];
+  subs[index + direction] = temp;
+
+  saveCategories();
+  renderManageSubList(editingCategoryMain);
+  renderSidebar();
+}
+
+function addMainCategory() {
+  const input = document.getElementById('newMainCatName');
+  const name = (input.value || '').trim();
+  if(!name) return;
+  if(categoryTree.find(c => c.name === name)) { alert("分类已存在"); return; }
+
+  // 主图标不重复
+  const used = new Set(categoryTree.map(c => c.iconKey));
+  const iconKey = pickFreeIcon(used, newMainIconKey);
+
+  autoBackup('add_main_category');
+  categoryTree.push({ name, iconKey, subs: [] });
+  saveCategories();
+
+  input.value = '';
+  newMainIconKey = pickFreeIcon(new Set(categoryTree.map(c => c.iconKey)), 'folder');
+
+  syncNewCategoryIconRemember();
+  renderManageMainList();
+  renderSidebar();
+}
+
+function deleteMainCat(index) {
+  const name = categoryTree[index]?.name || '';
+  const msg =
+    `确定删除一级分类【${name}】吗？\n\n` +
+    `注意：该分类下的模板不会被删除，但会失去目录归属（仍可在“全部显示”中找到，并可编辑/移动重新归类）。`;
+  if(confirm(msg)) {
+    autoBackup('delete_main_category');
+    if(categoryTree[index] === editingCategoryMain) {
+      editingCategoryMain = null;
+      renderManageSubList(null);
+    }
+    categoryTree.splice(index, 1);
+    saveCategories();
+
+    if (currentFilter.type === 'MAIN' && currentFilter.value === name) {
+      currentFilter = { type:'ALL', value:'' };
+      document.getElementById('currentFilterLabel').textContent = "全部模板";
+    }
+
+    renderManageMainList();
+    renderSidebar();
+    renderTemplates();
+  }
+}
+
+function addSubCategory() {
+  if(!editingCategoryMain) return;
+  const input = document.getElementById('newSubCatName');
+  const name = (input.value || '').trim();
+  if(!name) return;
+
+  const subs = editingCategoryMain.subs || [];
+  const subNames = subs.map(s => (typeof s === 'string' ? s : s.name));
+  if (subNames.includes(name)) { alert("子分类已存在"); return; }
+
+  // 二级分类图标全局不重复
+  const used = getUsedSubIconKeys(-1, -1);
+  const preferred = (newSubIconKey && ICONS.exists(newSubIconKey)) ? newSubIconKey : guessSubIcon(name);
+  const iconKey = pickFreeSubIcon(used, name, preferred);
+
+  autoBackup('add_sub_category');
+  editingCategoryMain.subs.push({ name, iconKey });
+  saveCategories();
+
+  input.value = '';
+  // 新默认：在全局二级分类图标中找一个空闲
+  const usedAfter = getUsedSubIconKeys(-1, -1);
+  newSubIconKey = pickFreeIcon(usedAfter, 'folderOpen');
+  syncNewCategoryIconRemember();
+
+  renderManageSubList(editingCategoryMain);
+  renderSidebar();
+}
+
+function deleteSubCat(index) {
+  if(!editingCategoryMain) return;
+
+  const subObj = editingCategoryMain.subs[index];
+  const subName = (typeof subObj === 'string') ? subObj : subObj.name;
+  const mainName = editingCategoryMain.name;
+
+  const msg =
+    `确定删除二级分类【${mainName} / ${subName}】吗？\n\n` +
+    `注意：该二级分类下的模板不会被删除，但其二级字段将失去目录归属（仍可编辑/移动重新归类）。`;
+
+  if (!confirm(msg)) return;
+
+  autoBackup('delete_sub_category');
+  editingCategoryMain.subs.splice(index, 1);
+  saveCategories();
+
+  if (currentFilter.type === 'SUB' && currentFilter.value === subName) {
+    currentFilter = { type:'ALL', value:'' };
+    document.getElementById('currentFilterLabel').textContent = "全部模板";
+  }
+
+  renderManageSubList(editingCategoryMain);
+  renderSidebar();
+  renderTemplates();
+}
+
+function startInlineRenameMain(index) {
+  const cat = categoryTree[index];
+  if (!cat) return;
+
+  // 关闭其他正在编辑的内联输入
+  if (window.__inlineRenameCleanup && typeof window.__inlineRenameCleanup === 'function') {
+    window.__inlineRenameCleanup(true);
+  }
+
+  const item = document.querySelector(`#manageMainList .manage-item[data-main-index="${index}"]`);
+  if (!item) return;
+
+  const nameEl = item.querySelector('.manage-item-left .cat-name');
+  if (!nameEl) return;
+
+  const oldName = (cat.name || '').trim();
+  let finished = false;
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'inline-rename-input';
+  input.value = oldName;
+  input.setAttribute('maxlength', '60');
+  input.setAttribute('aria-label', '编辑一级分类名称');
+
+  const stop = (e) => { e.stopPropagation(); };
+  ['mousedown','click','touchstart','pointerdown'].forEach(ev => {
+    try { input.addEventListener(ev, stop, {passive:false}); } catch(_) { input.addEventListener(ev, stop); }
+  });
+
+  const cleanup = (reRender = true) => {
+    if (finished) return;
+    finished = true;
+    window.__inlineRenameCleanup = null;
+    if (reRender) renderManageMainList();
+  };
+  window.__inlineRenameCleanup = cleanup;
+
+  nameEl.replaceWith(input);
+  input.focus();
+  try { input.setSelectionRange(0, input.value.length); } catch(_) {}
+
+  const commit = () => {
+    if (finished) return;
+
+    const nn = (input.value || '').trim();
+    if (!nn) {
+      alert('名称不能为空');
+      input.focus();
+      return;
+    }
+    if (nn === oldName) {
+      cleanup(true);
+      return;
+    }
+    if (categoryTree.some((c, i) => i !== index && c.name === nn)) {
+      alert('已存在同名一级分类');
+      input.focus();
+      return;
+    }
+
+    autoBackup('rename_main_category');
+    categoryTree[index].name = nn;
+
+    templates.forEach(t => { if (t.mainCat === oldName) t.mainCat = nn; });
+    if (currentFilter.type === 'MAIN' && currentFilter.value === oldName) currentFilter.value = nn;
+
+    saveCategories();
+    saveToLocal();
+
+    finished = true;
+    window.__inlineRenameCleanup = null;
+
+    renderSidebar();
+    renderManageMainList();
+    renderManageSubList(editingCategoryMain);
+    renderTemplates();
+  };
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); commit(); }
+    if (e.key === 'Escape') { e.preventDefault(); cleanup(true); }
+  });
+
+  input.addEventListener('blur', () => {
+    // 延迟一个 tick，避免与点击控制按钮的事件顺序冲突
+    setTimeout(commit, 0);
+  });
+}
+
+function renameMainCat(index) {
+  // 兼容旧调用：改为内联编辑
+  startInlineRenameMain(index);
+}
+
+
+function startInlineRenameSub(index) {
+  if (!editingCategoryMain) return;
+
+  // 关闭其他正在编辑的内联输入
+  if (window.__inlineRenameCleanup && typeof window.__inlineRenameCleanup === 'function') {
+    window.__inlineRenameCleanup(true);
+  }
+
+  const mainName = (editingCategoryMain.name || '').trim();
+  const oldObj = editingCategoryMain.subs[index];
+  const oldSub = (typeof oldObj === 'string') ? oldObj : (oldObj && oldObj.name);
+  if (!oldSub) return;
+
+  const item = document.querySelector(`#manageSubList .manage-item[data-sub-index="${index}"]`);
+  if (!item) return;
+
+  const nameEl = item.querySelector('.manage-item-left .cat-name');
+  if (!nameEl) return;
+
+  const oldName = (oldSub || '').trim();
+  let finished = false;
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'inline-rename-input';
+  input.value = oldName;
+  input.setAttribute('maxlength', '60');
+  input.setAttribute('aria-label', '编辑二级分类名称');
+
+  const stop = (e) => { e.stopPropagation(); };
+  ['mousedown','click','touchstart','pointerdown'].forEach(ev => {
+    try { input.addEventListener(ev, stop, {passive:false}); } catch(_) { input.addEventListener(ev, stop); }
+  });
+
+  const cleanup = (reRender = true) => {
+    if (finished) return;
+    finished = true;
+    window.__inlineRenameCleanup = null;
+    if (reRender) renderManageSubList(editingCategoryMain);
+  };
+  window.__inlineRenameCleanup = cleanup;
+
+  nameEl.replaceWith(input);
+  input.focus();
+  try { input.setSelectionRange(0, input.value.length); } catch(_) {}
+
+  const commit = () => {
+    if (finished) return;
+
+    const nn = (input.value || '').trim();
+    if (!nn) {
+      alert('名称不能为空');
+      input.focus();
+      return;
+    }
+    if (nn === oldName) {
+      cleanup(true);
+      return;
+    }
+
+    const names = editingCategoryMain.subs.map((s, i) => {
+      if (i === index) return null;
+      return (typeof s === 'string') ? s : (s && s.name);
+    }).filter(Boolean);
+
+    if (names.includes(nn)) {
+      alert('该一级分类下已存在同名二级分类');
+      input.focus();
+      return;
+    }
+
+    autoBackup('rename_sub_category');
+
+    const iconKey = (typeof oldObj === 'object' && oldObj && oldObj.iconKey) ? oldObj.iconKey : guessSubIcon(nn);
+    editingCategoryMain.subs[index] = { name: nn, iconKey };
+
+    templates.forEach(t => { if (t.mainCat === mainName && t.subCat === oldName) t.subCat = nn; });
+    if (currentFilter.type === 'SUB' && currentFilter.value === oldName) currentFilter.value = nn;
+
+    saveCategories();
+    saveToLocal();
+
+    finished = true;
+    window.__inlineRenameCleanup = null;
+
+    renderSidebar();
+    renderManageSubList(editingCategoryMain);
+    renderTemplates();
+  };
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); commit(); }
+    if (e.key === 'Escape') { e.preventDefault(); cleanup(true); }
+  });
+
+  input.addEventListener('blur', () => {
+    setTimeout(commit, 0);
+  });
+}
+
+function renameSubCat(index) {
+  // 兼容旧调用：改为内联编辑
+  startInlineRenameSub(index);
+}
+
+
+/* =========================
+   20) 图标选择器（主/子/新增）
+   ========================= */
+function getUsedMainIconKeys(exceptIndex = -1) {
+  const used = new Set();
+  categoryTree.forEach((c, i) => {
+    if (i === exceptIndex) return;
+    if (c.iconKey) used.add(c.iconKey);
+  });
+  return used;
+}
+function getUsedSubIconKeys(exceptMainIndex = -1, exceptSubIndex = -1) {
+  // 二级分类图标：全局去重（可选排除某一个正在编辑的条目）
+  const used = new Set();
+  categoryTree.forEach((c, mi) => {
+    (c.subs || []).forEach((s, si) => {
+      if (mi == exceptMainIndex && si == exceptSubIndex) return;
+      if (typeof s === 'object' && s.iconKey) used.add(s.iconKey);
+    });
+  });
+  return used;
+}
+
+function openIconPickerForMain(mainIndex) {
+  const used = getUsedMainIconKeys(mainIndex);
+  iconPickerContext = {
+    scope: 'MAIN',
+    mainIndex,
+    usedKeys: used,
+    onPick: (key) => {
+      categoryTree[mainIndex].iconKey = key;
+      saveCategories();
+      renderManageMainList();
+      renderSidebar();
+    }
+  };
+  openIconPicker(`选择一级分类图标：${categoryTree[mainIndex].name}`, used);
+}
+
+function openIconPickerForSub(subIndex) {
+  if (!editingCategoryMain) return;
+  const mainIndex = categoryTree.findIndex(x => x === editingCategoryMain);
+  const used = getUsedSubIconKeys(mainIndex, subIndex);
+
+  iconPickerContext = {
+    scope: 'SUB',
+    mainIndex,
+    subIndex,
+    usedKeys: used,
+    onPick: (key) => {
+      // 保险：再次校验全局不重复
+      if (getUsedSubIconKeys(mainIndex, subIndex).has(key)) {
+        alert('该图标已被其他二级分类占用，请选择未置灰的图标。');
+        return;
+      }
+      const old = editingCategoryMain.subs[subIndex];
+      const name = (typeof old === 'string') ? old : old.name;
+      editingCategoryMain.subs[subIndex] = { name, iconKey: key };
+      saveCategories();
+      renderManageSubList(editingCategoryMain);
+      renderSidebar();
+    }
+  };
+  const subObj = editingCategoryMain.subs[subIndex];
+  const name = (typeof subObj === 'string') ? subObj : subObj.name;
+  openIconPicker(`选择二级分类图标：${editingCategoryMain.name} / ${name}`, used);
+}
+
+function openIconPickerForNewMain() {
+  const used = getUsedMainIconKeys(-1);
+  iconPickerContext = {
+    scope: 'NEW_MAIN',
+    usedKeys: used,
+    onPick: (key) => {
+      newMainIconKey = key;
+      syncNewCategoryIconRemember();
+    }
+  };
+  openIconPicker('为“新一级分类”选择图标', used);
+}
+
+function openIconPickerForNewSub() {
+  if (!editingCategoryMain) return;
+  const mainIndex = categoryTree.findIndex(x => x === editingCategoryMain);
+  const used = getUsedSubIconKeys(-1, -1);
+
+  iconPickerContext = {
+    scope: 'NEW_SUB',
+    usedKeys: used,
+    onPick: (key) => {
+      if (getUsedSubIconKeys(-1, -1).has(key)) {
+        alert('该图标已被其他二级分类占用，请选择未置灰的图标。');
+        return;
+      }
+      newSubIconKey = key;
+      syncNewCategoryIconRemember();
+    }
+  };
+  openIconPicker('为“新二级分类”选择图标（二级分类全局不重复）', used);
+}
+
+function openIconPicker(title, usedKeys) {
+  document.getElementById('iconPickerTitle').textContent = title;
+
+  const scope = iconPickerContext ? iconPickerContext.scope : '';
+  const levelText = (scope === 'MAIN' || scope === 'NEW_MAIN') ? '一级分类' :
+                    (scope === 'SUB'  || scope === 'NEW_SUB')  ? '二级分类' : '当前范围';
+
+  document.getElementById('iconPickerHint').textContent =
+    `提示：置灰表示该图标已在${levelText}中使用（全局不重复）。`;
+
+  const si = document.getElementById('iconSearchInput');
+  if (si) {
+    si.value = '';
+    // Suppress any extra search overlay behavior in some mobile WebViews
+    if (!si.dataset.bound) {
+      si.dataset.bound = '1';
+      si.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+        }
+      });
+    }
+  }
+
+  openModal('iconPickerModal');
+
+  // 让用户输入即筛选：不再有任何“弹框搜索”
+  const body = document.querySelector('#iconPickerModal .icon-picker-body');
+  if (body) body.scrollTop = 0;
+  setTimeout(() => { try { si && si.focus(); } catch(e){} }, 0);
+
+  renderIconPickerGrid();
+}
+
+
+function renderIconPickerGrid() {
+  const grid = document.getElementById('iconGrid');
+  const q = (document.getElementById('iconSearchInput').value || '').trim().toLowerCase();
+
+  const used = (iconPickerContext && iconPickerContext.usedKeys) ? iconPickerContext.usedKeys : new Set();
+  const all = ICONS.all();
+
+  const filtered = all.filter(x => {
+    if (!q) return true;
+    return (x.label + ' ' + x.desc + ' ' + x.key).toLowerCase().includes(q);
+  });
+
+  grid.innerHTML = '';
+  filtered.forEach(x => {
+    const isUsed = used.has(x.key);
+    const item = document.createElement('div');
+    item.className = 'icon-item' + (isUsed ? ' disabled' : '');
+    item.innerHTML = `
+      <div class="icon-badge">${ICONS.svg(x.key)}</div>
+      <div class="icon-text">
+        <div class="label">${escapeHtml(x.label)}</div>
+        <div class="desc">${escapeHtml(x.desc)} · ${escapeHtml(x.key)}</div>
+      </div>
+    `;
+
+    if (!isUsed) {
+      item.onclick = () => {
+        if (!iconPickerContext || typeof iconPickerContext.onPick !== 'function') return;
+        iconPickerContext.onPick(x.key);
+        closeModalDirect('iconPickerModal');
+      };
+    } else {
+      item.onclick = () => {}; // 占用则不选
+    }
+
+    grid.appendChild(item);
+  });
+}
+
+function syncNewCategoryIconRemember() {
+  const mainPrev = document.getElementById('newMainIconPreview');
+  if (mainPrev) mainPrev.innerHTML = ICONS.svg(newMainIconKey);
+
+  const subPrev = document.getElementById('newSubIconPreview');
+  if (subPrev) subPrev.innerHTML = ICONS.svg(newSubIconKey);
+}
+
+/* =========================
+   21) 备份/恢复
+   ========================= */
+function exportData() {
+  openConfirm3({
+    title: '选择备份格式',
+    body: `你可以选择导出格式：
+
+- JSON：用于恢复/迁移（完整数据）
+- Word：用于阅读/存档（排版更适合查看）
+- 两份：同时导出 JSON + Word`,
+    labels: { continue: '导出JSON', discard: '导出Word', save: '导出两份' },
+    onContinue: () => exportJsonBackup(),
+    onDiscard: () => exportWordBackup(),
+    onSave: () => { exportJsonBackup(); exportWordBackup(); }
+  });
+}
+
+function exportJsonBackup() {
+  const data = {
+    version: "3.21-mobile-compat",
+    timestamp: new Date().toLocaleString(),
+    categories: categoryTree,
+    templates: templates
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `病历助手备份_v3.25_${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function exportWordBackup() {
+  const data = {
+    version: "3.21-mobile-compat",
+    timestamp: new Date().toLocaleString(),
+    categories: categoryTree,
+    templates: templates
+  };
+
+  const html = buildWordBackupHtml(data);
+  const blob = new Blob(['﻿', html], {type: 'application/msword'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `病历书写辅助系统_模板备份_v3.25_${new Date().toISOString().slice(0,10)}.doc`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function escapeHtmlForWord(s) {
+  return String(s ?? '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+function stripScripts(html) {
+  return String(html ?? '').replace(/<script[\s\S]*?<\/script>/gi, '');
+}
+
+function normalizeWordContentHtml(html) {
+  // 适度清理：避免 Word 中出现不可见字符/空段
+  let s = stripScripts(html);
+  s = s.replace(/[​-‍﻿]/g, '');
+  s = s.replace(/<p>(\s|&nbsp;)*<\/p>/gi, '');
+  return s;
+}
+
+function buildWordBackupHtml(data) {
+  const versionLabel = 'v3.25';
+  const ts = data.timestamp || '';
+  const cats = Array.isArray(data.categories) ? data.categories : [];
+  const tpls = Array.isArray(data.templates) ? data.templates : [];
+
+  // 构建排序索引：按分类树顺序导出
+  const mainOrder = new Map();
+  const subOrder = new Map(); // mainName -> Map(subName -> index)
+  cats.forEach((m, i) => {
+    const mName = String(m?.name ?? '').trim();
+    if (!mName) return;
+    mainOrder.set(mName, i);
+    const sm = new Map();
+    (Array.isArray(m.subs) ? m.subs : []).forEach((s, j) => {
+      const sName = String((typeof s === 'string') ? s : (s?.name ?? '')).trim();
+      if (!sName) return;
+      sm.set(sName, j);
+    });
+    subOrder.set(mName, sm);
+  });
+
+  // 聚合模板
+  const group = new Map(); // main -> sub -> [tpl]
+  tpls.forEach(t => {
+    const m = String(t?.mainCat ?? '').trim() || '未分类';
+    const s = String(t?.subCat ?? '').trim() || '未分组';
+    if (!group.has(m)) group.set(m, new Map());
+    const sm = group.get(m);
+    if (!sm.has(s)) sm.set(s, []);
+    sm.get(s).push(t);
+  });
+
+  // 生成有序的 main 列表：先按分类树，再补齐其它
+  const mains = Array.from(group.keys());
+  mains.sort((a,b) => {
+    const ia = mainOrder.has(a) ? mainOrder.get(a) : 999999;
+    const ib = mainOrder.has(b) ? mainOrder.get(b) : 999999;
+    if (ia !== ib) return ia - ib;
+    return a.localeCompare(b,'zh-Hans-CN');
+  });
+
+  // 目录
+  let tocHtml = '';
+  mains.forEach((m, mi) => {
+    const mId = `m_${mi}`;
+    tocHtml += `<div class="toc-item toc-main"><a href="#${mId}">${escapeHtmlForWord(m)}</a></div>`;
+    const sm = group.get(m);
+    const subs = Array.from(sm.keys());
+    const smOrder = subOrder.get(m) || new Map();
+    subs.sort((a,b) => {
+      const ia = smOrder.has(a) ? smOrder.get(a) : 999999;
+      const ib = smOrder.has(b) ? smOrder.get(b) : 999999;
+      if (ia !== ib) return ia - ib;
+      return a.localeCompare(b,'zh-Hans-CN');
+    });
+    subs.forEach((s, si) => {
+      const sId = `m_${mi}_s_${si}`;
+      tocHtml += `<div class="toc-item toc-sub"><a href="#${sId}">${escapeHtmlForWord(s)}</a></div>`;
+    });
+  });
+
+  // 正文
+  let bodyHtml = '';
+  mains.forEach((m, mi) => {
+    const mId = `m_${mi}`;
+    bodyHtml += `<div class="pagebreak"></div>`;
+    bodyHtml += `<h1 id="${mId}">${escapeHtmlForWord(m)}</h1>`;
+
+    const sm = group.get(m);
+    const subs = Array.from(sm.keys());
+    const smOrder = subOrder.get(m) || new Map();
+    subs.sort((a,b) => {
+      const ia = smOrder.has(a) ? smOrder.get(a) : 999999;
+      const ib = smOrder.has(b) ? smOrder.get(b) : 999999;
+      if (ia !== ib) return ia - ib;
+      return a.localeCompare(b,'zh-Hans-CN');
+    });
+
+    subs.forEach((s, si) => {
+      const sId = `m_${mi}_s_${si}`;
+      bodyHtml += `<h2 id="${sId}">${escapeHtmlForWord(s)}</h2>`;
+
+      const arr = sm.get(s) || [];
+      // 标题排序：先按中文，再按创建近似（id）
+      arr.sort((a,b) => String(a?.title ?? '').localeCompare(String(b?.title ?? ''), 'zh-Hans-CN'));
+
+      arr.forEach((t, ti) => {
+        const title = String(t?.title ?? '').trim() || '未命名模板';
+        const tags = String(t?.tags ?? '').trim();
+        const id = String(t?.id ?? '').trim();
+        const content = normalizeWordContentHtml(t?.content ?? '');
+
+        bodyHtml += `<div class="tpl">`;
+        bodyHtml += `<h3>${escapeHtmlForWord(title)}</h3>`;
+        bodyHtml += `<div class="meta">分类：${escapeHtmlForWord(m)} / ${escapeHtmlForWord(s)}${tags ? `　|　标签：${escapeHtmlForWord(tags)}` : ''}${id ? `　|　ID：${escapeHtmlForWord(id)}` : ''}</div>`;
+        bodyHtml += `<div class="content">${content}</div>`;
+        bodyHtml += `</div>`;
+      });
+    });
+  });
+
+  // 移除第一个 pagebreak（封面后紧接正文不需要强制换页）
+  bodyHtml = bodyHtml.replace('<div class="pagebreak"></div>', '');
+
+  const totalCats = cats.length;
+  const totalTpl = tpls.length;
+
+  return `<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="utf-8" />
+<title>病历书写辅助系统 模板备份 ${versionLabel}</title>
+<style>
+  @page { margin: 24mm 18mm; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
+  h1 { font-size: 20pt; margin: 14pt 0 8pt; }
+  h2 { font-size: 15pt; margin: 12pt 0 6pt; }
+  h3 { font-size: 12.5pt; margin: 10pt 0 4pt; }
+  .cover-title { font-size: 26pt; font-weight: 700; margin: 0 0 10pt; }
+  .cover-sub { color: #444; margin: 0 0 18pt; }
+  .info { border: 1px solid #ddd; border-radius: 6px; padding: 10pt 12pt; background: #fafafa; }
+  .info-row { margin: 2pt 0; }
+  .toc { margin-top: 14pt; }
+  .toc-title { font-weight: 700; font-size: 14pt; margin: 14pt 0 8pt; }
+  .toc-item { margin: 2pt 0; }
+  .toc-main { font-weight: 600; }
+  .toc-sub { margin-left: 18pt; color: #333; }
+  a { color: #111; text-decoration: none; }
+  .pagebreak { page-break-before: always; }
+  .tpl { margin: 0 0 14pt; padding: 10pt 10pt 12pt; border: 1px solid #e5e7eb; border-radius: 8px; }
+  .meta { color:#555; font-size: 10.5pt; margin-bottom: 6pt; }
+  .content p { margin: 0 0 6pt; }
+  .content ul, .content ol { margin: 0 0 6pt 18pt; }
+  .content table { border-collapse: collapse; margin: 6pt 0; }
+  .content table td, .content table th { border: 1px solid #ddd; padding: 4pt 6pt; }
+</style>
+</head>
+<body>
+  <div>
+    <div class="cover-title">病历书写辅助系统</div>
+    <div class="cover-sub">模板备份（Word 可阅读存档） · ${escapeHtmlForWord(versionLabel)} · ${escapeHtmlForWord(ts)}</div>
+    <div class="info">
+      <div class="info-row">系统版本：${escapeHtmlForWord(versionLabel)}</div>
+      <div class="info-row">备份时间：${escapeHtmlForWord(ts)}</div>
+      <div class="info-row">分类数量：${totalCats}</div>
+      <div class="info-row">模板数量：${totalTpl}</div>
+      <div class="info-row" style="color:#666;">提示：如需恢复/迁移，请同时保留 JSON 备份。</div>
+    </div>
+
+    <div class="toc">
+      <div class="toc-title">目录</div>
+      ${tocHtml || '<div class="toc-item">（无内容）</div>'}
+    </div>
+  </div>
+
+  ${bodyHtml}
+</body>
+</html>`;
+}
+
+function generateUniqueId(existingIds) {
+  let id;
+  do {
+    id = (Date.now().toString() + Math.floor(Math.random()*100000).toString().padStart(5,'0'));
+  } while (existingIds.has(id));
+  return id;
+}
+
+function mergeCategoryTrees(baseTree, incomingTree) {
+  if (!Array.isArray(baseTree)) return;
+  if (!Array.isArray(incomingTree)) return;
+
+  const mainMap = new Map();
+  baseTree.forEach(c => {
+    if (c && typeof c.name !== 'undefined') mainMap.set(String(c.name), c);
+  });
+
+  incomingTree.forEach(cIn => {
+    if (!cIn) return;
+    const name = String(cIn.name ?? '').trim();
+    if (!name) return;
+
+    const cloned = JSON.parse(JSON.stringify(cIn));
+    if (!mainMap.has(name)) {
+      baseTree.push(cloned);
+      mainMap.set(name, baseTree[baseTree.length - 1]);
+      return;
+    }
+
+    const baseMain = mainMap.get(name);
+    if (!baseMain) return;
+    if (!Array.isArray(baseMain.subs)) baseMain.subs = [];
+
+    const subMap = new Set(baseMain.subs.map(s => String((typeof s === 'string') ? s : (s?.name ?? '')).trim()).filter(Boolean));
+    const inSubs = Array.isArray(cloned.subs) ? cloned.subs : [];
+    inSubs.forEach(sIn => {
+      const sName = String((typeof sIn === 'string') ? sIn : (sIn?.name ?? '')).trim();
+      if (!sName) return;
+      if (subMap.has(sName)) return;
+      baseMain.subs.push(sIn);
+      subMap.add(sName);
+    });
+  });
+}
+
+function upsertCategoryFromTemplate(mainName, subName) {
+  const m = String(mainName ?? '').trim();
+  const s = String(subName ?? '').trim();
+  if (!m) return;
+
+  let main = categoryTree.find(x => String(x.name ?? '').trim() === m);
+  if (!main) {
+    main = { name: m, iconKey: guessMainIcon(m), subs: [] };
+    categoryTree.push(main);
+  }
+
+  if (!s) return;
+  if (!Array.isArray(main.subs)) main.subs = [];
+  const exists = main.subs.some(x => String((typeof x === 'string') ? x : (x?.name ?? '')).trim() === s);
+  if (!exists) {
+    main.subs.push({ name: s, iconKey: guessSubIcon(s) });
+  }
+}
+
+function doImportOverride(data) {
+  autoBackup('import_override');
+  if (data.categories) {
+    categoryTree = data.categories;
+    normalizeCategoryTreeForCompatibility();
+  }
+  if (data.templates) {
+    templates = data.templates;
+    normalizeDataForCompatibility();
+  }
+  alert("恢复成功（已覆盖）！");
+  location.reload();
+}
+
+function doImportAdd(data) {
+  autoBackup('import_add');
+
+  // 1) 合并分类（按名称去重）
+  if (Array.isArray(data.categories)) {
+    mergeCategoryTrees(categoryTree, data.categories);
+  }
+
+  // 2) 合并模板（ID 冲突自动改新 ID）
+  const existingIds = new Set((templates || []).map(t => String(t?.id ?? '')));
+  const incomingTemplates = Array.isArray(data.templates) ? data.templates : [];
+
+  const normalizedIncoming = incomingTemplates.map(t => ({
+    id: String(t?.id ?? ''),
+    mainCat: String(t?.mainCat ?? ''),
+    subCat: String(t?.subCat ?? ''),
+    title: String(t?.title ?? ''),
+    tags: String(t?.tags ?? ''),
+    content: String(t?.content ?? '')
+  }));
+
+  // 为导入模板补齐分类（即使对方备份缺 categories 也能合并）
+  normalizedIncoming.forEach(t => upsertCategoryFromTemplate(t.mainCat, t.subCat));
+
+  // 处理 ID 冲突并插入到前部（让新导入的更容易看到）
+  const toAdd = [];
+  normalizedIncoming.forEach(t => {
+    let id = t.id;
+    if (!id || existingIds.has(id)) id = generateUniqueId(existingIds);
+    existingIds.add(id);
+    toAdd.push({ ...t, id });
+  });
+
+  templates = [...toAdd, ...(templates || [])];
+
+  // 统一做一次兼容与图标去重
+  normalizeCategoryTreeForCompatibility();
+  normalizeDataForCompatibility();
+
+  alert("导入成功（已合并增加）！");
+  location.reload();
+}
+
+function importData(inputElement) {
+  const file = inputElement.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    let data;
+    try {
+      data = JSON.parse(e.target.result);
+    } catch(err) {
+      alert("文件损坏或格式错误");
+      inputElement.value = '';
+      return;
+    }
+
+    const ts = data.timestamp || '未知';
+    const tCount = Array.isArray(data.templates) ? data.templates.length : 0;
+    const cCount = Array.isArray(data.categories) ? data.categories.length : 0;
+
+    openConfirm3({
+      title: '导入数据',
+      body: `发现备份文件：${ts}\n分类数量：${cCount}\n模板数量：${tCount}\n\n请选择导入方式：\n- 增加导入：将备份中的分类/模板合并到当前数据（不会删除现有内容）\n- 覆盖导入：用备份完全替换当前数据`,
+      labels: { continue: '取消', discard: '增加导入', save: '覆盖导入' },
+      onDiscard: () => {
+        try { doImportAdd(data); } finally { inputElement.value = ''; }
+      },
+      onSave: () => {
+        try { doImportOverride(data); } finally { inputElement.value = ''; }
+      }
+    });
+  };
+  reader.readAsText(file);
+}
+/* =========================
+   22) 复制
+   ========================= */
+function copyContent(id, btn) {
+  const t = templates.find(i => i.id === id);
+  if(t) {
+    const text = htmlToPlainText(t.content);
+    navigator.clipboard.writeText(text).then(() => {
+      const old = btn.innerHTML;
+      btn.innerHTML = `<span class="ico">${ICONS.svg('check')}</span> 已复制`;
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerHTML = old;
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  }
+}
+
+/* =========================
+   23) localStorage
+   ========================= */
+function saveToLocal() { localStorage.setItem('med_templates_v3', JSON.stringify(templates)); }
+function saveCategories() { localStorage.setItem('med_categories_v3', JSON.stringify(categoryTree)); }
+
+/* =========================
+   24) 处理“users”图标缺失的容错（你默认分类里用了 users）
+   ========================= */
+(function ensureUsersIcon() {
+  if (!ICONS.exists('users')) {
+    // 追加一个 users（不会影响已有 key，只在缺失时补）
+    // 这里用最简双人轮廓
+    const s = (paths) => `<svg viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`;
+    const usersSvg = s(`<path d="M16 11a3 3 0 1 0-3-3 3 3 0 0 0 3 3z"/><path d="M8 11a3 3 0 1 0-3-3 3 3 0 0 0 3 3z"/><path d="M4 20a4 4 0 0 1 8 0"/><path d="M12 20a4 4 0 0 1 8 0"/>`);
+    // hack: 将 users 注入 ICONS 内部不可行（闭包），因此：把 users 统一映射到 dna 或 info
+    // 这里直接把 DEFAULT_CATEGORIES 的 users 替换为 dna
+    categoryTree.forEach(c => { if (c.iconKey === 'users') c.iconKey = 'dna'; });
+    saveCategories();
+  }
+})();
+</script>
+
+</body>
+</html>
