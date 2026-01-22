@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>病历模板助手 v3.26（移动端：顶栏固定·关闭按钮横排）</title>
+  <title>病历模板助手 v3.27（管理分类：移动端条目名称不被按钮遮挡）</title>
 
   <style>
     :root {
@@ -590,7 +590,7 @@ body.modal-open {
     .manage-item.active { background: rgba(2,132,199,0.10); border-color: rgba(2,132,199,0.16); color: #0369a1; }
 
     .manage-item-left { display:flex; align-items:center; gap:8px; min-width:0; }
-    .manage-item-left span.name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .manage-item-left span.name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0; }
 
 
     .inline-rename-input {
@@ -625,6 +625,22 @@ body.modal-open {
       font-size: 12px;
     }
     .icon-btn.icon-only { padding: 6px; gap: 0; }
+
+    /* Mobile: prevent category name being squeezed/covered by control buttons in Manage Categories */
+    @media (max-width: 560px) {
+      .manage-item { flex-direction: column; align-items: stretch; }
+      .manage-item-left { width: 100%; }
+      .item-controls {
+        width: 100%;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .item-controls .icon-btn { padding: 6px; }
+      /* give the name line a little breathing room */
+      .manage-item-left .name { padding-right: 2px; }
+    }
+
     .icon-btn:hover { background: #f3f4f6; color: #111827; }
     .icon-btn.delete:hover { background: rgba(239,68,68,0.10); border-color: rgba(239,68,68,0.22); color: #b91c1c; }
     .icon-btn.rename:hover { background: rgba(2,132,199,0.10); border-color: rgba(2,132,199,0.22); color: #0369a1; }
@@ -3689,7 +3705,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `病历助手备份_v3.26_${new Date().toISOString().slice(0,10)}.json`;
+  a.download = `病历助手备份_v3.27_${new Date().toISOString().slice(0,10)}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -3709,7 +3725,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `病历书写辅助系统_模板备份_v3.26_${new Date().toISOString().slice(0,10)}.doc`;
+  a.download = `病历书写辅助系统_模板备份_v3.27_${new Date().toISOString().slice(0,10)}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -3738,7 +3754,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'v3.26';
+  const versionLabel = 'v3.27';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
