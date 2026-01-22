@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR v3.27</title>
+  <title>病历模板助手 v3.28（移动端：打开弹窗自动收起侧边栏）</title>
 
   <style>
     :root {
@@ -1805,6 +1805,8 @@ function unlockBodyScrollForModal() {
 }
 
 function openModal(id) {
+  // Mobile: if the sidebar drawer is open, close it before showing a modal.
+  if (isMobile()) closeSidebar();
   const el = document.getElementById(id);
   if (!el) return;
   el.style.display = 'flex';
@@ -3696,7 +3698,7 @@ function exportData() {
 
 function exportJsonBackup() {
   const data = {
-    version: "3.21-mobile-compat",
+    version: "3.28",
     timestamp: new Date().toLocaleString(),
     categories: categoryTree,
     templates: templates
@@ -3705,7 +3707,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `病历助手备份_v3.27_${new Date().toISOString().slice(0,10)}.json`;
+  a.download = `病历助手备份_v3.28_${new Date().toISOString().slice(0,10)}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -3714,7 +3716,7 @@ function exportJsonBackup() {
 
 function exportWordBackup() {
   const data = {
-    version: "3.21-mobile-compat",
+    version: "3.28",
     timestamp: new Date().toLocaleString(),
     categories: categoryTree,
     templates: templates
@@ -3725,7 +3727,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `病历书写辅助系统_模板备份_v3.27_${new Date().toISOString().slice(0,10)}.doc`;
+  a.download = `病历书写辅助系统_模板备份_v3.28_${new Date().toISOString().slice(0,10)}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -3754,7 +3756,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'v3.27';
+  const versionLabel = 'v3.28';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
