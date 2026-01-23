@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V3.32</title>
+  <title>MyEMR V3.33</title>
 
   <style>
     :root {
@@ -962,12 +962,135 @@ body.modal-open {
 /* Close button: always keep text horizontal */
 .btn-close, .btn-close span { white-space: nowrap; }
 
+
+    /* ===== Password Protection (MyEMR) ===== */
+    .auth-overlay{
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(240,242,246,.92);
+      padding: 18px;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+    .auth-card{
+      width: min(420px, 92vw);
+      background: #fff;
+      border: 1px solid rgba(0,0,0,.08);
+      border-radius: 16px;
+      box-shadow: 0 18px 48px rgba(0,0,0,.12);
+      padding: 16px 16px 14px;
+    }
+    .auth-head{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      padding-bottom:10px;
+      border-bottom:1px solid rgba(0,0,0,.06);
+      margin-bottom:12px;
+    }
+    .auth-brand{ font-weight: 800; font-size: 18px; letter-spacing: .2px; }
+    .auth-ver{ font-weight: 700; font-size: 12px; color: rgba(0,0,0,.55); }
+    .auth-title{ font-weight: 800; font-size: 16px; margin: 4px 0 6px; }
+    .auth-hint{ font-size: 13px; color: rgba(0,0,0,.62); line-height: 1.45; margin-bottom: 10px; }
+    .auth-input{
+      width: 100%;
+      border: 1px solid rgba(0,0,0,.12);
+      border-radius: 12px;
+      padding: 12px 12px;
+      font-size: 15px;
+      outline: none;
+      margin: 8px 0;
+      background: #fff;
+    }
+    .auth-input:focus{
+      border-color: rgba(10,132,255,.55);
+      box-shadow: 0 0 0 3px rgba(10,132,255,.12);
+    }
+    .auth-error{
+      font-size: 13px;
+      color: #b00020;
+      margin: 6px 0 4px;
+      line-height: 1.35;
+    }
+    .auth-btn{
+      width: 100%;
+      border: 1px solid rgba(0,0,0,.10);
+      border-radius: 12px;
+      padding: 11px 12px;
+      font-size: 15px;
+      font-weight: 700;
+      background: #fff;
+      margin-top: 10px;
+    }
+    .auth-btn.primary{
+      border-color: rgba(16,185,129,.35);
+      background: rgba(16,185,129,.12);
+      color: #0b7a55;
+    }
+    .auth-btn:active{ transform: translateY(1px); }
+    .auth-footnote{
+      margin-top: 12px;
+      font-size: 12px;
+      color: rgba(0,0,0,.55);
+      line-height: 1.35;
+    }
+
 </style>
 </head>
 
 <body>
 
-  <div class="sidebar">
+  
+
+  <!-- Password Protection Overlay -->
+  <div class="auth-overlay" id="authOverlay" style="display:none" role="dialog" aria-modal="true">
+    <div class="auth-card">
+      <div class="auth-head">
+        <div class="auth-brand">MyEMR</div>
+        <div class="auth-ver">V3.33</div>
+      </div>
+
+      <div class="auth-section" id="authLoginSection" style="display:none">
+        <div class="auth-title">登录</div>
+        <div class="auth-hint">请输入密码以继续使用。</div>
+        <input class="auth-input" id="authLoginPwd" type="password" placeholder="密码" autocomplete="current-password" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="go" />
+        <div class="auth-error" id="authLoginErr" style="display:none"></div>
+        <button class="auth-btn primary" id="authLoginBtn">登录</button>
+        <button class="auth-btn" id="authToSetupBtn" style="display:none">设置密码</button>
+      </div>
+
+      <div class="auth-section" id="authSetupSection" style="display:none">
+        <div class="auth-title">设置密码</div>
+        <div class="auth-hint">首次使用请设置访问密码。密码仅保存在本机浏览器中。</div>
+        <input class="auth-input" id="authNewPwd" type="password" placeholder="新密码" autocomplete="new-password" autocorrect="off" autocapitalize="none" spellcheck="false" />
+        <input class="auth-input" id="authNewPwd2" type="password" placeholder="再次输入新密码" autocomplete="new-password" autocorrect="off" autocapitalize="none" spellcheck="false" />
+        <div class="auth-error" id="authSetupErr" style="display:none"></div>
+        <button class="auth-btn primary" id="authSetupBtn">保存并进入</button>
+        <button class="auth-btn" id="authSetupCancelBtn" style="display:none">取消</button>
+      </div>
+
+      <div class="auth-section" id="authChangeSection" style="display:none">
+        <div class="auth-title">修改密码</div>
+        <div class="auth-hint">请输入旧密码并设置新密码。</div>
+        <input class="auth-input" id="authOldPwd" type="password" placeholder="旧密码" autocomplete="current-password" autocorrect="off" autocapitalize="none" spellcheck="false" />
+        <input class="auth-input" id="authChgPwd" type="password" placeholder="新密码" autocomplete="new-password" autocorrect="off" autocapitalize="none" spellcheck="false" />
+        <input class="auth-input" id="authChgPwd2" type="password" placeholder="再次输入新密码" autocomplete="new-password" autocorrect="off" autocapitalize="none" spellcheck="false" />
+        <div class="auth-error" id="authChangeErr" style="display:none"></div>
+        <button class="auth-btn primary" id="authChangeBtn">确认修改</button>
+        <button class="auth-btn" id="authChangeCancelBtn">取消</button>
+      </div>
+
+      <div class="auth-footnote">
+        提示：这是前端本地密码保护，适用于防止他人随手查看；如遗忘密码，请清除该站点浏览器数据后重新设置。
+      </div>
+    </div>
+  </div>
+
+<div class="sidebar">
     <div class="sidebar-header">
       <button class="action-btn btn-green" onclick="openTemplateModal()">
         <span class="ico" id="icoPlus"></span>
@@ -996,7 +1119,18 @@ body.modal-open {
 
       <input type="file" id="fileInput" style="display:none" onchange="importData(this)" accept=".json" />
     
-      <div class="app-badge">MyEMR V3.32</div>
+      
+      <button class="action-btn" onclick="openChangePassword()">
+        <span class="ico" id="icoKey"></span>
+        <span>修改密码</span>
+      </button>
+
+      <button class="action-btn" onclick="lockApp()">
+        <span class="ico" id="icoLock"></span>
+        <span>锁定</span>
+      </button>
+
+      <div class="app-badge">MyEMR V3.33</div>
     </div>
   </div>
   <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
@@ -1789,7 +1923,9 @@ let newSubIconKey = 'folderOpen';
 window.onload = function() {
   mountTopIcons();
   updateTopbarHeight();
-  normalizeDataForCompatibility();
+  __bindAuthUIOnce();
+  __appInitDeferred = function() {
+normalizeDataForCompatibility();
   normalizeCategoryTreeForCompatibility();
 
   bindDirtyListenersOnce();
@@ -1804,6 +1940,10 @@ window.onload = function() {
   updateTopbarHeight();
   updateTagPoolToggleVisibility();
   syncNewCategoryIconRemember();
+  };
+  authBoot();
+  if (__authIsPasswordSet() && __authIsUnlocked()) __authEnsureInit();
+
 };
 
 /* =========================
@@ -1819,6 +1959,8 @@ function mountTopIcons() {
   setIcon('icoManage', 'settings');      // 你要匹配“管理分类与排序”
   setIcon('icoReceipt', 'receipt');      // 备份收据
   setIcon('icoRestore', 'restore');      // 恢复数据
+  setIcon('icoKey', 'key');
+  setIcon('icoLock', 'lock');
   setIcon('icoMenu', 'menu');               // 移动端菜单按钮
 
   setIcon('icoClose1', 'x');
@@ -1854,7 +1996,7 @@ function isModalOpen(id) {
   return el && el.style.display === 'flex';
 }
 let __modalLockCount = 0;
-let __modalZTop = 2000;
+let __modalZ = 2000;
 let __bodyScrollY = 0;
 
 function anyModalVisible() {
@@ -1893,12 +2035,10 @@ function openModal(id) {
   if (isMobile()) closeSidebar();
   const el = document.getElementById(id);
   if (!el) return;
+  // Modal stacking: always bring the newly opened modal to the front.
+  __modalZ = Math.max(__modalZ, 2000) + 2;
+  el.style.zIndex = __modalZ;
   el.style.display = 'flex';
-  // Bring this modal to front (supports nested modals like icon picker on top of category editor).
-  __modalZTop = Math.max(__modalZTop, 2000);
-  __modalZTop += 1;
-  el.style.zIndex = String(__modalZTop);
-
   __modalLockCount++;
   // On mobile we use page scrolling; lock it to prevent background move while scrolling the modal.
   if (isMobile()) lockBodyScrollForModal();
@@ -4000,7 +4140,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V3.32</title>
+<title>MyEMR V3.33</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
@@ -4099,7 +4239,228 @@ function upsertCategoryFromTemplate(mainName, subName) {
   const s = String(subName ?? '').trim();
   if (!m) return;
 
-  let main = categoryTree.find(x => String(x.name ?? '').trim() === m);
+  let main = categoryTree.find(x => String(x.name ?? '').
+/* =========================
+   9) 密码保护（本地）
+   ========================= */
+const __AUTH_KEY = 'myemr_auth_v1';
+const __AUTH_SESSION = 'myemr_unlocked';
+let __appInitialized = false;
+let __appInitDeferred = null;
+
+function __authGetRecord(){
+  try { return JSON.parse(localStorage.getItem(__AUTH_KEY) || 'null'); } catch(e){ return null; }
+}
+function __authIsPasswordSet(){ return !!__authGetRecord(); }
+function __authIsUnlocked(){ return sessionStorage.getItem(__AUTH_SESSION) === '1'; }
+
+function __b64ToU8(b64){
+  const bin = atob(b64);
+  const u8 = new Uint8Array(bin.length);
+  for (let i=0;i<bin.length;i++) u8[i] = bin.charCodeAt(i);
+  return u8;
+}
+function __u8ToB64(u8){
+  let s = '';
+  for (let i=0;i<u8.length;i++) s += String.fromCharCode(u8[i]);
+  return btoa(s);
+}
+async function __pbkdf2(pwd, saltB64, iterations){
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(pwd), {name:'PBKDF2'}, false, ['deriveBits']);
+  const salt = __b64ToU8(saltB64);
+  const bits = await crypto.subtle.deriveBits(
+    {name:'PBKDF2', hash:'SHA-256', salt, iterations},
+    key,
+    256
+  );
+  return __u8ToB64(new Uint8Array(bits));
+}
+
+function __authShow(section){
+  const overlay = document.getElementById('authOverlay');
+  if (!overlay) return;
+  // lock page scroll even outside modal system
+  document.documentElement.classList.add('modal-open');
+  document.body.classList.add('modal-open');
+
+  overlay.style.display = 'flex';
+  const secIds = ['authLoginSection','authSetupSection','authChangeSection'];
+  secIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+
+  const login = document.getElementById('authLoginSection');
+  const setup = document.getElementById('authSetupSection');
+  const change = document.getElementById('authChangeSection');
+
+  if (section === 'setup') setup.style.display = 'block';
+  else if (section === 'change') change.style.display = 'block';
+  else login.style.display = 'block';
+
+  // focus
+  setTimeout(() => {
+    const f = section === 'setup' ? 'authNewPwd' : (section === 'change' ? 'authOldPwd' : 'authLoginPwd');
+    const inp = document.getElementById(f);
+    if (inp) inp.focus();
+  }, 50);
+}
+
+function __authHide(){
+  const overlay = document.getElementById('authOverlay');
+  if (overlay) overlay.style.display = 'none';
+  document.documentElement.classList.remove('modal-open');
+  document.body.classList.remove('modal-open');
+}
+
+function __authSetError(id, msg){
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg || '';
+  el.style.display = msg ? 'block' : 'none';
+}
+
+function __authEnsureInit(){
+  if (__appInitialized) return;
+  __appInitialized = true;
+  if (typeof __appInitDeferred === 'function') __appInitDeferred();
+}
+
+async function __authTryLogin(pwd){
+  const rec = __authGetRecord();
+  if (!rec) return false;
+  const hash = await __pbkdf2(pwd, rec.salt, rec.iter || 210000);
+  return hash === rec.hash;
+}
+
+async function __authSetupNewPassword(pwd){
+  const salt = new Uint8Array(16);
+  crypto.getRandomValues(salt);
+  const saltB64 = __u8ToB64(salt);
+  const iter = 210000;
+  const hash = await __pbkdf2(pwd, saltB64, iter);
+  localStorage.setItem(__AUTH_KEY, JSON.stringify({v:1, salt: saltB64, iter, hash, updatedAt: Date.now()}));
+}
+
+function authBoot(){
+  // if not set, show setup
+  if (!__authIsPasswordSet()){
+    __authShow('setup');
+    return;
+  }
+  // if session unlocked, init directly
+  if (__authIsUnlocked()){
+    __authHide();
+    __authEnsureInit();
+    return;
+  }
+  __authShow('login');
+}
+
+function lockApp(){
+  sessionStorage.removeItem(__AUTH_SESSION);
+  // do not keep UI state; reload for a clean lock
+  location.reload();
+}
+
+function openChangePassword(){
+  if (!__authIsPasswordSet()){
+    __authShow('setup');
+    return;
+  }
+  if (!__authIsUnlocked()){
+    __authShow('login');
+    return;
+  }
+  __authShow('change');
+}
+
+function __bindAuthUIOnce(){
+  if (window.__authBound) return;
+  window.__authBound = true;
+
+  const loginBtn = document.getElementById('authLoginBtn');
+  const loginPwd = document.getElementById('authLoginPwd');
+  const setupBtn = document.getElementById('authSetupBtn');
+  const newPwd = document.getElementById('authNewPwd');
+  const newPwd2 = document.getElementById('authNewPwd2');
+  const chgBtn = document.getElementById('authChangeBtn');
+  const oldPwd = document.getElementById('authOldPwd');
+  const chgPwd = document.getElementById('authChgPwd');
+  const chgPwd2 = document.getElementById('authChgPwd2');
+  const chgCancel = document.getElementById('authChangeCancelBtn');
+
+  const enterTo = (inp, fn) => {
+    if (!inp) return;
+    inp.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); fn(); }
+    });
+  };
+
+  async function doLogin(){
+    __authSetError('authLoginErr','');
+    const pwd = (loginPwd?.value || '').trim();
+    if (!pwd) return __authSetError('authLoginErr','请输入密码。');
+    try{
+      const ok = await __authTryLogin(pwd);
+      if (!ok) return __authSetError('authLoginErr','密码错误。');
+      sessionStorage.setItem(__AUTH_SESSION, '1');
+      __authHide();
+      __authEnsureInit();
+      loginPwd.value = '';
+    }catch(err){
+      __authSetError('authLoginErr','登录失败，请重试。');
+    }
+  }
+
+  async function doSetup(){
+    __authSetError('authSetupErr','');
+    const p1 = (newPwd?.value || '').trim();
+    const p2 = (newPwd2?.value || '').trim();
+    if (!p1 || p1.length < 4) return __authSetError('authSetupErr','密码至少 4 位。');
+    if (p1 !== p2) return __authSetError('authSetupErr','两次输入不一致。');
+    try{
+      await __authSetupNewPassword(p1);
+      sessionStorage.setItem(__AUTH_SESSION, '1');
+      __authHide();
+      __authEnsureInit();
+      newPwd.value = ''; newPwd2.value = '';
+    }catch(err){
+      __authSetError('authSetupErr','保存失败，请重试。');
+    }
+  }
+
+  async function doChange(){
+    __authSetError('authChangeErr','');
+    const oldp = (oldPwd?.value || '').trim();
+    const p1 = (chgPwd?.value || '').trim();
+    const p2 = (chgPwd2?.value || '').trim();
+    if (!oldp) return __authSetError('authChangeErr','请输入旧密码。');
+    if (!p1 || p1.length < 4) return __authSetError('authChangeErr','新密码至少 4 位。');
+    if (p1 !== p2) return __authSetError('authChangeErr','两次输入不一致。');
+    try{
+      const ok = await __authTryLogin(oldp);
+      if (!ok) return __authSetError('authChangeErr','旧密码不正确。');
+      await __authSetupNewPassword(p1);
+      // keep session unlocked
+      __authHide();
+      oldPwd.value=''; chgPwd.value=''; chgPwd2.value='';
+      alert('密码已修改。');
+    }catch(err){
+      __authSetError('authChangeErr','修改失败，请重试。');
+    }
+  }
+
+  if (loginBtn) loginBtn.addEventListener('click', doLogin);
+  if (setupBtn) setupBtn.addEventListener('click', doSetup);
+  if (chgBtn) chgBtn.addEventListener('click', doChange);
+  if (chgCancel) chgCancel.addEventListener('click', () => { __authHide(); });
+
+  enterTo(loginPwd, doLogin);
+  enterTo(newPwd2, doSetup);
+  enterTo(chgPwd2, doChange);
+}
+
+
+trim() === m);
   if (!main) {
     main = { name: m, iconKey: guessMainIcon(m), subs: [] };
     categoryTree.push(main);
