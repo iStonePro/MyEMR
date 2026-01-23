@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V4.5</title>
+  <title>MyEMR V4.8</title>
 
   <style>
     :root {
@@ -874,7 +874,9 @@ body.modal-open {
   }
 
   .sidebar { 
-    display:block;
+    display:flex;
+    flex-direction: column;
+    overflow: hidden; /* keep header/footer fixed on mobile */
     position: fixed;
     top: 0;
     bottom: 0;
@@ -891,6 +893,17 @@ body.modal-open {
   }
   .sidebar.open { transform: translateX(0); }
   .sidebar-backdrop.show { display:block; }
+
+  /* Mobile sidebar: keep header and footer fixed; only the tree scrolls */
+  .sidebar-header{ flex: 0 0 auto; }
+  .sidebar-footer{ flex: 0 0 auto; }
+  .category-tree{
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+  }
 
   .main-content { width: 100%; }
   .sidebar-toggle { display: inline-flex; }
@@ -1184,7 +1197,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V4.5</div>
+        <div class="auth-ver">V4.8</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -1559,7 +1572,7 @@ body.modal-open {
         <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V4.5</span>
+          <span id="aboutVersion">MyEMR V4.8</span>
         </div>
       </div>
 
@@ -2318,7 +2331,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V4.5';
+  if (about) about.textContent = 'MyEMR V4.8';
   openModal('settingsModal');
 }
 
@@ -2508,6 +2521,7 @@ function __bindAuthUIOnce(){
 window.onload = function() {
   mountTopIcons();
   updateTopbarHeight();
+    window.addEventListener('resize', updateTagPoolToggleVisibility);
   __loadSettings();
   __applySettings();
 
@@ -2767,8 +2781,8 @@ function openDialogModal({ title, body, okText='确定', cancelText='取消', sh
   setTimeout(()=>{ try { btnOk && btnOk.focus && btnOk.focus(); } catch(e){} }, 0);
 }
 
-function openAlertModal(body, title='提示', okText='确定') {
-  openDialogModal({ title, body, okText, showCancel:false, danger:false });
+function openAlertModal(body, title='提示', okText='确定', onOk) {
+  openDialogModal({ title, body, okText, showCancel:false, danger:false, onOk });
 }
 
 function openConfirmModal(body, {
@@ -3543,18 +3557,32 @@ function updateTagPoolToggleVisibility() {
   const toggle = document.getElementById('tagPoolToggle');
   if (!pool || !toggle) return;
 
-  const collapsedMax = 64;
-  const needToggle = pool.scrollHeight > collapsedMax + 2;
+  const chips = Array.from(pool.querySelectorAll('.tag-chip'));
+  if (chips.length === 0) {
+    toggle.style.display = 'none';
+    pool.classList.remove('collapsed');
+    return;
+  }
+
+  // 以“行数”判定是否超过两行：比固定像素更稳（移动端缩放/字体变化也准确）
+  const tops = chips.map(c => c.offsetTop).sort((a,b)=>a-b);
+  const rowTops = [];
+  const EPS = 4; // 允许少量像素误差
+  tops.forEach(t => {
+    if (rowTops.length === 0 || Math.abs(rowTops[rowTops.length-1] - t) > EPS) rowTops.push(t);
+  });
+
+  const needToggle = rowTops.length > 2;
   toggle.style.display = needToggle ? 'inline-flex' : 'none';
 
   if (!needToggle) {
+    // 不超过两行：直接全部展示，且保持“默认不占位的按钮”
     pool.classList.remove('collapsed');
   } else {
     applyTagPoolCollapsedState();
     setIcon('icoChevron', tagPoolExpanded ? 'chevronUp' : 'chevronDown');
   }
 }
-
 /* =========================
    15) 侧边栏：一级点击筛选 + 展开/收起
        - 无子分类：不显示箭头（你新增要求）
@@ -4666,7 +4694,7 @@ function getExportStamp(){
 
 function exportJsonBackup() {
   const data = {
-    version: "4.0",
+    version: "4.7",
     timestamp: new Date().toLocaleString(),
     categories: categoryTree,
     templates: templates
@@ -4675,7 +4703,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V4.5_${getExportStamp()}.json`;
+  a.download = `EMR_V4.8_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -4684,7 +4712,7 @@ function exportJsonBackup() {
 
 function exportWordBackup() {
   const data = {
-    version: "4.0",
+    version: "4.7",
     timestamp: new Date().toLocaleString(),
     categories: categoryTree,
     templates: templates
@@ -4695,7 +4723,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V4.5_${getExportStamp()}.doc`;
+  a.download = `EMR_V4.8_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -4835,7 +4863,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V4.5</title>
+<title>MyEMR V4.8</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
@@ -4859,6 +4887,10 @@ function buildWordBackupHtml(data) {
   .content ul, .content ol { margin: 0 0 6pt 18pt; }
   .content table { border-collapse: collapse; margin: 6pt 0; }
   .content table td, .content table th { border: 1px solid #ddd; padding: 4pt 6pt; }
+
+  /* Import merge content divider */
+  .merge-hr{border:none;border-top:1px solid var(--border);margin:10px 0;}
+  .merge-note{font-size:12px;color:var(--muted);margin:0 0 8px;}
 </style>
 </head>
 <body>
@@ -4959,8 +4991,7 @@ function doImportOverride(data) {
     templates = data.templates;
     normalizeDataForCompatibility();
   }
-  openAlertModal("恢复成功（已覆盖）！", "导入完成");
-  location.reload();
+  openAlertModal("恢复成功（已覆盖）！", "导入完成", "确定", () => location.reload());
 }
 
 function doImportAdd(data) {
@@ -4971,8 +5002,7 @@ function doImportAdd(data) {
     mergeCategoryTrees(categoryTree, data.categories);
   }
 
-  // 2) 合并模板（ID 冲突自动改新 ID）
-  const existingIds = new Set((templates || []).map(t => String(t?.id ?? '')));
+  // 2) 合并模板（规则加强：同名模板自动合并，避免重复）
   const incomingTemplates = Array.isArray(data.templates) ? data.templates : [];
 
   const normalizedIncoming = incomingTemplates.map(t => ({
@@ -4987,23 +5017,118 @@ function doImportAdd(data) {
   // 为导入模板补齐分类（即使对方备份缺 categories 也能合并）
   normalizedIncoming.forEach(t => upsertCategoryFromTemplate(t.mainCat, t.subCat));
 
-  // 处理 ID 冲突并插入到前部（让新导入的更容易看到）
-  const toAdd = [];
-  normalizedIncoming.forEach(t => {
-    let id = t.id;
-    if (!id || existingIds.has(id)) id = generateUniqueId(existingIds);
-    existingIds.add(id);
-    toAdd.push({ ...t, id });
+  const existingIds = new Set((templates || []).map(t => String(t?.id ?? '')));
+
+  const norm = (s) => String(s ?? '').trim().toLowerCase();
+  const makeKey = (m, s, t) => `${norm(m)}||${norm(s)}||${norm(t)}`;
+
+  // 索引现有模板：优先按“分类+标题”精确合并；必要时在“标题全局唯一”场景下做跨分类合并
+  const byKey = new Map();
+  const byTitle = new Map();
+  (templates || []).forEach(t => {
+    const k = makeKey(t.mainCat, t.subCat, t.title);
+    if (!byKey.has(k)) byKey.set(k, t);
+
+    const nt = norm(t.title);
+    if (!byTitle.has(nt)) byTitle.set(nt, []);
+    byTitle.get(nt).push(t);
   });
 
+  function splitTagsFlexible(tagStr) {
+    if (!tagStr) return [];
+    return String(tagStr)
+      .split(/[，,;；\n]/)
+      .map(s => s.trim())
+      .filter(Boolean);
+  }
+
+  function mergeTags(baseTags, incomingTags) {
+    const set = new Set();
+    splitTagsFlexible(baseTags).forEach(x => set.add(x));
+    splitTagsFlexible(incomingTags).forEach(x => set.add(x));
+    return Array.from(set).join(', ');
+  }
+
+  function mergeContentHtml(baseHtml, incomingHtml) {
+    const b = (baseHtml ?? '').toString();
+    const i = (incomingHtml ?? '').toString();
+    if (!b) return i;
+    if (!i) return b;
+
+    const bt = htmlToPlainText(b).replace(/\s+/g, '');
+    const it = htmlToPlainText(i).replace(/\s+/g, '');
+
+    // 完全一致 / 互为包含时，不重复追加
+    if (bt && it && bt === it) return (b.length >= i.length) ? b : i;
+    if (bt && it && bt.includes(it)) return b;
+    if (bt && it && it.includes(bt)) return i;
+
+    // 内容不同：为避免丢失信息，追加“导入合并内容”块（尽量不侵入，且可读）
+    return `${b}<hr class="merge-hr"><div class="merge-note">导入合并内容</div>${i}`;
+  }
+
+  function mergeInto(target, incoming) {
+    if (!target) return;
+    // 标题：保留已有（若已有为空则补齐）
+    if (!String(target.title ?? '').trim() && String(incoming.title ?? '').trim()) target.title = incoming.title;
+
+    // 分类：不主动改变现有归类；仅在现有为空时补齐
+    if (!String(target.mainCat ?? '').trim() && String(incoming.mainCat ?? '').trim()) target.mainCat = incoming.mainCat;
+    if (!String(target.subCat ?? '').trim() && String(incoming.subCat ?? '').trim()) target.subCat = incoming.subCat;
+
+    // 标签：并集
+    target.tags = mergeTags(target.tags, incoming.tags);
+
+    // 内容：同内容不重复；不同内容追加合并块
+    target.content = mergeContentHtml(target.content, incoming.content);
+  }
+
+  const stats = { added: 0, merged: 0 };
+  const toAdd = [];
+
+  normalizedIncoming.forEach(inc => {
+    const title = String(inc.title ?? '').trim();
+    if (!title) return; // 无标题的模板不导入（避免产生不可识别条目）
+
+    const key = makeKey(inc.mainCat, inc.subCat, inc.title);
+
+    let target = byKey.get(key);
+    if (!target) {
+      // 若标题在现有中“全局唯一”，允许跨分类合并（用户常把模板名当唯一键）
+      const list = byTitle.get(norm(inc.title));
+      if (list && list.length === 1) target = list[0];
+    }
+
+    if (target) {
+      mergeInto(target, inc);
+      stats.merged += 1;
+      return;
+    }
+
+    // 新增：处理 ID 冲突
+    let id = String(inc.id ?? '');
+    if (!id || existingIds.has(id)) id = generateUniqueId(existingIds);
+    existingIds.add(id);
+
+    const obj = { ...inc, id };
+    toAdd.push(obj);
+    stats.added += 1;
+
+    // 更新索引，避免导入文件内部同名产生重复
+    byKey.set(key, obj);
+    const nt = norm(obj.title);
+    if (!byTitle.has(nt)) byTitle.set(nt, []);
+    byTitle.get(nt).push(obj);
+  });
+
+  // 插入到前部（让新导入的更容易看到）
   templates = [...toAdd, ...(templates || [])];
 
   // 统一做一次兼容与图标去重
   normalizeCategoryTreeForCompatibility();
   normalizeDataForCompatibility();
 
-  openAlertModal("导入成功（已合并增加）！", "导入完成");
-  location.reload();
+  openAlertModal(`导入成功！新增 ${stats.added}，合并同名 ${stats.merged}。`, "导入完成", "确定", () => location.reload());
 }
 
 function importData(inputElement) {
@@ -5027,7 +5152,7 @@ function importData(inputElement) {
 
     openConfirm3({
       title: '导入数据',
-      body: `发现备份文件：${ts}\n分类数量：${cCount}\n模板数量：${tCount}\n\n请选择导入方式：\n- 增加导入：将备份中的分类/模板合并到当前数据（不会删除现有内容）\n- 覆盖导入：用备份完全替换当前数据`,
+      body: `发现备份文件：${ts}\n分类数量：${cCount}\n模板数量：${tCount}\n\n请选择导入方式：\n- 增加导入：将备份中的分类/模板合并到当前数据（不会删除现有内容，同名模板将自动合并）\n- 覆盖导入：用备份完全替换当前数据`,
       labels: { continue: '取消', discard: '增加导入', save: '覆盖导入' },
       onDiscard: () => {
         try { doImportAdd(data); } finally { inputElement.value = ''; }
