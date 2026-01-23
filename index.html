@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V4.1</title>
+  <title>MyEMR V4.5</title>
 
   <style>
     :root {
@@ -1167,6 +1167,13 @@ body.modal-open {
 @media (max-width: 740px){
   .settings-actions .action-btn{ flex: 1 1 calc(50% - 10px); }
 }
+
+/* ---- Dialog modal (alert/confirm) ---- */
+.modal-content-dialog { max-width: 560px; }
+.dialog-body { white-space: pre-wrap; font-size: 14px; color: var(--text-primary); }
+.btn.btn-danger { background: #dc2626; border-color: #dc2626; color: #fff; }
+.btn.btn-danger:hover { filter: brightness(0.95); }
+
 </style>
 </head>
 
@@ -1177,7 +1184,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V4.1</div>
+        <div class="auth-ver">V4.5</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -1552,13 +1559,34 @@ body.modal-open {
         <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V4.1</span>
+          <span id="aboutVersion">MyEMR V4.5</span>
         </div>
       </div>
 
     </div>
   </div>
 </div>
+
+  <!-- 通用弹窗提醒/确认 -->
+  <div class="modal" id="dialogModal" onclick="noopClose(event)" style="display:none;">
+    <div class="modal-content modal-content-dialog" onclick="event.stopPropagation()">
+      <div class="modal-title">
+        <span id="dialogTitle">提示</span>
+        <span class="modal-close" onclick="closeDialogModal()">
+          <span class="ico" id="icoCloseDialog"></span>
+          <span>关闭</span>
+        </span>
+      </div>
+      <div class="modal-body">
+        <div id="dialogBody" class="dialog-body"></div>
+      </div>
+      <div class="modal-footer" id="dialogFooter">
+        <button class="btn btn-secondary" id="dialogCancelBtn" onclick="dialogModalCancel()">取消</button>
+        <button class="btn btn-primary" id="dialogOkBtn" onclick="dialogModalOk()">确定</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 三选项确认弹窗 -->
   <div class="confirm3-modal" id="confirm3Modal" onclick="closeConfirm3('cancel')">
     <div class="confirm3-box" onclick="event.stopPropagation()">
@@ -2290,7 +2318,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V4.1';
+  if (about) about.textContent = 'MyEMR V4.5';
   openModal('settingsModal');
 }
 
@@ -2534,6 +2562,7 @@ function mountTopIcons() {
   setIcon('icoClose3', 'x');
   setIcon('icoClose4', 'x');
   setIcon('icoConfirmClose', 'x');
+  setIcon('icoCloseDialog', 'x');
 
   setIcon('icoPlusTag', 'plus');         // 标签添加按钮图标更合适（+）
   setIcon('icoChevron', 'chevronDown');
@@ -2713,6 +2742,64 @@ function openConfirm3({ title, body, targetModalId, onSave, onDiscard, onContinu
 
   openModal('confirm3Modal');
 }
+
+// ======== Dialog modal (replaces native alert/confirm) ========
+let __dialogCtx = null;
+
+function openDialogModal({ title, body, okText='确定', cancelText='取消', showCancel=true, danger=false, onOk, onCancel }) {
+  __dialogCtx = { onOk, onCancel };
+  document.getElementById('dialogTitle').textContent = title || '提示';
+  document.getElementById('dialogBody').textContent = body || '';
+  const btnOk = document.getElementById('dialogOkBtn');
+  const btnCancel = document.getElementById('dialogCancelBtn');
+
+  if (btnOk) {
+    btnOk.textContent = okText || '确定';
+    btnOk.classList.remove('btn-danger');
+    if (danger) btnOk.classList.add('btn-danger');
+  }
+  if (btnCancel) {
+    btnCancel.textContent = cancelText || '取消';
+    btnCancel.style.display = showCancel ? 'inline-flex' : 'none';
+  }
+
+  openModal('dialogModal');
+  setTimeout(()=>{ try { btnOk && btnOk.focus && btnOk.focus(); } catch(e){} }, 0);
+}
+
+function openAlertModal(body, title='提示', okText='确定') {
+  openDialogModal({ title, body, okText, showCancel:false, danger:false });
+}
+
+function openConfirmModal(body, {
+  title='确认操作',
+  okText='确定',
+  cancelText='取消',
+  danger=false,
+  onOk,
+  onCancel
+} = {}) {
+  openDialogModal({ title, body, okText, cancelText, showCancel:true, danger, onOk, onCancel });
+}
+
+function closeDialogModal() {
+  closeModalDirect('dialogModal');
+  __dialogCtx = null;
+}
+
+function dialogModalOk() {
+  const ctx = __dialogCtx;
+  closeDialogModal();
+  if (ctx && typeof ctx.onOk === 'function') ctx.onOk();
+}
+
+function dialogModalCancel() {
+  const ctx = __dialogCtx;
+  closeDialogModal();
+  if (ctx && typeof ctx.onCancel === 'function') ctx.onCancel();
+}
+
+
 function closeConfirm3(action) {
   closeModalDirect('confirm3Modal');
   if (!confirm3Context) return;
@@ -2755,8 +2842,7 @@ function requestCloseModal(id) {
         body: '你修改了移动目标但尚未确认。\n\n请选择：确认移动并关闭 / 不移动关闭 / 继续编辑。',
         targetModalId: 'moveModal',
         onSave: () => {
-          const ok = confirmMoveTemplate(true);
-          if (ok) closeModalDirect('moveModal');
+          confirmMoveTemplate(true);
         },
         onDiscard: () => {
           moveModalSnapshot = null;
@@ -3652,7 +3738,7 @@ function saveTemplate(silentClose = false) {
   const contentText = htmlToPlainText(contentHtml);
 
   if (!title || !mainCat || !contentText.trim()) {
-    alert("请至少填写分类、标题和内容");
+    openAlertModal("请至少填写分类、标题和内容");
     return false;
   }
 
@@ -3679,16 +3765,24 @@ function deleteTemplate() {
   const id = document.getElementById('editId').value;
   const t = templates.find(x => x.id === id);
   const title = t ? t.title : '';
-  if (confirm(`确定要删除该模板吗？\n\n标题：${title}\n\n此操作不可撤销。`)) {
-    autoBackup('delete_template');
-    templates = templates.filter(x => x.id !== id);
-    saveToLocal();
-    rebuildTagPool([]);
-    templateModalSnapshot = null;
-    closeModalDirect('templateModal');
-    renderTemplates();
-  updateTopbarHeight();
-  }
+  const msg = `确定要删除该模板吗？\n\n标题：${title}\n\n此操作不可撤销。`;
+
+  openConfirmModal(msg, {
+    title: '确认删除',
+    okText: '删除',
+    cancelText: '取消',
+    danger: true,
+    onOk: () => {
+      autoBackup('delete_template');
+      templates = templates.filter(x => x.id !== id);
+      saveToLocal();
+      rebuildTagPool([]);
+      templateModalSnapshot = null;
+      closeModalDirect('templateModal');
+      renderTemplates();
+      updateTopbarHeight();
+    }
+  });
 }
 
 function editTemplate(id) {
@@ -3844,22 +3938,29 @@ function confirmMoveTemplate(silentClose = false) {
   const newSub = document.getElementById('moveSubCat').value;
 
   const msg =
-    `确认移动该模板吗？\n\n` +
+    `确定移动该模板吗？\n\n` +
     `标题：${t.title}\n` +
     `从：${t.mainCat}${t.subCat ? ' / ' + t.subCat : ''}\n` +
     `到：${newMain}${newSub ? ' / ' + newSub : ''}`;
 
-  if (!confirm(msg)) return false;
+  openConfirmModal(msg, {
+    title: '确认移动',
+    okText: '移动',
+    cancelText: '取消',
+    danger: false,
+    onOk: () => {
+      autoBackup('move_template');
+      t.mainCat = newMain;
+      t.subCat = newSub;
 
-  autoBackup('move_template');
-  t.mainCat = newMain;
-  t.subCat = newSub;
+      saveToLocal();
+      moveModalSnapshot = null;
+      if (!silentClose) closeModalDirect('moveModal');
+      renderTemplates();
+      updateTopbarHeight();
+    }
+  });
 
-  saveToLocal();
-  moveModalSnapshot = null;
-  if (!silentClose) closeModalDirect('moveModal');
-  renderTemplates();
-  updateTopbarHeight();
   return true;
 }
 
@@ -4043,7 +4144,7 @@ function addMainCategory() {
   const input = document.getElementById('newMainCatName');
   const name = (input.value || '').trim();
   if(!name) return;
-  if(categoryTree.find(c => c.name === name)) { alert("分类已存在"); return; }
+  if(categoryTree.find(c => c.name === name)) { openAlertModal("分类已存在"); return; }
 
   // 主图标不重复
   const used = new Set(categoryTree.map(c => c.iconKey));
@@ -4066,25 +4167,31 @@ function deleteMainCat(index) {
   const msg =
     `确定删除一级分类【${name}】吗？\n\n` +
     `注意：该分类下的模板不会被删除，但会失去目录归属（仍可在“全部显示”中找到，并可编辑/移动重新归类）。`;
-  if(confirm(msg)) {
-    autoBackup('delete_main_category');
-    if(categoryTree[index] === editingCategoryMain) {
-      editingCategoryMain = null;
-      renderManageSubList(null);
-    }
-    categoryTree.splice(index, 1);
-    saveCategories();
 
-    if (currentFilter.type === 'MAIN' && currentFilter.value === name) {
-      currentFilter = { type:'ALL', value:'' };
-      document.getElementById('currentFilterLabel').textContent = "全部模板";
-    }
+  openConfirmModal(msg, {
+    title: '确认删除一级分类',
+    okText: '删除',
+    cancelText: '取消',
+    danger: true,
+    onOk: () => {
+      autoBackup('delete_main_category');
+      if (categoryTree[index] === editingCategoryMain) {
+        editingCategoryMain = null;
+        renderManageSubList(null);
+      }
+      categoryTree.splice(index, 1);
+      saveCategories();
 
-    renderManageMainList();
-    renderSidebar();
-    renderTemplates();
-  updateTopbarHeight();
-  }
+      // 如果当前筛选指向被删的一级分类，回到全部
+      if (currentFilter.type === 'MAIN' && currentFilter.value === name) {
+        currentFilter = { type:'ALL', value:'' };
+      }
+      renderSidebar();
+      renderManageMainList();
+      renderTemplates();
+      updateTopbarHeight();
+    }
+  });
 }
 
 function addSubCategory() {
@@ -4095,7 +4202,7 @@ function addSubCategory() {
 
   const subs = editingCategoryMain.subs || [];
   const subNames = subs.map(s => (typeof s === 'string' ? s : s.name));
-  if (subNames.includes(name)) { alert("子分类已存在"); return; }
+  if (subNames.includes(name)) { openAlertModal("子分类已存在"); return; }
 
   // 二级分类图标全局不重复
   const used = getUsedSubIconKeys(-1, -1);
@@ -4117,31 +4224,33 @@ function addSubCategory() {
 }
 
 function deleteSubCat(index) {
-  if(!editingCategoryMain) return;
-
-  const subObj = editingCategoryMain.subs[index];
-  const subName = (typeof subObj === 'string') ? subObj : subObj.name;
+  if (!editingCategoryMain) return;
+  const subName = editingCategoryMain.subs[index];
   const mainName = editingCategoryMain.name;
 
   const msg =
     `确定删除二级分类【${mainName} / ${subName}】吗？\n\n` +
     `注意：该二级分类下的模板不会被删除，但其二级字段将失去目录归属（仍可编辑/移动重新归类）。`;
 
-  if (!confirm(msg)) return;
+  openConfirmModal(msg, {
+    title: '确认删除二级分类',
+    okText: '删除',
+    cancelText: '取消',
+    danger: true,
+    onOk: () => {
+      autoBackup('delete_sub_category');
+      editingCategoryMain.subs.splice(index, 1);
+      saveCategories();
 
-  autoBackup('delete_sub_category');
-  editingCategoryMain.subs.splice(index, 1);
-  saveCategories();
-
-  if (currentFilter.type === 'SUB' && currentFilter.value === subName) {
-    currentFilter = { type:'ALL', value:'' };
-    document.getElementById('currentFilterLabel').textContent = "全部模板";
-  }
-
-  renderManageSubList(editingCategoryMain);
-  renderSidebar();
-  renderTemplates();
-  updateTopbarHeight();
+      if (currentFilter.type === 'SUB' && currentFilter.value === subName) {
+        currentFilter = { type:'ALL', value:'' };
+      }
+      renderSidebar();
+      renderManageSubList(editingCategoryMain);
+      renderTemplates();
+      updateTopbarHeight();
+    }
+  });
 }
 
 function startInlineRenameMain(index) {
@@ -4191,7 +4300,7 @@ function startInlineRenameMain(index) {
 
     const nn = (input.value || '').trim();
     if (!nn) {
-      alert('名称不能为空');
+      openAlertModal('名称不能为空');
       input.focus();
       return;
     }
@@ -4200,7 +4309,7 @@ function startInlineRenameMain(index) {
       return;
     }
     if (categoryTree.some((c, i) => i !== index && c.name === nn)) {
-      alert('已存在同名一级分类');
+      openAlertModal('已存在同名一级分类');
       input.focus();
       return;
     }
@@ -4292,7 +4401,7 @@ function startInlineRenameSub(index) {
 
     const nn = (input.value || '').trim();
     if (!nn) {
-      alert('名称不能为空');
+      openAlertModal('名称不能为空');
       input.focus();
       return;
     }
@@ -4307,7 +4416,7 @@ function startInlineRenameSub(index) {
     }).filter(Boolean);
 
     if (names.includes(nn)) {
-      alert('该一级分类下已存在同名二级分类');
+      openAlertModal('该一级分类下已存在同名二级分类');
       input.focus();
       return;
     }
@@ -4400,7 +4509,7 @@ function openIconPickerForSub(subIndex) {
     onPick: (key) => {
       // 保险：再次校验全局不重复
       if (getUsedSubIconKeys(mainIndex, subIndex).has(key)) {
-        alert('该图标已被其他二级分类占用，请选择未置灰的图标。');
+        openAlertModal('该图标已被其他二级分类占用，请选择未置灰的图标。', '无法选择');
         return;
       }
       const old = editingCategoryMain.subs[subIndex];
@@ -4439,7 +4548,7 @@ function openIconPickerForNewSub() {
     usedKeys: used,
     onPick: (key) => {
       if (getUsedSubIconKeys(-1, -1).has(key)) {
-        alert('该图标已被其他二级分类占用，请选择未置灰的图标。');
+        openAlertModal('该图标已被其他二级分类占用，请选择未置灰的图标。', '无法选择');
         return;
       }
       newSubIconKey = key;
@@ -4566,7 +4675,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V4.1_${getExportStamp()}.json`;
+  a.download = `EMR_V4.5_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -4586,7 +4695,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V4.1_${getExportStamp()}.doc`;
+  a.download = `EMR_V4.5_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -4726,7 +4835,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V4.1</title>
+<title>MyEMR V4.5</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
@@ -4850,7 +4959,7 @@ function doImportOverride(data) {
     templates = data.templates;
     normalizeDataForCompatibility();
   }
-  alert("恢复成功（已覆盖）！");
+  openAlertModal("恢复成功（已覆盖）！", "导入完成");
   location.reload();
 }
 
@@ -4893,7 +5002,7 @@ function doImportAdd(data) {
   normalizeCategoryTreeForCompatibility();
   normalizeDataForCompatibility();
 
-  alert("导入成功（已合并增加）！");
+  openAlertModal("导入成功（已合并增加）！", "导入完成");
   location.reload();
 }
 
@@ -4907,7 +5016,7 @@ function importData(inputElement) {
     try {
       data = JSON.parse(e.target.result);
     } catch(err) {
-      alert("文件损坏或格式错误");
+      openAlertModal("文件损坏或格式错误", "导入失败");
       inputElement.value = '';
       return;
     }
