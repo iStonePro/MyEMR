@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V3.33</title>
+  <title>MyEMR V3.34</title>
 
   <style>
     :root {
@@ -967,7 +967,7 @@ body.modal-open {
     .auth-overlay{
       position: fixed;
       inset: 0;
-      z-index: 99999;
+      z-index: 200000;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -977,46 +977,23 @@ body.modal-open {
       -webkit-backdrop-filter: blur(6px);
     }
     .auth-card{
-      width: min(420px, 92vw);
-      background: #fff;
-      border: 1px solid rgba(0,0,0,.08);
+      width: min(420px, 100%);
       border-radius: 16px;
-      box-shadow: 0 18px 48px rgba(0,0,0,.12);
+      background: rgba(255,255,255,.96);
+      border: 1px solid rgba(0,0,0,.10);
+      box-shadow: 0 14px 48px rgba(0,0,0,.14);
       padding: 16px 16px 14px;
     }
     .auth-head{
-      display:flex;
-      align-items:baseline;
-      justify-content:space-between;
-      padding-bottom:10px;
-      border-bottom:1px solid rgba(0,0,0,.06);
-      margin-bottom:12px;
+      display:flex; align-items:baseline; justify-content:space-between;
+      padding-bottom: 10px; margin-bottom: 10px;
+      border-bottom: 1px solid rgba(0,0,0,.08);
     }
-    .auth-brand{ font-weight: 800; font-size: 18px; letter-spacing: .2px; }
-    .auth-ver{ font-weight: 700; font-size: 12px; color: rgba(0,0,0,.55); }
-    .auth-title{ font-weight: 800; font-size: 16px; margin: 4px 0 6px; }
-    .auth-hint{ font-size: 13px; color: rgba(0,0,0,.62); line-height: 1.45; margin-bottom: 10px; }
+    .auth-brand{ font-weight: 900; font-size: 18px; letter-spacing:.2px;}
+    .auth-ver{ font-weight: 800; font-size: 12px; opacity:.55; }
+    .auth-title{ font-size: 16px; font-weight: 900; margin: 2px 0 6px; }
+    .auth-hint{ font-size: 13px; opacity:.75; line-height: 1.45; }
     .auth-input{
-      width: 100%;
-      border: 1px solid rgba(0,0,0,.12);
-      border-radius: 12px;
-      padding: 12px 12px;
-      font-size: 15px;
-      outline: none;
-      margin: 8px 0;
-      background: #fff;
-    }
-    .auth-input:focus{
-      border-color: rgba(10,132,255,.55);
-      box-shadow: 0 0 0 3px rgba(10,132,255,.12);
-    }
-    .auth-error{
-      font-size: 13px;
-      color: #b00020;
-      margin: 6px 0 4px;
-      line-height: 1.35;
-    }
-    .auth-btn{
       width: 100%;
       border: 1px solid rgba(0,0,0,.10);
       border-radius: 12px;
@@ -1026,16 +1003,39 @@ body.modal-open {
       background: #fff;
       margin-top: 10px;
     }
+    .auth-input:focus{ outline:none; border-color: rgba(16,185,129,.55); box-shadow: 0 0 0 4px rgba(16,185,129,.12); }
+    .auth-btn{
+      width: 100%;
+      border: 1px solid rgba(0,0,0,.10);
+      border-radius: 12px;
+      padding: 11px 12px;
+      font-size: 15px;
+      font-weight: 800;
+      background: rgba(255,255,255,.95);
+      margin-top: 10px;
+      cursor: pointer;
+    }
     .auth-btn.primary{
       border-color: rgba(16,185,129,.35);
       background: rgba(16,185,129,.12);
       color: #0b7a55;
     }
     .auth-btn:active{ transform: translateY(1px); }
+    .auth-error{
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(239,68,68,.25);
+      background: rgba(239,68,68,.08);
+      color: #b91c1c;
+      font-weight: 800;
+      font-size: 13px;
+      line-height: 1.35;
+    }
     .auth-footnote{
       margin-top: 12px;
       font-size: 12px;
-      color: rgba(0,0,0,.55);
+      opacity: .6;
       line-height: 1.35;
     }
 
@@ -1044,20 +1044,19 @@ body.modal-open {
 
 <body>
 
-  
-
-  <!-- Password Protection Overlay -->
-  <div class="auth-overlay" id="authOverlay" style="display:none" role="dialog" aria-modal="true">
-    <div class="auth-card">
+  <!-- Password Protection -->
+  <div class="auth-overlay" id="authOverlay" style="display:none" role="dialog" aria-modal="true" aria-label="MyEMR 登录">
+    <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V3.33</div>
+        <div class="auth-ver">V3.34</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
         <div class="auth-title">登录</div>
         <div class="auth-hint">请输入密码以继续使用。</div>
-        <input class="auth-input" id="authLoginPwd" type="password" placeholder="密码" autocomplete="current-password" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="go" />
+        <input class="auth-input" id="authLoginPwd" type="password" placeholder="输入密码" autocomplete="current-password"
+               autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="go" />
         <div class="auth-error" id="authLoginErr" style="display:none"></div>
         <button class="auth-btn primary" id="authLoginBtn">登录</button>
         <button class="auth-btn" id="authToSetupBtn" style="display:none">设置密码</button>
@@ -1065,32 +1064,40 @@ body.modal-open {
 
       <div class="auth-section" id="authSetupSection" style="display:none">
         <div class="auth-title">设置密码</div>
-        <div class="auth-hint">首次使用请设置访问密码。密码仅保存在本机浏览器中。</div>
-        <input class="auth-input" id="authNewPwd" type="password" placeholder="新密码" autocomplete="new-password" autocorrect="off" autocapitalize="none" spellcheck="false" />
-        <input class="auth-input" id="authNewPwd2" type="password" placeholder="再次输入新密码" autocomplete="new-password" autocorrect="off" autocapitalize="none" spellcheck="false" />
+        <div class="auth-hint">首次使用请设置一个登录密码（仅保存在本机浏览器）。</div>
+        <input class="auth-input" id="authNewPwd" type="password" placeholder="新密码（至少 4 位）" autocomplete="new-password"
+               autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="next" />
+        <input class="auth-input" id="authNewPwd2" type="password" placeholder="再次输入新密码" autocomplete="new-password"
+               autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="go" />
         <div class="auth-error" id="authSetupErr" style="display:none"></div>
         <button class="auth-btn primary" id="authSetupBtn">保存并进入</button>
-        <button class="auth-btn" id="authSetupCancelBtn" style="display:none">取消</button>
+        <button class="auth-btn" id="authToLoginBtn">返回登录</button>
       </div>
 
       <div class="auth-section" id="authChangeSection" style="display:none">
         <div class="auth-title">修改密码</div>
         <div class="auth-hint">请输入旧密码并设置新密码。</div>
-        <input class="auth-input" id="authOldPwd" type="password" placeholder="旧密码" autocomplete="current-password" autocorrect="off" autocapitalize="none" spellcheck="false" />
-        <input class="auth-input" id="authChgPwd" type="password" placeholder="新密码" autocomplete="new-password" autocorrect="off" autocapitalize="none" spellcheck="false" />
-        <input class="auth-input" id="authChgPwd2" type="password" placeholder="再次输入新密码" autocomplete="new-password" autocorrect="off" autocapitalize="none" spellcheck="false" />
-        <div class="auth-error" id="authChangeErr" style="display:none"></div>
-        <button class="auth-btn primary" id="authChangeBtn">确认修改</button>
-        <button class="auth-btn" id="authChangeCancelBtn">取消</button>
+        <input class="auth-input" id="authOldPwd" type="password" placeholder="旧密码" autocomplete="current-password"
+               autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="next" />
+        <input class="auth-input" id="authChgPwd" type="password" placeholder="新密码（至少 4 位）" autocomplete="new-password"
+               autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="next" />
+        <input class="auth-input" id="authChgPwd2" type="password" placeholder="再次输入新密码" autocomplete="new-password"
+               autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="go" />
+        <div class="auth-error" id="authChgErr" style="display:none"></div>
+        <button class="auth-btn primary" id="authChgBtn">确认修改</button>
+        <button class="auth-btn" id="authChgCancelBtn">取消</button>
       </div>
 
       <div class="auth-footnote">
-        提示：这是前端本地密码保护，适用于防止他人随手查看；如遗忘密码，请清除该站点浏览器数据后重新设置。
+        提示：忘记密码可在浏览器中清除本网站数据后重新设置。
       </div>
     </div>
   </div>
 
-<div class="sidebar">
+  <div id="appShell" style="display:none">
+
+
+  <div class="sidebar">
     <div class="sidebar-header">
       <button class="action-btn btn-green" onclick="openTemplateModal()">
         <span class="ico" id="icoPlus"></span>
@@ -1117,8 +1124,6 @@ body.modal-open {
         <span>恢复数据（导入）</span>
       </button>
 
-      <input type="file" id="fileInput" style="display:none" onchange="importData(this)" accept=".json" />
-    
       
       <button class="action-btn" onclick="openChangePassword()">
         <span class="ico" id="icoKey"></span>
@@ -1130,7 +1135,9 @@ body.modal-open {
         <span>锁定</span>
       </button>
 
-      <div class="app-badge">MyEMR V3.33</div>
+<input type="file" id="fileInput" style="display:none" onchange="importData(this)" accept=".json" />
+    
+      <div class="app-badge">MyEMR V3.34</div>
     </div>
   </div>
   <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
@@ -1917,35 +1924,280 @@ let iconPickerContext = null;
 let newMainIconKey = 'folder';
 let newSubIconKey = 'folderOpen';
 
+
+/* =========================
+   9) 密码保护（本地）
+   ========================= */
+const __AUTH_KEY = 'myemr_auth_v1';
+const __AUTH_SESSION = 'myemr_unlocked';
+let __appInitialized = false;
+let __appInitDeferred = null;
+
+function __authGetRecord(){
+  try { return JSON.parse(localStorage.getItem(__AUTH_KEY) || 'null'); } catch(e){ return null; }
+}
+function __authIsPasswordSet(){ return !!__authGetRecord(); }
+function __authIsUnlocked(){ return sessionStorage.getItem(__AUTH_SESSION) === '1'; }
+
+function __b64ToU8(b64){
+  const bin = atob(b64);
+  const u8 = new Uint8Array(bin.length);
+  for (let i=0;i<bin.length;i++) u8[i] = bin.charCodeAt(i);
+  return u8;
+}
+function __u8ToB64(u8){
+  let bin = '';
+  u8.forEach(b => bin += String.fromCharCode(b));
+  return btoa(bin);
+}
+async function __pbkdf2(pwd, saltB64, iterations){
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(pwd), {name:'PBKDF2'}, false, ['deriveBits']);
+  const salt = __b64ToU8(saltB64);
+  const bits = await crypto.subtle.deriveBits(
+    {name:'PBKDF2', hash:'SHA-256', salt, iterations},
+    key,
+    256
+  );
+  return __u8ToB64(new Uint8Array(bits));
+}
+function __authClearErrors(){
+  ['authLoginErr','authSetupErr','authChgErr'].forEach(id=>{
+    const el = document.getElementById(id);
+    if (el){ el.style.display='none'; el.textContent=''; }
+  });
+}
+function __authShow(section){
+  const overlay = document.getElementById('authOverlay');
+  if (!overlay) return;
+
+  // Hide app shell while locked (prevents confusing partial UI).
+  const shell = document.getElementById('appShell');
+  if (shell && !__authIsUnlocked()) shell.style.display = 'none';
+
+  __authClearErrors();
+  overlay.style.display = 'flex';
+
+  // lock background scroll using existing robust lock
+  if (typeof lockBodyScrollForModal === 'function') lockBodyScrollForModal();
+
+  const secIds = ['authLoginSection','authSetupSection','authChangeSection'];
+  secIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+
+  const login = document.getElementById('authLoginSection');
+  const setup = document.getElementById('authSetupSection');
+  const change = document.getElementById('authChangeSection');
+
+  const toSetup = document.getElementById('authToSetupBtn');
+  if (toSetup) toSetup.style.display = __authIsPasswordSet() ? 'none' : 'block';
+
+  if (section === 'setup') setup.style.display = 'block';
+  else if (section === 'change') change.style.display = 'block';
+  else login.style.display = 'block';
+
+  setTimeout(() => {
+    const f = section === 'setup' ? 'authNewPwd' : (section === 'change' ? 'authOldPwd' : 'authLoginPwd');
+    const inp = document.getElementById(f);
+    if (inp) inp.focus();
+  }, 50);
+}
+function __authHide(){
+  const overlay = document.getElementById('authOverlay');
+  if (overlay) overlay.style.display = 'none';
+  if (typeof unlockBodyScrollForModal === 'function') unlockBodyScrollForModal();
+}
+async function __authSetPassword(pwd){
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const saltB64 = __u8ToB64(salt);
+  const iter = 210000;
+  const hash = await __pbkdf2(pwd, saltB64, iter);
+  localStorage.setItem(__AUTH_KEY, JSON.stringify({v:1, salt: saltB64, iter, hash, updatedAt: Date.now()}));
+}
+async function __authVerify(pwd){
+  const rec = __authGetRecord();
+  if (!rec || !rec.salt || !rec.hash) return false;
+  const hash = await __pbkdf2(pwd, rec.salt, rec.iter || 210000);
+  return hash === rec.hash;
+}
+function __authEnsureInit(){
+  if (__appInitialized) return;
+  __appInitialized = true;
+
+  const shell = document.getElementById('appShell');
+  if (shell) shell.style.display = '';
+
+  if (typeof __appInitDeferred === 'function') __appInitDeferred();
+}
+function authBoot(){
+  // If not set, show setup
+  if (!__authIsPasswordSet()){
+    __authShow('setup');
+    return;
+  }
+  // If session unlocked, init directly
+  if (__authIsUnlocked()){
+    __authHide();
+    __authEnsureInit();
+    return;
+  }
+  __authShow('login');
+}
+function lockApp(){
+  sessionStorage.removeItem(__AUTH_SESSION);
+  __appInitialized = false;
+  __authShow('login');
+}
+function openChangePassword(){
+  if (!__authIsPasswordSet()){
+    __authShow('setup');
+    return;
+  }
+  if (!__authIsUnlocked()){
+    __authShow('login');
+    return;
+  }
+  __authShow('change');
+}
+function __bindAuthUIOnce(){
+  if (window.__authBound) return;
+  window.__authBound = true;
+
+  const loginBtn = document.getElementById('authLoginBtn');
+  const loginPwd = document.getElementById('authLoginPwd');
+  const loginErr = document.getElementById('authLoginErr');
+
+  const setupBtn = document.getElementById('authSetupBtn');
+  const newPwd = document.getElementById('authNewPwd');
+  const newPwd2 = document.getElementById('authNewPwd2');
+  const setupErr = document.getElementById('authSetupErr');
+
+  const toLoginBtn = document.getElementById('authToLoginBtn');
+  const toSetupBtn = document.getElementById('authToSetupBtn');
+
+  const chgBtn = document.getElementById('authChgBtn');
+  const oldPwd = document.getElementById('authOldPwd');
+  const chgPwd = document.getElementById('authChgPwd');
+  const chgPwd2 = document.getElementById('authChgPwd2');
+  const chgErr = document.getElementById('authChgErr');
+  const chgCancel = document.getElementById('authChgCancelBtn');
+
+  function showErr(el, msg){
+    if (!el) return;
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  async function doLogin(){
+    __authClearErrors();
+    const pwd = (loginPwd?.value || '').trim();
+    if (!pwd){ showErr(loginErr, '请输入密码。'); return; }
+    try{
+      if (!window.crypto?.subtle) { showErr(loginErr, '当前环境不支持安全密码校验（需要 HTTPS）。'); return; }
+      const ok = await __authVerify(pwd);
+      if (!ok){ showErr(loginErr, '密码错误。'); return; }
+      sessionStorage.setItem(__AUTH_SESSION, '1');
+      __authHide();
+      __authEnsureInit();
+      if (loginPwd) loginPwd.value = '';
+    }catch(e){
+      showErr(loginErr, '登录失败，请重试。');
+    }
+  }
+
+  async function doSetup(){
+    __authClearErrors();
+    const p1 = (newPwd?.value || '').trim();
+    const p2 = (newPwd2?.value || '').trim();
+    if (!p1 || p1.length < 4){ showErr(setupErr, '新密码至少 4 位。'); return; }
+    if (p1 !== p2){ showErr(setupErr, '两次输入的新密码不一致。'); return; }
+    try{
+      if (!window.crypto?.subtle) { showErr(setupErr, '当前环境不支持安全密码校验（需要 HTTPS）。'); return; }
+      await __authSetPassword(p1);
+      sessionStorage.setItem(__AUTH_SESSION, '1');
+      __authHide();
+      __authEnsureInit();
+      if (newPwd) newPwd.value = '';
+      if (newPwd2) newPwd2.value = '';
+    }catch(e){
+      showErr(setupErr, '设置失败，请重试。');
+    }
+  }
+
+  async function doChange(){
+    __authClearErrors();
+    const o = (oldPwd?.value || '').trim();
+    const p1 = (chgPwd?.value || '').trim();
+    const p2 = (chgPwd2?.value || '').trim();
+    if (!o){ showErr(chgErr, '请输入旧密码。'); return; }
+    if (!p1 || p1.length < 4){ showErr(chgErr, '新密码至少 4 位。'); return; }
+    if (p1 !== p2){ showErr(chgErr, '两次输入的新密码不一致。'); return; }
+    try{
+      const ok = await __authVerify(o);
+      if (!ok){ showErr(chgErr, '旧密码错误。'); return; }
+      await __authSetPassword(p1);
+      if (oldPwd) oldPwd.value = '';
+      if (chgPwd) chgPwd.value = '';
+      if (chgPwd2) chgPwd2.value = '';
+      __authHide();
+    }catch(e){
+      showErr(chgErr, '修改失败，请重试。');
+    }
+  }
+
+  function enterTo(inputEl, handler){
+    if (!inputEl) return;
+    inputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter'){ e.preventDefault(); handler(); }
+    });
+  }
+
+  if (loginBtn) loginBtn.addEventListener('click', doLogin);
+  if (setupBtn) setupBtn.addEventListener('click', doSetup);
+  if (chgBtn) chgBtn.addEventListener('click', doChange);
+  if (chgCancel) chgCancel.addEventListener('click', () => { __authHide(); });
+
+  if (toLoginBtn) toLoginBtn.addEventListener('click', () => __authShow('login'));
+  if (toSetupBtn) toSetupBtn.addEventListener('click', () => __authShow('setup'));
+
+  enterTo(loginPwd, doLogin);
+  enterTo(newPwd2, doSetup);
+  enterTo(chgPwd2, doChange);
+
+  // Clicking outside card does nothing; overlay blocks background.
+  const overlay = document.getElementById('authOverlay');
+  if (overlay) overlay.addEventListener('click', (e)=>{ e.stopPropagation(); });
+}
+
+
 /* =========================
    4) 初始化
    ========================= */
 window.onload = function() {
   mountTopIcons();
   updateTopbarHeight();
+
+  // Bind auth UI and defer app init until unlocked
   __bindAuthUIOnce();
   __appInitDeferred = function() {
-normalizeDataForCompatibility();
-  normalizeCategoryTreeForCompatibility();
+    normalizeDataForCompatibility();
+    normalizeCategoryTreeForCompatibility();
 
-  bindDirtyListenersOnce();
-  setupTagInputEnter();
-  bindTagAddButtonDisable();
+    bindDirtyListenersOnce();
+    setupTagInputEnter();
+    bindTagAddButtonDisable();
 
-  bindEscToClose();
+    bindEscToClose();
 
-  rebuildTagPool([]);
-  renderSidebar();
-  renderTemplates();
-  updateTopbarHeight();
-  updateTagPoolToggleVisibility();
-  syncNewCategoryIconRemember();
+    rebuildTagPool([]);
+    renderSidebar();
+    renderTemplates();
+    updateTopbarHeight();
+    updateTagPoolToggleVisibility();
+    syncNewCategoryIconRemember();
   };
+
   authBoot();
-  if (__authIsPasswordSet() && __authIsUnlocked()) __authEnsureInit();
-
 };
-
 /* =========================
    5) 顶部固定图标挂载
    ========================= */
@@ -1959,8 +2211,6 @@ function mountTopIcons() {
   setIcon('icoManage', 'settings');      // 你要匹配“管理分类与排序”
   setIcon('icoReceipt', 'receipt');      // 备份收据
   setIcon('icoRestore', 'restore');      // 恢复数据
-  setIcon('icoKey', 'key');
-  setIcon('icoLock', 'lock');
   setIcon('icoMenu', 'menu');               // 移动端菜单按钮
 
   setIcon('icoClose1', 'x');
@@ -1982,6 +2232,8 @@ function mountTopIcons() {
   setIcon('icoPalette2', 'palette');
   setIcon('icoPlus3', 'plus');
   setIcon('icoPlus4', 'plus');
+  setIcon('icoKey', 'key');
+  setIcon('icoLock', 'lock');
 }
 
 /* =========================
@@ -1996,7 +2248,6 @@ function isModalOpen(id) {
   return el && el.style.display === 'flex';
 }
 let __modalLockCount = 0;
-let __modalZ = 2000;
 let __bodyScrollY = 0;
 
 function anyModalVisible() {
@@ -2035,9 +2286,6 @@ function openModal(id) {
   if (isMobile()) closeSidebar();
   const el = document.getElementById(id);
   if (!el) return;
-  // Modal stacking: always bring the newly opened modal to the front.
-  __modalZ = Math.max(__modalZ, 2000) + 2;
-  el.style.zIndex = __modalZ;
   el.style.display = 'flex';
   __modalLockCount++;
   // On mobile we use page scrolling; lock it to prevent background move while scrolling the modal.
@@ -4140,7 +4388,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V3.33</title>
+<title>MyEMR V3.34</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
@@ -4185,6 +4433,7 @@ function buildWordBackupHtml(data) {
   </div>
 
   ${bodyHtml}
+  </div>
 </body>
 </html>`;
 }
@@ -4239,228 +4488,7 @@ function upsertCategoryFromTemplate(mainName, subName) {
   const s = String(subName ?? '').trim();
   if (!m) return;
 
-  let main = categoryTree.find(x => String(x.name ?? '').
-/* =========================
-   9) 密码保护（本地）
-   ========================= */
-const __AUTH_KEY = 'myemr_auth_v1';
-const __AUTH_SESSION = 'myemr_unlocked';
-let __appInitialized = false;
-let __appInitDeferred = null;
-
-function __authGetRecord(){
-  try { return JSON.parse(localStorage.getItem(__AUTH_KEY) || 'null'); } catch(e){ return null; }
-}
-function __authIsPasswordSet(){ return !!__authGetRecord(); }
-function __authIsUnlocked(){ return sessionStorage.getItem(__AUTH_SESSION) === '1'; }
-
-function __b64ToU8(b64){
-  const bin = atob(b64);
-  const u8 = new Uint8Array(bin.length);
-  for (let i=0;i<bin.length;i++) u8[i] = bin.charCodeAt(i);
-  return u8;
-}
-function __u8ToB64(u8){
-  let s = '';
-  for (let i=0;i<u8.length;i++) s += String.fromCharCode(u8[i]);
-  return btoa(s);
-}
-async function __pbkdf2(pwd, saltB64, iterations){
-  const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey('raw', enc.encode(pwd), {name:'PBKDF2'}, false, ['deriveBits']);
-  const salt = __b64ToU8(saltB64);
-  const bits = await crypto.subtle.deriveBits(
-    {name:'PBKDF2', hash:'SHA-256', salt, iterations},
-    key,
-    256
-  );
-  return __u8ToB64(new Uint8Array(bits));
-}
-
-function __authShow(section){
-  const overlay = document.getElementById('authOverlay');
-  if (!overlay) return;
-  // lock page scroll even outside modal system
-  document.documentElement.classList.add('modal-open');
-  document.body.classList.add('modal-open');
-
-  overlay.style.display = 'flex';
-  const secIds = ['authLoginSection','authSetupSection','authChangeSection'];
-  secIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
-
-  const login = document.getElementById('authLoginSection');
-  const setup = document.getElementById('authSetupSection');
-  const change = document.getElementById('authChangeSection');
-
-  if (section === 'setup') setup.style.display = 'block';
-  else if (section === 'change') change.style.display = 'block';
-  else login.style.display = 'block';
-
-  // focus
-  setTimeout(() => {
-    const f = section === 'setup' ? 'authNewPwd' : (section === 'change' ? 'authOldPwd' : 'authLoginPwd');
-    const inp = document.getElementById(f);
-    if (inp) inp.focus();
-  }, 50);
-}
-
-function __authHide(){
-  const overlay = document.getElementById('authOverlay');
-  if (overlay) overlay.style.display = 'none';
-  document.documentElement.classList.remove('modal-open');
-  document.body.classList.remove('modal-open');
-}
-
-function __authSetError(id, msg){
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.textContent = msg || '';
-  el.style.display = msg ? 'block' : 'none';
-}
-
-function __authEnsureInit(){
-  if (__appInitialized) return;
-  __appInitialized = true;
-  if (typeof __appInitDeferred === 'function') __appInitDeferred();
-}
-
-async function __authTryLogin(pwd){
-  const rec = __authGetRecord();
-  if (!rec) return false;
-  const hash = await __pbkdf2(pwd, rec.salt, rec.iter || 210000);
-  return hash === rec.hash;
-}
-
-async function __authSetupNewPassword(pwd){
-  const salt = new Uint8Array(16);
-  crypto.getRandomValues(salt);
-  const saltB64 = __u8ToB64(salt);
-  const iter = 210000;
-  const hash = await __pbkdf2(pwd, saltB64, iter);
-  localStorage.setItem(__AUTH_KEY, JSON.stringify({v:1, salt: saltB64, iter, hash, updatedAt: Date.now()}));
-}
-
-function authBoot(){
-  // if not set, show setup
-  if (!__authIsPasswordSet()){
-    __authShow('setup');
-    return;
-  }
-  // if session unlocked, init directly
-  if (__authIsUnlocked()){
-    __authHide();
-    __authEnsureInit();
-    return;
-  }
-  __authShow('login');
-}
-
-function lockApp(){
-  sessionStorage.removeItem(__AUTH_SESSION);
-  // do not keep UI state; reload for a clean lock
-  location.reload();
-}
-
-function openChangePassword(){
-  if (!__authIsPasswordSet()){
-    __authShow('setup');
-    return;
-  }
-  if (!__authIsUnlocked()){
-    __authShow('login');
-    return;
-  }
-  __authShow('change');
-}
-
-function __bindAuthUIOnce(){
-  if (window.__authBound) return;
-  window.__authBound = true;
-
-  const loginBtn = document.getElementById('authLoginBtn');
-  const loginPwd = document.getElementById('authLoginPwd');
-  const setupBtn = document.getElementById('authSetupBtn');
-  const newPwd = document.getElementById('authNewPwd');
-  const newPwd2 = document.getElementById('authNewPwd2');
-  const chgBtn = document.getElementById('authChangeBtn');
-  const oldPwd = document.getElementById('authOldPwd');
-  const chgPwd = document.getElementById('authChgPwd');
-  const chgPwd2 = document.getElementById('authChgPwd2');
-  const chgCancel = document.getElementById('authChangeCancelBtn');
-
-  const enterTo = (inp, fn) => {
-    if (!inp) return;
-    inp.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); fn(); }
-    });
-  };
-
-  async function doLogin(){
-    __authSetError('authLoginErr','');
-    const pwd = (loginPwd?.value || '').trim();
-    if (!pwd) return __authSetError('authLoginErr','请输入密码。');
-    try{
-      const ok = await __authTryLogin(pwd);
-      if (!ok) return __authSetError('authLoginErr','密码错误。');
-      sessionStorage.setItem(__AUTH_SESSION, '1');
-      __authHide();
-      __authEnsureInit();
-      loginPwd.value = '';
-    }catch(err){
-      __authSetError('authLoginErr','登录失败，请重试。');
-    }
-  }
-
-  async function doSetup(){
-    __authSetError('authSetupErr','');
-    const p1 = (newPwd?.value || '').trim();
-    const p2 = (newPwd2?.value || '').trim();
-    if (!p1 || p1.length < 4) return __authSetError('authSetupErr','密码至少 4 位。');
-    if (p1 !== p2) return __authSetError('authSetupErr','两次输入不一致。');
-    try{
-      await __authSetupNewPassword(p1);
-      sessionStorage.setItem(__AUTH_SESSION, '1');
-      __authHide();
-      __authEnsureInit();
-      newPwd.value = ''; newPwd2.value = '';
-    }catch(err){
-      __authSetError('authSetupErr','保存失败，请重试。');
-    }
-  }
-
-  async function doChange(){
-    __authSetError('authChangeErr','');
-    const oldp = (oldPwd?.value || '').trim();
-    const p1 = (chgPwd?.value || '').trim();
-    const p2 = (chgPwd2?.value || '').trim();
-    if (!oldp) return __authSetError('authChangeErr','请输入旧密码。');
-    if (!p1 || p1.length < 4) return __authSetError('authChangeErr','新密码至少 4 位。');
-    if (p1 !== p2) return __authSetError('authChangeErr','两次输入不一致。');
-    try{
-      const ok = await __authTryLogin(oldp);
-      if (!ok) return __authSetError('authChangeErr','旧密码不正确。');
-      await __authSetupNewPassword(p1);
-      // keep session unlocked
-      __authHide();
-      oldPwd.value=''; chgPwd.value=''; chgPwd2.value='';
-      alert('密码已修改。');
-    }catch(err){
-      __authSetError('authChangeErr','修改失败，请重试。');
-    }
-  }
-
-  if (loginBtn) loginBtn.addEventListener('click', doLogin);
-  if (setupBtn) setupBtn.addEventListener('click', doSetup);
-  if (chgBtn) chgBtn.addEventListener('click', doChange);
-  if (chgCancel) chgCancel.addEventListener('click', () => { __authHide(); });
-
-  enterTo(loginPwd, doLogin);
-  enterTo(newPwd2, doSetup);
-  enterTo(chgPwd2, doChange);
-}
-
-
-trim() === m);
+  let main = categoryTree.find(x => String(x.name ?? '').trim() === m);
   if (!main) {
     main = { name: m, iconKey: guessMainIcon(m), subs: [] };
     categoryTree.push(main);
