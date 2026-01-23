@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V3.34</title>
+  <title>MyEMR V4.1</title>
 
   <style>
     :root {
@@ -41,6 +41,18 @@
       display: flex;
       color: var(--text-primary);
       background-color: var(--main-bg);
+      overflow: hidden;
+    }
+
+
+    /* ===== App Shell Layout (Desktop) ===== */
+    #appShell{
+      display: flex;
+      flex: 1 1 auto;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      min-width: 0;
       overflow: hidden;
     }
 
@@ -842,6 +854,14 @@ body.modal-open {
 .sidebar-backdrop { display:none; position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 1100; }
 
 @media (max-width: 680px) {
+
+  /* App shell should not constrain page height on iPhone; keep page scroll stable */
+  #appShell{
+    display: block;
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
   /* Mobile menu button polish */
   .sidebar-toggle{ background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10); }
   .sidebar-toggle:active{ transform: scale(0.98); }
@@ -1039,6 +1059,114 @@ body.modal-open {
       line-height: 1.35;
     }
 
+
+
+/* =========================
+   设置弹窗（移动端/桌面通用）
+   ========================= */
+.sidebar-footer .settings-card{
+  justify-content: center;
+  font-weight: 700;
+}
+.sidebar-footer .settings-card .ico{ margin-right: 10px; }
+
+.settings-section{
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: rgba(0,0,0,0.02);
+}
+.settings-section-title{
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+.settings-actions{
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.settings-row{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+.settings-row .form-select{ flex: 0 0 170px; max-width: 170px; }
+.settings-label{
+  font-weight: 700;
+  color: #374151;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.about-line{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0 2px;
+  font-weight: 700;
+}
+
+/* ===== Settings modal readability on desktop (avoid sidebar button styling) ===== */
+#settingsModal .settings-actions .action-btn{
+  border: 1px solid var(--border-color);
+  background: #ffffff;
+  color: var(--text-primary);
+  margin-bottom: 0;
+}
+#settingsModal .settings-actions .action-btn:hover{
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+#settingsModal .settings-actions .action-btn .ico{
+  color: #374151;
+}
+
+
+.switch{
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 26px;
+  flex: 0 0 auto;
+}
+.switch input{
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider{
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #cfd8dc;
+  transition: .2s;
+  border-radius: 999px;
+}
+.slider:before{
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 2px;
+  top: 2px;
+  background: #fff;
+  transition: .2s;
+  border-radius: 999px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.18);
+}
+.switch input:checked + .slider{
+  background: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(16,163,127,0.18) inset;
+}
+.switch input:checked + .slider:before{
+  transform: translateX(20px);
+}
+
+@media (max-width: 740px){
+  .settings-actions .action-btn{ flex: 1 1 calc(50% - 10px); }
+}
 </style>
 </head>
 
@@ -1049,7 +1177,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V3.34</div>
+        <div class="auth-ver">V4.1</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -1113,34 +1241,18 @@ body.modal-open {
     <div class="sidebar-section-title">目录导航</div>
     <div class="category-tree" id="sidebarTree"></div>
 
-    <div class="sidebar-footer">
-      <button class="action-btn" onclick="exportData()">
-        <span class="ico" id="icoReceipt"></span>
-        <span>备份数据（导出）</span>
-      </button>
-
-      <button class="action-btn" onclick="document.getElementById('fileInput').click()">
-        <span class="ico" id="icoRestore"></span>
-        <span>恢复数据（导入）</span>
-      </button>
-
-      
-      <button class="action-btn" onclick="openChangePassword()">
-        <span class="ico" id="icoKey"></span>
-        <span>修改密码</span>
-      </button>
-
-      <button class="action-btn" onclick="lockApp()">
-        <span class="ico" id="icoLock"></span>
-        <span>锁定</span>
-      </button>
+    
+  <div class="sidebar-footer">
+    <button class="action-btn settings-card" onclick="openSettings()">
+      <span class="ico" id="icoSettings"></span>
+      <span>设置</span>
+    </button>
+  </div>
+</div>
 
 <input type="file" id="fileInput" style="display:none" onchange="importData(this)" accept=".json" />
-    
-      <div class="app-badge">MyEMR V3.34</div>
-    </div>
-  </div>
-  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
 
   <div class="main-content">
     <div class="top-bar">
@@ -1348,7 +1460,7 @@ body.modal-open {
   </div>
 
   <!-- 图标选择器 -->
-  <div class="modal" id="iconPickerModal" onclick="noopClose(event)" style="z-index:1600;">
+  <div class="modal" id="iconPickerModal" onclick="noopClose(event)">
     <div class="modal-content modal-content-iconpicker" style="width: 920px;" onclick="event.stopPropagation()">
       <div class="modal-title">
         <span id="iconPickerTitle">选择图标</span>
@@ -1373,6 +1485,80 @@ body.modal-open {
     </div>
   </div>
 
+  
+<!-- 设置 -->
+<div class="modal" id="settingsModal" onclick="noopClose(event)">
+  <div class="modal-content" style="width: 560px;" onclick="event.stopPropagation()">
+    <div class="modal-title">
+      <span>设置</span>
+      <span class="modal-close" onclick="requestCloseModal('settingsModal')">
+        <span class="ico" id="icoCloseSettings"></span>
+        <span>关闭</span>
+      </span>
+    </div>
+
+    <div class="modal-body">
+      <div class="settings-section">
+        <div class="settings-section-title">安全</div>
+        <div class="settings-actions">
+          <button class="action-btn" type="button" onclick="openChangePassword(); requestCloseModal('settingsModal');">
+            <span class="ico" id="icoSetKey"></span>
+            <span>修改密码</span>
+          </button>
+          <button class="action-btn" type="button" onclick="lockApp(); requestCloseModal('settingsModal');">
+            <span class="ico" id="icoSetLock"></span>
+            <span>锁定</span>
+          </button>
+        </div>
+
+        <div class="settings-row">
+          <div class="settings-label">无操作自动锁定</div>
+          <select class="form-select" id="setAutoLockMinutes" onchange="updateSettingsFromUI()">
+            <option value="0">关闭</option>
+            <option value="1">1 分钟</option>
+            <option value="2">2 分钟</option>
+            <option value="5">5 分钟</option>
+            <option value="10">10 分钟</option>
+            <option value="15">15 分钟</option>
+            <option value="30">30 分钟</option>
+          </select>
+        </div>
+
+        <div class="settings-row">
+          <div class="settings-label">离开当前网页即锁定</div>
+          <label class="switch" title="切到桌面/切后台/切到其他标签页将立即锁定">
+            <input type="checkbox" id="setLockOnLeave" onchange="updateSettingsFromUI()">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">数据</div>
+        <div class="settings-actions">
+          <button class="action-btn" type="button" onclick="exportData()">
+            <span class="ico" id="icoSetExport"></span>
+            <span>备份导出</span>
+          </button>
+          <button class="action-btn" type="button" onclick="triggerImportFromSettings()">
+            <span class="ico" id="icoSetImport"></span>
+            <span>恢复导入</span>
+          </button>
+        </div>
+        <div class="hint" style="margin-top:8px;">导入时可选择“增加”或“覆盖”。</div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">关于</div>
+        <div class="about-line">
+          <span class="ico" id="icoSetInfo"></span>
+          <span id="aboutVersion">MyEMR V4.1</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
   <!-- 三选项确认弹窗 -->
   <div class="confirm3-modal" id="confirm3Modal" onclick="closeConfirm3('cancel')">
     <div class="confirm3-box" onclick="event.stopPropagation()">
@@ -2043,6 +2229,7 @@ function authBoot(){
   __authShow('login');
 }
 function lockApp(){
+  if (typeof __autoLockStop === 'function') __autoLockStop();
   sessionStorage.removeItem(__AUTH_SESSION);
   __appInitialized = false;
   __authShow('login');
@@ -2058,6 +2245,122 @@ function openChangePassword(){
   }
   __authShow('change');
 }
+
+/* =========================
+   9.5) 设置（安全/数据/自动锁定）
+   ========================= */
+const __SETTINGS_KEY = '__MYEMR_SETTINGS';
+const __DEFAULT_SETTINGS = { autoLockMinutes: 2, lockOnLeave: true };
+let __settings = null;
+
+function __loadSettings(){
+  try {
+    const raw = localStorage.getItem(__SETTINGS_KEY);
+    __settings = raw ? JSON.parse(raw) : {};
+  } catch(e) {
+    __settings = {};
+  }
+  __settings = Object.assign({}, __DEFAULT_SETTINGS, __settings || {});
+  __settings.autoLockMinutes = Number(__settings.autoLockMinutes);
+  if (!Number.isFinite(__settings.autoLockMinutes) || __settings.autoLockMinutes < 0) {
+    __settings.autoLockMinutes = __DEFAULT_SETTINGS.autoLockMinutes;
+  }
+  __settings.lockOnLeave = !!__settings.lockOnLeave;
+}
+
+function __saveSettings(){
+  try { localStorage.setItem(__SETTINGS_KEY, JSON.stringify(__settings)); } catch(e){}
+}
+
+function __applySettings(){
+  const mins = Number(__settings.autoLockMinutes);
+  __AUTOLOCK_IDLE_MS = (mins > 0) ? (mins * 60 * 1000) : 0;
+
+  // Update UI (if present)
+  const sel = document.getElementById('setAutoLockMinutes');
+  if (sel) sel.value = String(mins);
+  const chk = document.getElementById('setLockOnLeave');
+  if (chk) chk.checked = !!__settings.lockOnLeave;
+
+  // Reset timer immediately
+  if (typeof __autoLockReset === 'function') __autoLockReset();
+}
+
+function openSettings(){
+  if (!__settings) __loadSettings();
+  __applySettings();
+  const about = document.getElementById('aboutVersion');
+  if (about) about.textContent = 'MyEMR V4.1';
+  openModal('settingsModal');
+}
+
+function updateSettingsFromUI(){
+  if (!__settings) __loadSettings();
+  const sel = document.getElementById('setAutoLockMinutes');
+  const chk = document.getElementById('setLockOnLeave');
+  const mins = sel ? Number(sel.value) : __settings.autoLockMinutes;
+  __settings.autoLockMinutes = Number.isFinite(mins) ? mins : __DEFAULT_SETTINGS.autoLockMinutes;
+  __settings.lockOnLeave = chk ? !!chk.checked : __settings.lockOnLeave;
+  __saveSettings();
+  __applySettings();
+}
+
+function triggerImportFromSettings(){
+  requestCloseModal('settingsModal');
+  const fi = document.getElementById('fileInput');
+  if (fi) fi.click();
+}
+
+/* =========================
+   10) 自动锁定（离开页面立即锁定 + 2分钟无操作锁定）
+   ========================= */
+let __AUTOLOCK_IDLE_MS = 120000; // default 2 minutes (will be overridden by settings)
+let __autoLockTimer = null;
+let __autoLockBound = false;
+
+function __autoLockStop(){
+  if (__autoLockTimer){
+    clearTimeout(__autoLockTimer);
+    __autoLockTimer = null;
+  }
+}
+function __autoLockReset(){
+  // Only count when unlocked
+  if (!__authIsUnlocked()){
+    __autoLockStop();
+    return;
+  }
+  if (!__AUTOLOCK_IDLE_MS || __AUTOLOCK_IDLE_MS <= 0){
+    __autoLockStop();
+    return;
+  }
+  __autoLockStop();
+  __autoLockTimer = setTimeout(() => {
+    if (__authIsUnlocked()) lockApp();
+  }, __AUTOLOCK_IDLE_MS);
+}
+function __autoLockBindOnce(){
+  if (__autoLockBound) return;
+  __autoLockBound = true;
+
+  const opts = { passive: true };
+  // User activity events
+  ['pointerdown','pointermove','keydown','wheel','touchstart','touchmove','mousedown'].forEach(evt => {
+    window.addEventListener(evt, __autoLockReset, opts);
+  });
+  window.addEventListener('scroll', __autoLockReset, opts);
+
+  // Leaving the page / switching apps or tabs => lock immediately
+  document.addEventListener('visibilitychange', () => {
+    if (__settings && !__settings.lockOnLeave) return;
+    if (document.hidden && __authIsUnlocked()) lockApp();
+  });
+  window.addEventListener('pagehide', () => {
+    if (__settings && !__settings.lockOnLeave) return;
+    if (__authIsUnlocked()) lockApp();
+  });
+}
+
 function __bindAuthUIOnce(){
   if (window.__authBound) return;
   window.__authBound = true;
@@ -2097,6 +2400,8 @@ function __bindAuthUIOnce(){
       if (!ok){ showErr(loginErr, '密码错误。'); return; }
       sessionStorage.setItem(__AUTH_SESSION, '1');
       __authHide();
+      if (typeof __autoLockReset === 'function') __autoLockReset();
+      if (typeof __autoLockReset === 'function') __autoLockReset();
       __authEnsureInit();
       if (loginPwd) loginPwd.value = '';
     }catch(e){
@@ -2175,9 +2480,12 @@ function __bindAuthUIOnce(){
 window.onload = function() {
   mountTopIcons();
   updateTopbarHeight();
+  __loadSettings();
+  __applySettings();
 
   // Bind auth UI and defer app init until unlocked
   __bindAuthUIOnce();
+  __autoLockBindOnce();
   __appInitDeferred = function() {
     normalizeDataForCompatibility();
     normalizeCategoryTreeForCompatibility();
@@ -2208,10 +2516,18 @@ function setIcon(elId, key) {
 }
 function mountTopIcons() {
   setIcon('icoPlus', 'plusCircle');
-  setIcon('icoManage', 'settings');      // 你要匹配“管理分类与排序”
+  setIcon('icoManage', 'sort');      // 你要匹配“管理分类与排序”
   setIcon('icoReceipt', 'receipt');      // 备份收据
   setIcon('icoRestore', 'restore');      // 恢复数据
   setIcon('icoMenu', 'menu');               // 移动端菜单按钮
+  setIcon('icoSettings', 'settings');        // 侧边栏设置
+
+  setIcon('icoCloseSettings', 'x');
+  setIcon('icoSetKey', 'key');
+  setIcon('icoSetLock', 'lock');
+  setIcon('icoSetExport', 'download');
+  setIcon('icoSetImport', 'upload');
+  setIcon('icoSetInfo', 'info');
 
   setIcon('icoClose1', 'x');
   setIcon('icoClose2', 'x');
@@ -2248,6 +2564,21 @@ function isModalOpen(id) {
   return el && el.style.display === 'flex';
 }
 let __modalLockCount = 0;
+let __modalZTop = 2000;
+
+function bumpModalZIndex(modalEl){
+  if (!modalEl) return;
+  // Find the current highest z-index among modals (robust for nested modals)
+  let maxZ = 2000;
+  document.querySelectorAll('.modal').forEach(m => {
+    const zStr = window.getComputedStyle(m).zIndex;
+    const z = parseInt(zStr, 10);
+    if (!Number.isNaN(z)) maxZ = Math.max(maxZ, z);
+  });
+  __modalZTop = Math.max(__modalZTop, maxZ) + 2;
+  modalEl.style.zIndex = String(__modalZTop);
+}
+
 let __bodyScrollY = 0;
 
 function anyModalVisible() {
@@ -2286,6 +2617,7 @@ function openModal(id) {
   if (isMobile()) closeSidebar();
   const el = document.getElementById(id);
   if (!el) return;
+  bumpModalZIndex(el);
   el.style.display = 'flex';
   __modalLockCount++;
   // On mobile we use page scrolling; lock it to prevent background move while scrolling the modal.
@@ -4217,9 +4549,15 @@ function exportData() {
   });
 }
 
+function getExportStamp(){
+  const d = new Date();
+  const pad = (n)=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}`;
+}
+
 function exportJsonBackup() {
   const data = {
-    version: "3.28",
+    version: "4.0",
     timestamp: new Date().toLocaleString(),
     categories: categoryTree,
     templates: templates
@@ -4228,7 +4566,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `MyEMR_backup_v3.29_${new Date().toISOString().slice(0,10)}.json`;
+  a.download = `EMR_V4.1_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -4237,7 +4575,7 @@ function exportJsonBackup() {
 
 function exportWordBackup() {
   const data = {
-    version: "3.28",
+    version: "4.0",
     timestamp: new Date().toLocaleString(),
     categories: categoryTree,
     templates: templates
@@ -4248,7 +4586,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `MyEMR_backup_word_v3.29_${new Date().toISOString().slice(0,10)}.doc`;
+  a.download = `EMR_V4.1_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -4388,7 +4726,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V3.34</title>
+<title>MyEMR V4.1</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
