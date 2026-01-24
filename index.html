@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V4.8</title>
+  <title>MyEMR V5.0</title>
 
   <style>
     :root {
@@ -369,7 +369,7 @@ body.modal-open {
       border-radius: 10px;
       display:inline-flex;
       align-items:center;
-      gap:6px;
+      gap:0;
       user-select:none;
       border: 1px solid #e5e7eb;
       background: #fff;
@@ -633,7 +633,7 @@ body.modal-open {
       user-select:none;
       display:inline-flex;
       align-items:center;
-      gap:6px;
+      gap:0;
       font-size: 12px;
     }
     /* More (overflow) button for mobile compact layout */
@@ -835,7 +835,7 @@ body.modal-open {
       user-select:none;
       display:inline-flex;
       align-items:center;
-      gap:6px;
+      gap:0;
       font-weight: 800;
       font-size: 12px;
       line-height: 1;
@@ -1136,6 +1136,21 @@ body.modal-open {
   color: #374151;
 }
 
+/* ===== Token manager modal button readability (avoid sidebar styling) ===== */
+#tokenManagerModal .settings-actions .action-btn{
+  border: 1px solid var(--border-color);
+  background: #ffffff;
+  color: var(--text-primary);
+  margin-bottom: 0;
+}
+#tokenManagerModal .settings-actions .action-btn:hover{
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+#tokenManagerModal .settings-actions .action-btn .ico{
+  color: #374151;
+}
+
 
 .switch{
   position: relative;
@@ -1187,6 +1202,81 @@ body.modal-open {
 .btn.btn-danger { background: #dc2626; border-color: #dc2626; color: #fff; }
 .btn.btn-danger:hover { filter: brightness(0.95); }
 
+
+    /* ===== MyEMR Token Elements (interactive placeholders) ===== */
+    .emr-token{
+      display:inline-flex;
+      align-items:center;
+      gap:0;
+      padding:2px 8px;
+      border-radius:999px;
+      border:1px solid rgba(17,24,39,.18);
+      background:rgba(17,24,39,.04);
+      color:#111827;
+      font-size:13px;
+      line-height:1.4;
+      user-select:none;
+      cursor:pointer;
+      white-space:nowrap;
+      vertical-align:baseline;
+    }
+    .emr-token:hover{ background:rgba(17,24,39,.07); }
+    /* 未填写：显示字段名作为占位；已填写：仅显示值 */
+    .emr-token[data-emr-value=""]{
+      color:#6b7280;
+      border-style:dashed;
+      background:rgba(16,163,127,.08);
+    }
+    .emr-token[data-emr-value=""]:hover{ background:rgba(16,163,127,.12); }
+    .token-list{ display:flex; flex-direction:column; gap:10px; }
+    .token-item{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:10px 12px; border:1px solid rgba(17,24,39,.12);
+      border-radius:12px; background:#fff;
+    }
+    .token-item .meta{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+    .token-item .meta .name{ font-weight:700; color:#111827; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .token-item .meta .sub{ font-size:12px; color:rgba(17,24,39,.65); }
+    .token-item .ops{ display:flex; gap:8px; flex:0 0 auto; }
+    .token-opt-grid{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; }
+    .token-opt{
+      padding:10px 10px; border:1px solid rgba(17,24,39,.14);
+      border-radius:12px; background:#fff; cursor:pointer; text-align:center; user-select:none;
+    }
+    .token-opt:hover{ background:rgba(17,24,39,.04); }
+    @media (max-width: 680px){
+      .token-opt-grid{ grid-template-columns:1fr; }
+    }
+
+
+    /* Settings modal: keep header (close button) always visible */
+    #settingsModal .modal-content{
+      display:flex;
+      flex-direction:column;
+      overflow:hidden; /* prevent outer scroll; body scrolls */
+    }
+    
+    #settingsModal .modal-title{ flex: 0 0 auto; }
+    #settingsModal .modal-body{
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-right: 6px;
+      padding-bottom: 6px;
+      overscroll-behavior: contain;
+    }
+#settingsModal .modal-title{
+      position:sticky;
+      top:0;
+      z-index:2;
+      background: var(--panel-bg);
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+    }
+    #settingsModal .modal-close{ white-space: nowrap; }
+
 </style>
 </head>
 
@@ -1197,7 +1287,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V4.8</div>
+        <div class="auth-ver">V5.0</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -1366,6 +1456,8 @@ body.modal-open {
           <button class="rte-btn" type="button" onclick="rteColor('#ef4444')">红色</button>
           <button class="rte-btn" type="button" onclick="rteColor('#111827')">黑色</button>
           <span class="rte-divider"></span>
+          <span class="rte-divider"></span>
+          <button class="rte-btn" type="button" onclick="openTokenInsert()">插入字段</button>
           <button class="rte-btn" type="button" onclick="rteCmd('removeFormat')">清除格式</button>
           <button class="rte-btn" type="button" onclick="rteCmd('undo')">撤销</button>
           <button class="rte-btn" type="button" onclick="rteCmd('redo')">重做</button>
@@ -1569,10 +1661,21 @@ body.modal-open {
       </div>
 
       <div class="settings-section">
-        <div class="settings-section-title">关于</div>
+              <div class="settings-section">
+        <div class="settings-section-title">字段元素</div>
+        <div class="settings-actions">
+          <button class="action-btn" type="button" onclick="openTokenManager();">
+            <span class="ico" id="icoSetToken"></span>
+            <span>管理字段元素</span>
+          </button>
+        </div>
+        <div class="hint" style="margin-top:8px;">用于在模板内容中插入可点击填写的字段（如下拉选择“发病部位”等）。</div>
+      </div>
+
+<div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V4.8</span>
+          <span id="aboutVersion">MyEMR V5.0</span>
         </div>
       </div>
 
@@ -2331,7 +2434,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V4.8';
+  if (about) about.textContent = 'MyEMR V5.0';
   openModal('settingsModal');
 }
 
@@ -2593,6 +2696,14 @@ function mountTopIcons() {
   setIcon('icoPlus4', 'plus');
   setIcon('icoKey', 'key');
   setIcon('icoLock', 'lock');
+
+  setIcon('icoSetToken', 'tag');
+  setIcon('icoCloseTokenInsert', 'x');
+  setIcon('icoCloseTokenValue', 'x');
+  setIcon('icoCloseTokenMgr', 'x');
+  setIcon('icoCloseTokenEdit', 'x');
+  setIcon('icoTokenAdd', 'plus');
+
 }
 
 /* =========================
@@ -3183,6 +3294,331 @@ function rteColor(color) {
   refreshTemplateDirtyFlag();
 }
 
+
+/* =========================
+   11.5) 字段元素（可点击填写的占位符）
+   ========================= */
+const __TOKEN_KEY = '__MYEMR_TOKEN_DEFS';
+let __tokenDefs = null;
+let __activeTokenEl = null;
+
+function __uuid(){
+  try { return crypto.randomUUID(); } catch(e) {
+    return 'tok_' + Math.random().toString(16).slice(2) + Date.now().toString(16);
+  }
+}
+
+function __defaultTokenDefs(){
+  return [
+    {
+      id: 'tok_site',
+      name: '发病部位',
+      mode: 'select',
+      options: ['左侧','右侧','双侧','上颌','下颌','颌下区','腮腺区','颊部','唇部','舌','口底']
+    }
+  ];
+}
+
+function __loadTokenDefs(){
+  if (__tokenDefs) return;
+  try {
+    const raw = localStorage.getItem(__TOKEN_KEY);
+    __tokenDefs = raw ? JSON.parse(raw) : null;
+  } catch(e) {
+    __tokenDefs = null;
+  }
+  if (!Array.isArray(__tokenDefs) || __tokenDefs.length === 0) {
+    __tokenDefs = __defaultTokenDefs();
+    __saveTokenDefs();
+  }
+}
+
+function __saveTokenDefs(){
+  try { localStorage.setItem(__TOKEN_KEY, JSON.stringify(__tokenDefs || [])); } catch(e){}
+}
+
+function mergeTokenDefs(incoming){
+  __loadTokenDefs();
+  const inc = Array.isArray(incoming) ? incoming : [];
+  if (inc.length === 0) return;
+
+  // 合并规则：以 id 为主键；若 id 冲突则保留现有；新 id 追加
+  const byId = new Map((__tokenDefs || []).map(t => [t.id, t]));
+  for (const t of inc) {
+    if (!t || !t.id || !t.name) continue;
+    if (byId.has(t.id)) continue;
+    byId.set(String(t.id), {
+      id: String(t.id),
+      name: String(t.name),
+      mode: (String(t.mode) === 'text' ? 'text' : 'select'),
+      options: Array.isArray(t.options) ? t.options.map(x => String(x)) : []
+    });
+  }
+  __tokenDefs = Array.from(byId.values());
+  __saveTokenDefs();
+}
+
+
+function __findTokenDef(id){
+  __loadTokenDefs();
+  return (__tokenDefs || []).find(t => t.id === id);
+}
+
+function __renderTokenSpan(span){
+  const id = span.getAttribute('data-emr-id') || '';
+  const def = __findTokenDef(id);
+  const value = (span.getAttribute('data-emr-value') || '').toString();
+
+  if (!def) {
+    // 若字段定义被删除，保留当前文本并降级为普通内容
+    span.classList.remove('emr-token');
+    span.removeAttribute('data-emr-id');
+    span.removeAttribute('data-emr-value');
+    span.removeAttribute('data-emr-name');
+    span.removeAttribute('contenteditable');
+    span.removeAttribute('title');
+    return;
+  }
+
+  span.classList.add('emr-token');
+  span.setAttribute('contenteditable','false');
+  span.setAttribute('data-emr-id', def.id);
+  span.setAttribute('data-emr-name', def.name);
+  span.setAttribute('data-emr-value', value);
+  span.setAttribute('title', def.name);
+
+  // ✅ 规则：已填写则只显示值；未填写则显示字段名（作为占位）
+  if (value && value.trim()) {
+    span.textContent = value.trim();
+  } else {
+    span.textContent = def.name;
+  }
+}
+
+function __enhanceTokensInEditor(){
+  const editor = document.getElementById('inputContentEditor');
+  if (!editor) return;
+  editor.querySelectorAll('span.emr-token, span[data-emr-id]').forEach(sp => __renderTokenSpan(sp));
+
+  if (!editor.__tokenBound) {
+    editor.__tokenBound = true;
+    editor.addEventListener('click', (ev) => {
+      const token = ev.target && ev.target.closest ? ev.target.closest('span.emr-token') : null;
+      if (!token) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      openTokenValue(token);
+    });
+  }
+}
+
+function openTokenInsert(){
+  __loadTokenDefs();
+  const inp = document.getElementById('tokenInsertSearch');
+  if (inp) inp.value = '';
+  renderTokenInsertList();
+  openModal('tokenInsertModal');
+}
+
+function renderTokenInsertList(){
+  __loadTokenDefs();
+  const q = (document.getElementById('tokenInsertSearch')?.value || '').trim().toLowerCase();
+  const list = document.getElementById('tokenInsertList');
+  if (!list) return;
+  const items = (__tokenDefs || []).filter(t => !q || (t.name || '').toLowerCase().includes(q));
+  list.innerHTML = items.map(t => {
+    const sub = t.mode === 'select' ? `下拉选择 · ${(t.options||[]).length} 项` : '自由输入';
+    return `<div class="token-item">
+      <div class="meta">
+        <div class="name">${escapeHtml(t.name)}</div>
+        <div class="sub">${escapeHtml(sub)}</div>
+      </div>
+      <div class="ops">
+        <button class="icon-btn icon-only" type="button" title="插入" aria-label="插入" onclick="insertTokenById('${t.id}')">
+          <span class="ico">${ICONS.svg('plus')}</span>
+        </button>
+      </div>
+    </div>`;
+  }).join('') || `<div class="hint">没有匹配的字段元素。你可以在“设置 → 字段元素”中新增。</div>`;
+}
+
+function insertTokenById(id){
+  const def = __findTokenDef(id);
+  if (!def) return;
+  const editor = document.getElementById('inputContentEditor');
+  if (!editor) return;
+  editor.focus();
+  const html = `<span class="emr-token" contenteditable="false" data-emr-id="${escapeHtml(def.id)}" data-emr-value="">${escapeHtml(def.name)}：未填</span>&nbsp;`;
+  document.execCommand('insertHTML', false, html);
+  __enhanceTokensInEditor();
+  requestCloseModal('tokenInsertModal');
+}
+
+function openTokenValue(tokenEl){
+  __activeTokenEl = tokenEl;
+  const id = tokenEl.getAttribute('data-emr-id') || '';
+  const def = __findTokenDef(id);
+  if (!def) {
+    openAlertModal('该字段元素已被删除或不可识别。你可以删除该字段或在设置中重新创建。', '字段元素不可用');
+    return;
+  }
+  const cur = (tokenEl.getAttribute('data-emr-value') || '').toString();
+
+  const title = document.getElementById('tokenValueTitle');
+  if (title) title.textContent = `填写：${def.name}`;
+
+  const body = document.getElementById('tokenValueBody');
+  if (!body) return;
+
+  if (def.mode === 'select') {
+    const opts = Array.isArray(def.options) ? def.options : [];
+    body.innerHTML = `
+      <div class="hint" style="margin-bottom:10px;">点击选项快速填入；也可输入自定义内容。</div>
+      <div class="token-opt-grid">
+        ${opts.map(o => `<div class="token-opt" onclick="pickTokenOpt('${escapeHtml(o)}')">${escapeHtml(o)}</div>`).join('')}
+      </div>
+      <div style="margin-top:12px;">
+        <label class="form-label">内容</label>
+        <input class="form-input" id="tokenValueCustom" value="${escapeHtml(cur)}" placeholder="可输入自定义内容…">
+      </div>
+    `;
+  } else {
+    body.innerHTML = `
+      <label class="form-label">内容</label>
+      <input class="form-input" id="tokenValueCustom" value="${escapeHtml(cur)}" placeholder="输入…">
+    `;
+  }
+  openModal('tokenValueModal');
+}
+
+function pickTokenOpt(val){
+  const inp = document.getElementById('tokenValueCustom');
+  if (inp) inp.value = val;
+}
+
+function clearTokenValue(){
+  const inp = document.getElementById('tokenValueCustom');
+  if (inp) inp.value = '';
+}
+
+function applyTokenValue(){
+  if (!__activeTokenEl) { requestCloseModal('tokenValueModal'); return; }
+  const id = __activeTokenEl.getAttribute('data-emr-id') || '';
+  const def = __findTokenDef(id);
+  if (!def) { requestCloseModal('tokenValueModal'); return; }
+  const inp = document.getElementById('tokenValueCustom');
+  const val = (inp ? inp.value : '').toString().trim();
+  __activeTokenEl.setAttribute('data-emr-value', val);
+  __renderTokenSpan(__activeTokenEl);
+  requestCloseModal('tokenValueModal');
+  __activeTokenEl = null;
+}
+
+function openTokenManager(){
+  __loadTokenDefs();
+  renderTokenManagerList();
+  openModal('tokenManagerModal');
+}
+
+function renderTokenManagerList(){
+  __loadTokenDefs();
+  const list = document.getElementById('tokenManagerList');
+  if (!list) return;
+  const items = (__tokenDefs || []);
+  list.innerHTML = items.map(t => {
+    const sub = t.mode === 'select' ? `下拉选择 · ${(t.options||[]).length} 项` : '自由输入';
+    return `<div class="token-item">
+      <div class="meta">
+        <div class="name">${escapeHtml(t.name)}</div>
+        <div class="sub">${escapeHtml(sub)}</div>
+      </div>
+      <div class="ops">
+        <button class="icon-btn icon-only" type="button" title="编辑" aria-label="编辑" onclick="openTokenEdit('${t.id}')"><span class="ico">${ICONS.svg('pen')}</span></button>
+        <button class="icon-btn icon-only danger" type="button" title="删除" aria-label="删除" onclick="deleteTokenDef('${t.id}')"><span class="ico">${ICONS.svg('trash')}</span></button>
+      </div>
+    </div>`;
+  }).join('') || `<div class="hint">暂无字段元素。点击上方“新增字段元素”。</div>`;
+}
+
+function openTokenEdit(id){
+  __loadTokenDefs();
+  const isNew = !id;
+  const def = isNew ? { id: __uuid(), name: '', mode: 'select', options: [] } : (__tokenDefs.find(t => t.id === id) || null);
+  if (!def) return;
+
+  document.getElementById('tokenEditTitle').textContent = isNew ? '新增字段元素' : '编辑字段元素';
+  document.getElementById('tokenEditId').value = def.id;
+  document.getElementById('tokenEditName').value = def.name || '';
+  document.getElementById('tokenEditMode').value = def.mode || 'select';
+  document.getElementById('tokenEditOptions').value = Array.isArray(def.options) ? def.options.join('\n') : '';
+  toggleTokenEditOptions();
+  openModal('tokenEditModal');
+}
+
+function toggleTokenEditOptions(){
+  const mode = document.getElementById('tokenEditMode')?.value || 'select';
+  const wrap = document.getElementById('tokenEditOptionsWrap');
+  if (wrap) wrap.style.display = (mode === 'select') ? 'block' : 'none';
+}
+
+function saveTokenDef(){
+  __loadTokenDefs();
+  const id = (document.getElementById('tokenEditId')?.value || '').trim();
+  const name = (document.getElementById('tokenEditName')?.value || '').trim();
+  const mode = (document.getElementById('tokenEditMode')?.value || 'select').trim();
+  const rawOpts = (document.getElementById('tokenEditOptions')?.value || '').trim();
+
+  if (!name) {
+    openAlertModal('字段名称不能为空。', '保存失败');
+    return;
+  }
+  const dupe = (__tokenDefs || []).find(t => t.id !== id && (t.name || '').trim() === name);
+  if (dupe) {
+    openAlertModal('字段名称已存在，请使用不同名称。', '保存失败');
+    return;
+  }
+
+  let opts = [];
+  if (mode === 'select') {
+    opts = rawOpts ? rawOpts.split(/\n|,/).map(s => s.trim()).filter(Boolean) : [];
+    if (opts.length === 0) {
+      openAlertModal('“下拉选择”需要至少 1 个选项。', '保存失败');
+      return;
+    }
+  }
+
+  const existing = (__tokenDefs || []).find(t => t.id === id);
+  if (existing) {
+    existing.name = name;
+    existing.mode = (mode === 'text' ? 'text' : 'select');
+    existing.options = opts;
+  } else {
+    (__tokenDefs || []).push({ id, name, mode: (mode === 'text' ? 'text' : 'select'), options: opts });
+  }
+  __saveTokenDefs();
+  renderTokenManagerList();
+  requestCloseModal('tokenEditModal');
+  __enhanceTokensInEditor();
+}
+
+function deleteTokenDef(id){
+  __loadTokenDefs();
+  const def = (__tokenDefs || []).find(t => t.id === id);
+  if (!def) return;
+
+  openConfirmModal(`确定要删除“${def.name}”吗？\n\n提示：已插入到模板中的该字段将保留为普通文本，不再可点击编辑。`, {
+    title: '删除字段元素',
+    okText: '删除',
+    danger: true,
+    onOk: () => {
+      __tokenDefs = (__tokenDefs || []).filter(t => t.id !== id);
+      __saveTokenDefs();
+      renderTokenManagerList();
+      __enhanceTokensInEditor();
+    }
+  });
+}
+
 /* =========================
    12) HTML安全与转换
    ========================= */
@@ -3249,6 +3685,30 @@ function sanitizeHtml(inputHtml) {
             else child.removeAttribute('style');
             continue;
           }
+
+          // Allow minimal safe attributes for interactive token spans
+          if (tag === 'span') {
+            if (name === 'class') {
+              const allowedClasses = new Set(['emr-token','emr-token-label','emr-token-value']);
+              const cls = (a.value || '').toString().split(/\s+/).filter(Boolean).filter(c => allowedClasses.has(c));
+              if (cls.length) child.setAttribute('class', cls.join(' '));
+              else child.removeAttribute('class');
+              continue;
+            }
+            if (name === 'contenteditable') {
+              const v = (a.value || '').toString().toLowerCase();
+              if (v === 'false') child.setAttribute('contenteditable', 'false');
+              else child.removeAttribute('contenteditable');
+              continue;
+            }
+            if (name.startsWith('data-emr-')) {
+              let v = (a.value || '').toString();
+              if (v.length > 200) v = v.slice(0, 200);
+              child.setAttribute(a.name, v);
+              continue;
+            }
+          }
+
           child.removeAttribute(a.name);
         }
         walk(child);
@@ -3276,9 +3736,26 @@ function plainTextToHtml(text) {
   const escaped = escapeHtml(text ?? '');
   return escaped.replace(/\r\n|\n|\r/g, '<br>');
 }
-function htmlToPlainText(html) {
+function htmlToPlainText(html, opts) {
   const tmp = document.createElement('div');
   tmp.innerHTML = sanitizeHtml(html);
+
+  // opts.emptyTokenBrackets: when true, empty token outputs like "[字段名]"
+  const useBrackets = !!(opts && opts.emptyTokenBrackets);
+
+  // 字段元素：默认仅输出“值”；若未填写且 useBrackets=true，则输出“[字段名]”
+  tmp.querySelectorAll('span.emr-token, span[data-emr-id]').forEach(sp => {
+    const v = (sp.getAttribute('data-emr-value') || '').toString().trim();
+    if (v) {
+      sp.replaceWith(document.createTextNode(v));
+    } else if (useBrackets) {
+      const name = (sp.getAttribute('data-emr-name') || sp.getAttribute('title') || '').toString().trim() || '字段';
+      sp.replaceWith(document.createTextNode('[' + name + ']'));
+    } else {
+      sp.replaceWith(document.createTextNode(''));
+    }
+  });
+
   return (tmp.innerText || '').trimEnd();
 }
 function getEditorHtmlForSave() {
@@ -3292,7 +3769,9 @@ function setEditorContentFromStored(stored) {
   if (!s) { editor.innerHTML = ''; return; }
   if (isProbablyHtml(s)) editor.innerHTML = sanitizeHtml(s);
   else editor.innerHTML = plainTextToHtml(s);
+  __enhanceTokensInEditor();
 }
+
 
 /* =========================
    13) 未保存判断
@@ -4694,16 +5173,17 @@ function getExportStamp(){
 
 function exportJsonBackup() {
   const data = {
-    version: "4.7",
+    version: "4.11",
     timestamp: new Date().toLocaleString(),
     categories: categoryTree,
-    templates: templates
+    templates: templates,
+    tokenDefs: (function(){ try { __loadTokenDefs(); return __tokenDefs || []; } catch(e){ return []; } })()
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V4.8_${getExportStamp()}.json`;
+  a.download = `EMR_V5.0_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -4712,10 +5192,11 @@ function exportJsonBackup() {
 
 function exportWordBackup() {
   const data = {
-    version: "4.7",
+    version: "4.11",
     timestamp: new Date().toLocaleString(),
     categories: categoryTree,
-    templates: templates
+    templates: templates,
+    tokenDefs: (function(){ try { __loadTokenDefs(); return __tokenDefs || []; } catch(e){ return []; } })()
   };
 
   const html = buildWordBackupHtml(data);
@@ -4723,7 +5204,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V4.8_${getExportStamp()}.doc`;
+  a.download = `EMR_V5.0_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -4744,15 +5225,32 @@ function stripScripts(html) {
 }
 
 function normalizeWordContentHtml(html) {
-  // 适度清理：避免 Word 中出现不可见字符/空段
+  // 适度清理：避免 Word 中出现不可见字符/空段，同时将字段元素输出为“值”
   let s = stripScripts(html);
   s = s.replace(/[​-‍﻿]/g, '');
+
+  // 字段元素：Word 备份中仅保留值（未填写则为空）
+  try {
+    const wrap = document.createElement('div');
+    wrap.innerHTML = s;
+    wrap.querySelectorAll('span.emr-token, span[data-emr-id]').forEach(sp => {
+      const v = (sp.getAttribute('data-emr-value') || '').toString().trim();
+      if (v) {
+        sp.replaceWith(document.createTextNode(v));
+      } else {
+        const name = (sp.getAttribute('data-emr-name') || sp.getAttribute('title') || '').toString().trim() || '字段';
+        sp.replaceWith(document.createTextNode('[' + name + ']'));
+      }
+    });
+    s = wrap.innerHTML;
+  } catch(e) {}
+
   s = s.replace(/<p>(\s|&nbsp;)*<\/p>/gi, '');
   return s;
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'v3.29';
+  const versionLabel = 'MyEMR V5.0';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -4863,7 +5361,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V4.8</title>
+<title>MyEMR V5.0</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
@@ -4891,6 +5389,48 @@ function buildWordBackupHtml(data) {
   /* Import merge content divider */
   .merge-hr{border:none;border-top:1px solid var(--border);margin:10px 0;}
   .merge-note{font-size:12px;color:var(--muted);margin:0 0 8px;}
+
+    /* ===== MyEMR Token Elements (interactive placeholders) ===== */
+    .emr-token{
+      display:inline-flex;
+      align-items:center;
+      gap:0;
+      padding:2px 8px;
+      border-radius:999px;
+      border:1px solid rgba(17,24,39,.18);
+      background:rgba(17,24,39,.04);
+      color:#111827;
+      font-size:13px;
+      line-height:1.4;
+      user-select:none;
+      cursor:pointer;
+      white-space:nowrap;
+      vertical-align:baseline;
+    }
+    .emr-token:hover{ background:rgba(17,24,39,.07); }
+    .emr-token .emr-token-label{ opacity:.92; font-weight:700; }
+    .emr-token .emr-token-value{ opacity:.92; }
+    .emr-token[data-emr-value=""] .emr-token-value{ opacity:.6; }
+    .token-list{ display:flex; flex-direction:column; gap:10px; }
+    .token-item{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:10px 12px; border:1px solid rgba(17,24,39,.12);
+      border-radius:12px; background:#fff;
+    }
+    .token-item .meta{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+    .token-item .meta .name{ font-weight:700; color:#111827; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .token-item .meta .sub{ font-size:12px; color:rgba(17,24,39,.65); }
+    .token-item .ops{ display:flex; gap:8px; flex:0 0 auto; }
+    .token-opt-grid{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; }
+    .token-opt{
+      padding:10px 10px; border:1px solid rgba(17,24,39,.14);
+      border-radius:12px; background:#fff; cursor:pointer; text-align:center; user-select:none;
+    }
+    .token-opt:hover{ background:rgba(17,24,39,.04); }
+    @media (max-width: 680px){
+      .token-opt-grid{ grid-template-columns:1fr; }
+    }
+
 </style>
 </head>
 <body>
@@ -4913,6 +5453,115 @@ function buildWordBackupHtml(data) {
 
   ${bodyHtml}
   </div>
+
+  <!-- 字段元素：插入选择 -->
+  <div class="modal" id="tokenInsertModal" onclick="noopClose(event)">
+    <div class="modal-content" style="width: 520px;" onclick="event.stopPropagation()">
+      <div class="modal-title">
+        <span>插入字段元素</span>
+        <span class="modal-close" onclick="requestCloseModal('tokenInsertModal')">
+          <span class="ico" id="icoCloseTokenInsert"></span>
+          <span>关闭</span>
+        </span>
+      </div>
+      <div class="modal-body">
+        <div class="settings-row" style="margin-bottom:10px;">
+          <div class="settings-label" style="min-width:72px;">搜索</div>
+          <input class="form-input" id="tokenInsertSearch" placeholder="输入字段名称关键词…" oninput="renderTokenInsertList()">
+        </div>
+        <div id="tokenInsertList" class="token-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn secondary" type="button" onclick="requestCloseModal('tokenInsertModal')">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 字段元素：填写/选择值 -->
+  <div class="modal" id="tokenValueModal" onclick="noopClose(event)">
+    <div class="modal-content" style="width: 520px;" onclick="event.stopPropagation()">
+      <div class="modal-title">
+        <span id="tokenValueTitle">填写字段</span>
+        <span class="modal-close" onclick="requestCloseModal('tokenValueModal')">
+          <span class="ico" id="icoCloseTokenValue"></span>
+          <span>关闭</span>
+        </span>
+      </div>
+      <div class="modal-body">
+        <div id="tokenValueBody"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn danger" type="button" onclick="clearTokenValue()">清空</button>
+        <button class="btn secondary" type="button" onclick="requestCloseModal('tokenValueModal')">取消</button>
+        <button class="btn" type="button" onclick="applyTokenValue()">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 字段元素：管理 -->
+  <div class="modal" id="tokenManagerModal" onclick="noopClose(event)">
+    <div class="modal-content" style="width: 680px;" onclick="event.stopPropagation()">
+      <div class="modal-title">
+        <span>管理字段元素</span>
+        <span class="modal-close" onclick="requestCloseModal('tokenManagerModal')">
+          <span class="ico" id="icoCloseTokenMgr"></span>
+          <span>关闭</span>
+        </span>
+      </div>
+      <div class="modal-body">
+        <div class="settings-actions" style="margin-bottom:10px;">
+          <button class="action-btn" type="button" onclick="openTokenEdit('')">
+            <span class="ico" id="icoTokenAdd"></span>
+            <span>新增字段元素</span>
+          </button>
+        </div>
+        <div id="tokenManagerList" class="token-list"></div>
+        <div class="hint" style="margin-top:8px;">提示：字段元素插入到模板内容后，可点击该字段进行快速选择/填写。</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn secondary" type="button" onclick="requestCloseModal('tokenManagerModal')">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 字段元素：新增/编辑 -->
+  <div class="modal" id="tokenEditModal" onclick="noopClose(event)">
+    <div class="modal-content" style="width: 560px;" onclick="event.stopPropagation()">
+      <div class="modal-title">
+        <span id="tokenEditTitle">新增字段元素</span>
+        <span class="modal-close" onclick="requestCloseModal('tokenEditModal')">
+          <span class="ico" id="icoCloseTokenEdit"></span>
+          <span>关闭</span>
+        </span>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="tokenEditId" value="">
+        <div class="form-grid">
+          <div class="form-col">
+            <label class="form-label">字段名称</label>
+            <input class="form-input" id="tokenEditName" placeholder="例如：发病部位">
+          </div>
+          <div class="form-col">
+            <label class="form-label">填写方式</label>
+            <select class="form-select" id="tokenEditMode" onchange="toggleTokenEditOptions()">
+              <option value="select">下拉选择</option>
+              <option value="text">自由输入</option>
+            </select>
+          </div>
+          <div class="form-col" id="tokenEditOptionsWrap">
+            <label class="form-label">可选项（每行一个，或用逗号分隔）</label>
+            <textarea class="form-input" id="tokenEditOptions" style="min-height:120px;" placeholder="右侧颌下区\n左侧颌下区\n上颌\n下颌"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn secondary" type="button" onclick="requestCloseModal('tokenEditModal')">取消</button>
+        <button class="btn" type="button" onclick="saveTokenDef()">保存</button>
+      </div>
+    </div>
+  </div>
+
+
 </body>
 </html>`;
 }
@@ -4983,6 +5632,12 @@ function upsertCategoryFromTemplate(mainName, subName) {
 
 function doImportOverride(data) {
   autoBackup('import_override');
+
+  // 字段元素（可点击填写）定义：覆盖模式下同步覆盖
+  if (Array.isArray(data.tokenDefs)) {
+    try { __tokenDefs = data.tokenDefs; __saveTokenDefs(); } catch(e) {}
+  }
+
   if (data.categories) {
     categoryTree = data.categories;
     normalizeCategoryTreeForCompatibility();
@@ -4996,6 +5651,11 @@ function doImportOverride(data) {
 
 function doImportAdd(data) {
   autoBackup('import_add');
+
+  // 字段元素（可点击填写）定义：增加模式下合并追加
+  if (Array.isArray(data.tokenDefs)) {
+    try { mergeTokenDefs(data.tokenDefs); } catch(e) {}
+  }
 
   // 1) 合并分类（按名称去重）
   if (Array.isArray(data.categories)) {
@@ -5021,20 +5681,13 @@ function doImportAdd(data) {
 
   const norm = (s) => String(s ?? '').trim().toLowerCase();
   const makeKey = (m, s, t) => `${norm(m)}||${norm(s)}||${norm(t)}`;
-
-  // 索引现有模板：优先按“分类+标题”精确合并；必要时在“标题全局唯一”场景下做跨分类合并
-  const byKey = new Map();
-  const byTitle = new Map();
-  (templates || []).forEach(t => {
-    const k = makeKey(t.mainCat, t.subCat, t.title);
-    if (!byKey.has(k)) byKey.set(k, t);
-
-    const nt = norm(t.title);
-    if (!byTitle.has(nt)) byTitle.set(nt, []);
-    byTitle.get(nt).push(t);
-  });
-
-  function splitTagsFlexible(tagStr) {
+// 索引现有模板：仅在“同一一级/二级分类条目下 + 同标题”时合并（不同分类下同名不合并）
+const byKey = new Map();
+(templates || []).forEach(t => {
+  const k = makeKey(t.mainCat, t.subCat, t.title);
+  if (!byKey.has(k)) byKey.set(k, t);
+});
+function splitTagsFlexible(tagStr) {
     if (!tagStr) return [];
     return String(tagStr)
       .split(/[，,;；\n]/)
@@ -5091,15 +5744,8 @@ function doImportAdd(data) {
     if (!title) return; // 无标题的模板不导入（避免产生不可识别条目）
 
     const key = makeKey(inc.mainCat, inc.subCat, inc.title);
-
-    let target = byKey.get(key);
-    if (!target) {
-      // 若标题在现有中“全局唯一”，允许跨分类合并（用户常把模板名当唯一键）
-      const list = byTitle.get(norm(inc.title));
-      if (list && list.length === 1) target = list[0];
-    }
-
-    if (target) {
+    const target = byKey.get(key);
+if (target) {
       mergeInto(target, inc);
       stats.merged += 1;
       return;
@@ -5116,10 +5762,7 @@ function doImportAdd(data) {
 
     // 更新索引，避免导入文件内部同名产生重复
     byKey.set(key, obj);
-    const nt = norm(obj.title);
-    if (!byTitle.has(nt)) byTitle.set(nt, []);
-    byTitle.get(nt).push(obj);
-  });
+});
 
   // 插入到前部（让新导入的更容易看到）
   templates = [...toAdd, ...(templates || [])];
@@ -5170,7 +5813,7 @@ function importData(inputElement) {
 function copyContent(id, btn) {
   const t = templates.find(i => i.id === id);
   if(t) {
-    const text = htmlToPlainText(t.content);
+    const text = htmlToPlainText(t.content, { emptyTokenBrackets: true });
     navigator.clipboard.writeText(text).then(() => {
       const old = btn.innerHTML;
       btn.innerHTML = `<span class="ico">${ICONS.svg('check')}</span> 已复制`;
@@ -5226,6 +5869,115 @@ document.addEventListener('click', (e) => {
 document.addEventListener('scroll', () => closeAllRowMoreMenus(), true);
 
 </script>
+
+
+  <!-- 字段元素：插入选择 -->
+  <div class="modal" id="tokenInsertModal" onclick="noopClose(event)">
+    <div class="modal-content" style="width: 520px;" onclick="event.stopPropagation()">
+      <div class="modal-title">
+        <span>插入字段元素</span>
+        <span class="modal-close" onclick="requestCloseModal('tokenInsertModal')">
+          <span class="ico" id="icoCloseTokenInsert"></span>
+          <span>关闭</span>
+        </span>
+      </div>
+      <div class="modal-body">
+        <div class="settings-row" style="margin-bottom:10px;">
+          <div class="settings-label" style="min-width:72px;">搜索</div>
+          <input class="form-input" id="tokenInsertSearch" placeholder="输入字段名称关键词…" oninput="renderTokenInsertList()">
+        </div>
+        <div id="tokenInsertList" class="token-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn secondary" type="button" onclick="requestCloseModal('tokenInsertModal')">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 字段元素：填写/选择值 -->
+  <div class="modal" id="tokenValueModal" onclick="noopClose(event)">
+    <div class="modal-content" style="width: 520px;" onclick="event.stopPropagation()">
+      <div class="modal-title">
+        <span id="tokenValueTitle">填写字段</span>
+        <span class="modal-close" onclick="requestCloseModal('tokenValueModal')">
+          <span class="ico" id="icoCloseTokenValue"></span>
+          <span>关闭</span>
+        </span>
+      </div>
+      <div class="modal-body">
+        <div id="tokenValueBody"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn danger" type="button" onclick="clearTokenValue()">清空</button>
+        <button class="btn secondary" type="button" onclick="requestCloseModal('tokenValueModal')">取消</button>
+        <button class="btn" type="button" onclick="applyTokenValue()">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 字段元素：管理 -->
+  <div class="modal" id="tokenManagerModal" onclick="noopClose(event)">
+    <div class="modal-content" style="width: 680px;" onclick="event.stopPropagation()">
+      <div class="modal-title">
+        <span>管理字段元素</span>
+        <span class="modal-close" onclick="requestCloseModal('tokenManagerModal')">
+          <span class="ico" id="icoCloseTokenMgr"></span>
+          <span>关闭</span>
+        </span>
+      </div>
+      <div class="modal-body">
+        <div class="settings-actions" style="margin-bottom:10px;">
+          <button class="action-btn" type="button" onclick="openTokenEdit('')">
+            <span class="ico" id="icoTokenAdd"></span>
+            <span>新增字段元素</span>
+          </button>
+        </div>
+        <div id="tokenManagerList" class="token-list"></div>
+        <div class="hint" style="margin-top:8px;">提示：字段元素插入到模板内容后，可点击该字段进行快速选择/填写。</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn secondary" type="button" onclick="requestCloseModal('tokenManagerModal')">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 字段元素：新增/编辑 -->
+  <div class="modal" id="tokenEditModal" onclick="noopClose(event)">
+    <div class="modal-content" style="width: 560px;" onclick="event.stopPropagation()">
+      <div class="modal-title">
+        <span id="tokenEditTitle">新增字段元素</span>
+        <span class="modal-close" onclick="requestCloseModal('tokenEditModal')">
+          <span class="ico" id="icoCloseTokenEdit"></span>
+          <span>关闭</span>
+        </span>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="tokenEditId" value="">
+        <div class="form-grid">
+          <div class="form-col">
+            <label class="form-label">字段名称</label>
+            <input class="form-input" id="tokenEditName" placeholder="例如：发病部位">
+          </div>
+          <div class="form-col">
+            <label class="form-label">填写方式</label>
+            <select class="form-select" id="tokenEditMode" onchange="toggleTokenEditOptions()">
+              <option value="select">下拉选择</option>
+              <option value="text">自由输入</option>
+            </select>
+          </div>
+          <div class="form-col" id="tokenEditOptionsWrap">
+            <label class="form-label">可选项（每行一个，或用逗号分隔）</label>
+            <textarea class="form-input" id="tokenEditOptions" style="min-height:120px;" placeholder="右侧颌下区\n左侧颌下区\n上颌\n下颌"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn secondary" type="button" onclick="requestCloseModal('tokenEditModal')">取消</button>
+        <button class="btn" type="button" onclick="saveTokenDef()">保存</button>
+      </div>
+    </div>
+  </div>
+
 
 </body>
 </html>
