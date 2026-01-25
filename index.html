@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V5.6</title>
+  <title>MyEMR V5.7</title>
 
   <style>
     :root {
@@ -1252,6 +1252,25 @@ body.modal-open {
       border-radius:12px; background:#fff; cursor:pointer; text-align:center; user-select:none;
     }
     .token-opt:hover{ background:rgba(17,24,39,.04); }
+    .token-opt.is-selected{
+      background: rgba(16,163,127,.12);
+      border-color: rgba(16,163,127,.45);
+      color: var(--accent-color);
+      font-weight: 600;
+    }
+    .token-cur{
+      display:inline-block;
+      padding:2px 8px;
+      border-radius:999px;
+      background: rgba(16,163,127,.12);
+      color: var(--accent-color);
+      border:1px solid rgba(16,163,127,.25);
+      font-weight:600;
+      vertical-align:baseline;
+    }
+    .token-add-row{ display:flex; gap:8px; align-items:center; }
+    .token-add-row .form-input{ flex:1; min-width:0; }
+
     @media (max-width: 680px){
       .token-opt-grid{ grid-template-columns:1fr; }
     }
@@ -1295,7 +1314,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V5.6</div>
+        <div class="auth-ver">V5.7</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -1683,7 +1702,7 @@ body.modal-open {
 <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V5.6</span>
+          <span id="aboutVersion">MyEMR V5.7</span>
         </div>
       </div>
 
@@ -2442,7 +2461,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V5.6';
+  if (about) about.textContent = 'MyEMR V5.7';
   openModal('settingsModal');
 }
 
@@ -3483,20 +3502,39 @@ function openTokenValue(tokenEl){
     try { document.activeElement && document.activeElement.blur && document.activeElement.blur(); } catch(e) {}
     const opts = Array.isArray(def.options) ? def.options : [];
     body.innerHTML = `
-      <div class="hint" style="margin-bottom:8px;">点击选项快速填入。需要手动输入时，点“自定义输入”再唤起键盘。</div>
-      <div class="hint" style="margin-bottom:10px;">当前：<b id="tokenCurValue">${escapeHtml(cur || '未填写')}</b></div>
-      <div class="token-opt-grid">
-        ${opts.map(o => `<div class="token-opt" onclick="pickTokenOpt('${escapeHtml(o)}')">${escapeHtml(o)}</div>`).join('')}
+      <div class="hint" style="margin-bottom:8px;">点击选项快速填入。需要新增选项时，在下方输入后点“添加”。</div>
+      <div class="hint" style="margin-bottom:10px;">当前：<span class="token-cur" id="tokenCurValue">${escapeHtml(cur || '未填写')}</span></div>
+
+      <div class="token-opt-grid" id="tokenOptGrid"></div>
+
+      <div class="token-add-wrap" style="margin-top:12px;">
+        <label class="form-label">自定义添加（会加入该字段的下拉选项）</label>
+        <div class="token-add-row">
+          <input class="form-input" id="tokenNewOpt" value="" placeholder="输入内容…">
+          <button class="btn btn-secondary btn-sm" id="btnAddTokenOpt" type="button" disabled onclick="addTokenOptFromInput()">添加</button>
+        </div>
+        <div class="hint" style="margin-top:6px;">提示：新增的选项会保存到该字段元素中，后续可直接点选；也可在“设置 → 字段元素”中管理。</div>
       </div>
+
       <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
-        <button class="btn btn-secondary btn-sm" type="button" onclick="showTokenCustomInput()">自定义输入</button>
         <button class="btn btn-secondary btn-sm" type="button" onclick="clearTokenValue()">清空</button>
       </div>
-      <div id="tokenCustomWrap" style="margin-top:10px; display:none;">
-        <label class="form-label">自定义内容</label>
-        <input class="form-input" id="tokenValueCustom" value="${escapeHtml(cur)}" placeholder="输入自定义内容…">
-      </div>
+
+      <!-- hidden value carrier for applyTokenValue() -->
+      <input type="hidden" id="tokenValueCustom" value="${escapeHtml(cur)}">
     `;
+
+    // render options and selection
+    renderTokenOptGrid(opts, cur);
+
+    // enable/disable add button
+    const inp = document.getElementById('tokenNewOpt');
+    const btn = document.getElementById('btnAddTokenOpt');
+    if (inp && btn) {
+      const sync = () => { btn.disabled = !(inp.value || '').toString().trim(); };
+      inp.addEventListener('input', sync);
+      sync();
+    }
   } else {
     body.innerHTML = `
       <label class="form-label">内容</label>
@@ -3521,11 +3559,68 @@ function showTokenCustomInput(){
   }
 }
 
+function escapeJsString(str){
+  return (str ?? '').toString()
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/\r/g, '\\r')
+    .replace(/\n/g, '\\n');
+}
+
+function renderTokenOptGrid(options, selectedVal){
+  const grid = document.getElementById('tokenOptGrid');
+  if (!grid) return;
+  const opts = Array.isArray(options) ? options : [];
+  const sel = (selectedVal ?? '').toString();
+  grid.innerHTML = opts.map(o => {
+    const v = (o ?? '').toString();
+    const cls = (v === sel && sel) ? 'token-opt is-selected' : 'token-opt';
+    return `<div class="${cls}" data-val="${escapeHtml(v)}" onclick="pickTokenOpt('${escapeJsString(v)}')">${escapeHtml(v)}</div>`;
+  }).join('');
+}
+
+function addTokenOptFromInput(){
+  const inp = document.getElementById('tokenNewOpt');
+  if (!inp) return;
+  const val = (inp.value || '').toString().trim();
+  if (!val) return;
+
+  if (!__activeTokenEl) return;
+  const id = __activeTokenEl.getAttribute('data-emr-id') || '';
+  const def = __findTokenDef(id);
+  if (!def) return;
+
+  if (!Array.isArray(def.options)) def.options = [];
+  const exists = def.options.some(o => (o ?? '').toString().trim() === val);
+  if (!exists) {
+    def.options.push(val);
+    __saveTokenDefs();
+  }
+
+  // refresh grid & pick
+  renderTokenOptGrid(def.options, val);
+  pickTokenOpt(val);
+
+  inp.value = '';
+  const btn = document.getElementById('btnAddTokenOpt');
+  if (btn) btn.disabled = true;
+}
+
+
 function pickTokenOpt(val){
+  const v = (val ?? '').toString();
   const inp = document.getElementById('tokenValueCustom');
-  if (inp) inp.value = val;
+  if (inp) inp.value = v;
+
   const cur = document.getElementById('tokenCurValue');
-  if (cur) cur.textContent = val;
+  if (cur) cur.textContent = v || '未填写';
+
+  const grid = document.getElementById('tokenOptGrid');
+  if (grid) {
+    grid.querySelectorAll('.token-opt').forEach(el => {
+      el.classList.toggle('is-selected', (el.getAttribute('data-val') || '') === v);
+    });
+  }
 }
 
 function clearTokenValue(){
@@ -3533,6 +3628,8 @@ function clearTokenValue(){
   if (inp) inp.value = '';
   const cur = document.getElementById('tokenCurValue');
   if (cur) cur.textContent = '未填写';
+  const grid = document.getElementById('tokenOptGrid');
+  if (grid) grid.querySelectorAll('.token-opt').forEach(el => el.classList.remove('is-selected'));
 }
 
 function applyTokenValue(){
@@ -5217,7 +5314,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V5.6_${getExportStamp()}.json`;
+  a.download = `EMR_V5.7_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -5238,7 +5335,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V5.6_${getExportStamp()}.doc`;
+  a.download = `EMR_V5.7_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -5284,7 +5381,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'MyEMR V5.6';
+  const versionLabel = 'MyEMR V5.7';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -5395,7 +5492,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V5.6</title>
+<title>MyEMR V5.7</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
