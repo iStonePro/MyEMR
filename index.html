@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V5.9</title>
+  <title>MyEMR V6.1</title>
 
   <style>
     :root {
@@ -1353,7 +1353,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V5.9</div>
+        <div class="auth-ver">V6.1</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -1741,7 +1741,7 @@ body.modal-open {
 <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V5.9</span>
+          <span id="aboutVersion">MyEMR V6.1</span>
         </div>
       </div>
 
@@ -2500,7 +2500,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V5.9';
+  if (about) about.textContent = 'MyEMR V6.1';
   openModal('settingsModal');
 }
 
@@ -3620,11 +3620,6 @@ function openTokenValue(tokenEl){
         </div>
         <div class="hint" style="margin-top:6px;">提示：新增的选项会保存到该字段元素中，后续可直接点选；也可在“设置 → 字段元素”中管理。</div>
       </div>
-
-      <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
-        <button class="btn btn-secondary btn-sm" type="button" onclick="clearTokenValue()">清空</button>
-      </div>
-
       <!-- hidden value carrier for applyTokenValue() -->
       <input type="hidden" id="tokenValueCustom" value="${escapeHtml(cur)}">
     `;
@@ -5419,7 +5414,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V5.9_${getExportStamp()}.json`;
+  a.download = `EMR_V6.1_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -5440,7 +5435,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V5.9_${getExportStamp()}.doc`;
+  a.download = `EMR_V6.1_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -5486,7 +5481,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'MyEMR V5.9';
+  const versionLabel = 'MyEMR V6.1';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -5597,7 +5592,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V5.9</title>
+<title>MyEMR V6.1</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
@@ -5944,10 +5939,32 @@ function splitTagsFlexible(tagStr) {
     if (!b) return i;
     if (!i) return b;
 
-    const bt = htmlToPlainText(b).replace(/\s+/g, '');
-    const it = htmlToPlainText(i).replace(/\s+/g, '');
+    // 规范化：处理 iOS/不同浏览器带来的 NBSP/零宽字符差异，避免“内容一样却被重复追加”
+    const canonText = (html) => htmlToPlainText(html)
+      .replace(/\u200B/g, '')
+      .replace(/\u00A0/g, ' ')
+      .replace(/\u3000/g, ' ')
+      .replace(/\s+/g, '')
+      .trim();
 
-    // 完全一致 / 互为包含时，不重复追加
+    const canonHtml = (html) => String(html ?? '')
+      .replace(/\u200B/g, '')
+      .replace(/\u00A0/g, ' ')
+      .replace(/\u3000/g, ' ')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/\s+/g, ' ')
+      .replace(/>\s+</g, '><')
+      .trim();
+
+    const bt = canonText(b);
+    const it = canonText(i);
+
+    // 完全一致（包括富文本结构）时：不追加
+    const bh = canonHtml(b);
+    const ih = canonHtml(i);
+    if (bh && ih && bh === ih) return b;
+
+    // 文本完全一致 / 互为包含时：不重复追加
     if (bt && it && bt === it) return (b.length >= i.length) ? b : i;
     if (bt && it && bt.includes(it)) return b;
     if (bt && it && it.includes(bt)) return i;
