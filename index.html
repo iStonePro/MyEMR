@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V5.8</title>
+  <title>MyEMR V5.9</title>
 
   <style>
     :root {
@@ -1336,6 +1336,13 @@ body.modal-open {
     }
     #settingsModal .modal-close{ white-space: nowrap; }
 
+
+/* Mobile: prevent scroll chaining when drawer is open */
+@media (max-width: 680px) {
+  .sidebar .category-tree { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  #sidebarBackdrop.show { overscroll-behavior: none; }
+}
+
 </style>
 </head>
 
@@ -1346,7 +1353,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V5.8</div>
+        <div class="auth-ver">V5.9</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -1734,7 +1741,7 @@ body.modal-open {
 <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V5.8</span>
+          <span id="aboutVersion">MyEMR V5.9</span>
         </div>
       </div>
 
@@ -2493,7 +2500,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V5.8';
+  if (about) about.textContent = 'MyEMR V5.9';
   openModal('settingsModal');
 }
 
@@ -2683,6 +2690,7 @@ function __bindAuthUIOnce(){
 window.onload = function() {
   mountTopIcons();
   updateTopbarHeight();
+  bindSidebarBackdropNoScrollOnce();
     window.addEventListener('resize', updateTagPoolToggleVisibility);
   __loadSettings();
   __applySettings();
@@ -2870,18 +2878,83 @@ function updateTopbarHeight() {
   const h = Math.ceil(tb.getBoundingClientRect().height);
   if (h > 0) document.documentElement.style.setProperty('--topbar-h', h + 'px');
 }
+
+// ---- Drawer (sidebar) scroll lock (mobile) ----
+let __drawerScrollY = 0;
+function lockBodyScrollForDrawer() {
+  // If modal already locks the page, only mark drawer-open and return.
+  if (document.documentElement.classList.contains('drawer-open')) return;
+  if (document.documentElement.classList.contains('modal-open')) {
+    document.documentElement.classList.add('drawer-open');
+    document.body.classList.add('drawer-open');
+    return;
+  }
+  __drawerScrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+  document.documentElement.classList.add('drawer-open');
+  document.body.classList.add('drawer-open');
+
+  // Freeze page at current scroll position (iOS-safe)
+  document.documentElement.style.top = `-${__drawerScrollY}px`;
+  document.body.style.top = `-${__drawerScrollY}px`;
+
+  document.documentElement.style.position = 'fixed';
+  document.body.style.position = 'fixed';
+  document.documentElement.style.width = '100%';
+  document.body.style.width = '100%';
+
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
+}
+function unlockBodyScrollForDrawer() {
+  if (!document.documentElement.classList.contains('drawer-open')) return;
+
+  document.documentElement.classList.remove('drawer-open');
+  document.body.classList.remove('drawer-open');
+
+  // If a modal is still open, keep locked by modal logic.
+  if (document.documentElement.classList.contains('modal-open')) return;
+
+  const y = __drawerScrollY || 0;
+  document.documentElement.style.top = '';
+  document.body.style.top = '';
+  document.documentElement.style.position = '';
+  document.body.style.position = '';
+  document.documentElement.style.width = '';
+  document.body.style.width = '';
+  document.documentElement.style.overflow = '';
+  document.body.style.overflow = '';
+  window.scrollTo(0, y);
+}
+
+let __sidebarBackdropNoScrollBound = false;
+function bindSidebarBackdropNoScrollOnce() {
+  if (__sidebarBackdropNoScrollBound) return;
+  __sidebarBackdropNoScrollBound = true;
+  const bd = document.getElementById('sidebarBackdrop');
+  if (!bd) return;
+  const preventIfShown = (e) => {
+    if (!bd.classList.contains('show')) return;
+    e.preventDefault();
+  };
+  bd.addEventListener('touchmove', preventIfShown, { passive: false });
+  bd.addEventListener('wheel', preventIfShown, { passive: false });
+}
+// ----------------------------------------------
+
 function openSidebar() {
   if (!isMobile()) return;
   const sb = document.querySelector('.sidebar');
   const bd = document.getElementById('sidebarBackdrop');
   if (sb) sb.classList.add('open');
   if (bd) bd.classList.add('show');
+  lockBodyScrollForDrawer();
 }
 function closeSidebar() {
   const sb = document.querySelector('.sidebar');
   const bd = document.getElementById('sidebarBackdrop');
   if (sb) sb.classList.remove('open');
   if (bd) bd.classList.remove('show');
+  unlockBodyScrollForDrawer();
 }
 function toggleSidebar() {
   const sb = document.querySelector('.sidebar');
@@ -5346,7 +5419,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V5.8_${getExportStamp()}.json`;
+  a.download = `EMR_V5.9_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -5367,7 +5440,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V5.8_${getExportStamp()}.doc`;
+  a.download = `EMR_V5.9_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -5413,7 +5486,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'MyEMR V5.8';
+  const versionLabel = 'MyEMR V5.9';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -5524,7 +5597,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V5.8</title>
+<title>MyEMR V5.9</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
