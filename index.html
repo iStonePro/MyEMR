@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V5.7</title>
+  <title>MyEMR V5.8</title>
 
   <style>
     :root {
@@ -1302,6 +1302,38 @@ body.modal-open {
       margin-bottom: 12px;
       border-bottom: 1px solid rgba(0,0,0,0.08);
     }
+
+    /* Token Value Picker: fixed header/footer with scrollable body (consistent with Settings) */
+    #tokenValueModal .modal-content{
+      display:flex;
+      flex-direction:column;
+      overflow:hidden; /* prevent outer scroll; body scrolls */
+    }
+    #tokenValueModal .modal-title{
+      position:sticky;
+      top:0;
+      z-index:2;
+      background: var(--panel-bg);
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+    }
+    #tokenValueModal .modal-body{
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-right: 6px;
+      padding-bottom: 6px;
+      overscroll-behavior: contain;
+    }
+    #tokenValueModal .modal-footer{
+      flex: 0 0 auto;
+      background: linear-gradient(to top, rgba(255,255,255,0.98), rgba(255,255,255,0.90));
+      padding-top: 12px;
+      margin-top: 12px;
+      border-top: 1px solid rgba(0,0,0,0.08);
+    }
     #settingsModal .modal-close{ white-space: nowrap; }
 
 </style>
@@ -1314,7 +1346,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V5.7</div>
+        <div class="auth-ver">V5.8</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -1702,7 +1734,7 @@ body.modal-open {
 <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V5.7</span>
+          <span id="aboutVersion">MyEMR V5.8</span>
         </div>
       </div>
 
@@ -2461,7 +2493,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V5.7';
+  if (about) about.textContent = 'MyEMR V5.8';
   openModal('settingsModal');
 }
 
@@ -5314,7 +5346,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V5.7_${getExportStamp()}.json`;
+  a.download = `EMR_V5.8_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -5335,7 +5367,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V5.7_${getExportStamp()}.doc`;
+  a.download = `EMR_V5.8_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -5381,7 +5413,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'MyEMR V5.7';
+  const versionLabel = 'MyEMR V5.8';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -5492,7 +5524,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V5.7</title>
+<title>MyEMR V5.8</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
