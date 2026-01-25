@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V5.5</title>
+  <title>MyEMR V5.6</title>
 
   <style>
     :root {
@@ -1295,7 +1295,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V5.5</div>
+        <div class="auth-ver">V5.6</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -1683,7 +1683,7 @@ body.modal-open {
 <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V5.5</span>
+          <span id="aboutVersion">MyEMR V5.6</span>
         </div>
       </div>
 
@@ -2442,7 +2442,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V5.5';
+  if (about) about.textContent = 'MyEMR V5.6';
   openModal('settingsModal');
 }
 
@@ -3479,15 +3479,22 @@ function openTokenValue(tokenEl){
   if (!body) return;
 
   if (def.mode === 'select') {
+    // iOS: avoid auto popping the keyboard when the field offers quick-pick options.
+    try { document.activeElement && document.activeElement.blur && document.activeElement.blur(); } catch(e) {}
     const opts = Array.isArray(def.options) ? def.options : [];
     body.innerHTML = `
-      <div class="hint" style="margin-bottom:10px;">点击选项快速填入；也可输入自定义内容。</div>
+      <div class="hint" style="margin-bottom:8px;">点击选项快速填入。需要手动输入时，点“自定义输入”再唤起键盘。</div>
+      <div class="hint" style="margin-bottom:10px;">当前：<b id="tokenCurValue">${escapeHtml(cur || '未填写')}</b></div>
       <div class="token-opt-grid">
         ${opts.map(o => `<div class="token-opt" onclick="pickTokenOpt('${escapeHtml(o)}')">${escapeHtml(o)}</div>`).join('')}
       </div>
-      <div style="margin-top:12px;">
-        <label class="form-label">内容</label>
-        <input class="form-input" id="tokenValueCustom" value="${escapeHtml(cur)}" placeholder="可输入自定义内容…">
+      <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn btn-secondary btn-sm" type="button" onclick="showTokenCustomInput()">自定义输入</button>
+        <button class="btn btn-secondary btn-sm" type="button" onclick="clearTokenValue()">清空</button>
+      </div>
+      <div id="tokenCustomWrap" style="margin-top:10px; display:none;">
+        <label class="form-label">自定义内容</label>
+        <input class="form-input" id="tokenValueCustom" value="${escapeHtml(cur)}" placeholder="输入自定义内容…">
       </div>
     `;
   } else {
@@ -3499,14 +3506,33 @@ function openTokenValue(tokenEl){
   openModal('tokenValueModal');
 }
 
+function showTokenCustomInput(){
+  const wrap = document.getElementById('tokenCustomWrap');
+  if (wrap) wrap.style.display = 'block';
+  const inp = document.getElementById('tokenValueCustom');
+  if (inp) {
+    setTimeout(() => {
+      try {
+        inp.focus();
+        const n = (inp.value || '').length;
+        inp.setSelectionRange(n, n);
+      } catch(e) {}
+    }, 0);
+  }
+}
+
 function pickTokenOpt(val){
   const inp = document.getElementById('tokenValueCustom');
   if (inp) inp.value = val;
+  const cur = document.getElementById('tokenCurValue');
+  if (cur) cur.textContent = val;
 }
 
 function clearTokenValue(){
   const inp = document.getElementById('tokenValueCustom');
   if (inp) inp.value = '';
+  const cur = document.getElementById('tokenCurValue');
+  if (cur) cur.textContent = '未填写';
 }
 
 function applyTokenValue(){
@@ -5191,7 +5217,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V5.5_${getExportStamp()}.json`;
+  a.download = `EMR_V5.6_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -5212,7 +5238,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V5.5_${getExportStamp()}.doc`;
+  a.download = `EMR_V5.6_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -5258,7 +5284,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'MyEMR V5.5';
+  const versionLabel = 'MyEMR V5.6';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -5369,7 +5395,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V5.5</title>
+<title>MyEMR V5.6</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
