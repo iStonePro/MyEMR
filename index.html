@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V6.3</title>
+  <title>MyEMR V6.5</title>
 
   <style>
     :root {
@@ -1237,6 +1237,18 @@ body.modal-open {
     }
     .emr-token[data-emr-value=""]:hover{ background:rgba(16,163,127,.12); }
     .token-list{ display:flex; flex-direction:column; gap:10px; }
+    .token-sticky-header{
+      position: sticky;
+      top: 0;
+      z-index: 6;
+      background: rgba(255,255,255,.96);
+      backdrop-filter: blur(8px);
+      padding-top: 6px;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid rgba(17,24,39,.08);
+    }
+
     .token-item{
       display:flex; align-items:center; justify-content:space-between; gap:10px;
       padding:10px 12px; border:1px solid rgba(17,24,39,.12);
@@ -1343,6 +1355,36 @@ body.modal-open {
   #sidebarBackdrop.show { overscroll-behavior: none; }
 }
 
+
+    /* 字段元素分组筛选 */
+    .filter-chips{ display:flex; flex-wrap:wrap; gap:6px; }
+    .filter-chip{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--chip-border);
+      background:var(--chip-bg);
+      color:var(--chip-text);
+      cursor:pointer;
+      user-select:none;
+      font-size:12px;
+      transition:.15s;
+      line-height:1;
+    }
+    .filter-chip:hover{ transform: translateY(-1px); filter: brightness(0.98); }
+    .filter-chip.active{
+      border-color: rgba(16,163,127,.35);
+      background: rgba(16,163,127,.12);
+      color:#0f766e;
+      font-weight:700;
+    }
+    .token-group-title{
+      margin: 10px 2px 4px;
+      font-weight: 800;
+      color:#111827;
+      font-size: 13px;
+    }
+
 </style>
 </head>
 
@@ -1353,7 +1395,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V6.3</div>
+        <div class="auth-ver">V6.5</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -1530,7 +1572,21 @@ body.modal-open {
         </div>
         <div class="rte-editor" id="inputContentEditor" contenteditable="true"></div>
         <div class="hint">复制按钮默认复制“纯文本”版本，便于粘贴到病历系统。</div>
-      </div>
+      
+        <datalist id="tokenGroupDatalist">
+          <option value="通用"></option>
+          <option value="体征/定位"></option>
+          <option value="感染"></option>
+          <option value="囊肿"></option>
+          <option value="肿瘤/唾液腺"></option>
+          <option value="创伤/骨折"></option>
+          <option value="检查/影像"></option>
+          <option value="诊断/手术"></option>
+          <option value="出院/随访"></option>
+          <option value="自定义"></option>
+        </datalist>
+
+</div>
 
       </div>
 
@@ -1745,7 +1801,7 @@ body.modal-open {
 <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V6.3</span>
+          <span id="aboutVersion">MyEMR V6.5</span>
         </div>
       </div>
 
@@ -2529,7 +2585,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V6.3';
+  if (about) about.textContent = 'MyEMR V6.5';
   openModal('settingsModal');
 }
 
@@ -3500,13 +3556,658 @@ function __uuid(){
 function __defaultTokenDefs(){
   return [
     {
+      id: 'tok_name',
+      name: '姓名',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_sex',
+      name: '性别',
+      mode: 'select',
+      options: ['男', '女', '不详']
+    },
+    {
+      id: 'tok_age',
+      name: '年龄',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_idno',
+      name: '身份证号',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_mrn',
+      name: '病案号/住院号',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_opno',
+      name: '门诊号',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_bed',
+      name: '床号',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_ward',
+      name: '病区/科室',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_admit_dt',
+      name: '入院日期',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_discharge_dt',
+      name: '出院日期',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_chief',
+      name: '主诉',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_hpi',
+      name: '现病史要点',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_pmhs',
+      name: '既往史要点',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_allergy',
+      name: '过敏史',
+      mode: 'select',
+      options: ['否认药物/食物过敏史', '青霉素', '头孢类', '磺胺类', '阿司匹林/NSAIDs', '局麻药', '造影剂', '其他（自填）']
+    },
+    {
+      id: 'tok_comorb',
+      name: '合并症/基础疾病',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_temp',
+      name: '体温(℃)',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_pulse',
+      name: '脉搏(次/分)',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_rr',
+      name: '呼吸(次/分)',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_bp',
+      name: '血压(mmHg)',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_spo2',
+      name: 'SpO₂(%)',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_weight',
+      name: '体重(kg)',
+      mode: 'text',
+      options: []
+    },
+    {
       id: 'tok_site',
       name: '发病部位',
       mode: 'select',
-      options: ['左侧','右侧','双侧','上颌','下颌','颌下区','腮腺区','颊部','唇部','舌','口底']
+      options: ['左侧', '右侧', '双侧', '上颌', '下颌', '颌下区', '颏下区', '腮腺区', '颊部', '唇部', '舌', '口底', '腭部', '牙龈/牙槽突', '眶下区', '颞下区', '颞部']
+    },
+    {
+      id: 'tok_side',
+      name: '侧别',
+      mode: 'select',
+      options: ['左', '右', '双侧', '正中/不适用']
+    },
+    {
+      id: 'tok_tooth',
+      name: '相关牙位',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_course',
+      name: '病程/起病时间',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_pain',
+      name: '疼痛性质',
+      mode: 'select',
+      options: ['无痛', '胀痛', '跳痛', '刺痛', '咬合痛', '压痛', '放射痛', '其他（自填）']
+    },
+    {
+      id: 'tok_trismus',
+      name: '张口受限程度',
+      mode: 'select',
+      options: ['无', '轻度', '中度', '重度']
+    },
+    {
+      id: 'tok_mio',
+      name: '最大张口度(mm)',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_swallow',
+      name: '吞咽/呼吸受限',
+      mode: 'select',
+      options: ['无', '吞咽痛/吞咽困难', '呼吸困难', '构音不清', '流涎', '其他（自填）']
+    },
+    {
+      id: 'tok_neuro',
+      name: '感觉异常',
+      mode: 'select',
+      options: ['无', '下唇麻木(颏神经)', '眶下区麻木(眶下神经)', '舌前2/3感觉异常(舌神经)', '面神经功能异常', '其他（自填）']
+    },
+    {
+      id: 'tok_infect_space',
+      name: '累及间隙',
+      mode: 'select',
+      options: ['颌下间隙', '颏下间隙', '舌下间隙', '翼下颌间隙', '咬肌间隙', '颊间隙', '腮腺间隙', '咽旁间隙', '咽后间隙', '颞下窝/翼腭窝', '眶下间隙', '口底多间隙', '其他（自填）']
+    },
+    {
+      id: 'tok_source_tooth',
+      name: '感染来源牙位',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_airway_risk',
+      name: '气道风险评估',
+      mode: 'select',
+      options: ['低风险', '中风险', '高风险（考虑气道干预）']
+    },
+    {
+      id: 'tok_airway_mgmt',
+      name: '气道处理方式',
+      mode: 'select',
+      options: ['无需特殊处理', '经口气管插管', '经鼻气管插管', '气管切开', '其他（自填）']
+    },
+    {
+      id: 'tok_drainage',
+      name: '是否脓肿形成',
+      mode: 'select',
+      options: ['否（蜂窝织炎/间隙感染）', '是（脓肿）', '待影像/穿刺证实']
+    },
+    {
+      id: 'tok_abx',
+      name: '抗生素方案',
+      mode: 'select',
+      options: ['青霉素类/β-内酰胺酶抑制剂', '头孢类', '林可酰胺类(克林霉素)', '硝基咪唑类(甲硝唑)', '喹诺酮类', '碳青霉烯类', '联合用药（自填）', '其他（自填）']
+    },
+    {
+      id: 'tok_abx_days',
+      name: '抗感染疗程(天)',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_culture',
+      name: '细菌培养/药敏',
+      mode: 'select',
+      options: ['未送检', '已送检-待回报', '已回报-敏感（自填）', '已回报-耐药（自填）']
+    },
+    {
+      id: 'tok_lesion_type',
+      name: '病变性质',
+      mode: 'select',
+      options: ['感染性', '囊性', '良性肿瘤', '恶性肿瘤', '创伤性', '先天/发育性', '其他（自填）']
+    },
+    {
+      id: 'tok_cyst_type',
+      name: '囊肿类型',
+      mode: 'select',
+      options: ['根尖囊肿', '含牙囊肿', '牙源性角化囊肿(OKC)', '残根/残冠相关囊肿', '鼻腭管囊肿', '其他（自填）']
+    },
+    {
+      id: 'tok_salivary',
+      name: '唾液腺病变部位',
+      mode: 'select',
+      options: ['腮腺浅叶', '腮腺深叶', '颌下腺', '舌下腺', '小唾液腺', '其他（自填）']
+    },
+    {
+      id: 'tok_tumor_size',
+      name: '肿物大小(cm)',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_ulcer',
+      name: '溃疡/破溃',
+      mode: 'select',
+      options: ['无', '有']
+    },
+    {
+      id: 'tok_ln',
+      name: '颈淋巴结',
+      mode: 'select',
+      options: ['未触及肿大', '可触及肿大', '固定/融合', '压痛', '其他（自填）']
+    },
+    {
+      id: 'tok_pathology',
+      name: '病理诊断',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_margin',
+      name: '切缘情况',
+      mode: 'select',
+      options: ['未评估', '切缘阴性', '切缘可疑/阳性（自填）']
+    },
+    {
+      id: 'tok_fracture_site',
+      name: '骨折部位',
+      mode: 'select',
+      options: ['下颌正中/旁正中', '下颌体', '下颌角', '下颌升支', '髁突', '冠突', '上颌骨(Le Fort)', '颧骨/颧弓', '眶底/眶壁', '鼻骨', '多发/复合伤', '其他（自填）']
+    },
+    {
+      id: 'tok_fracture_type',
+      name: '骨折类型',
+      mode: 'select',
+      options: ['闭合性', '开放性', '粉碎性', '多发性', '病理性', '其他（自填）']
+    },
+    {
+      id: 'tok_displacement',
+      name: '移位程度',
+      mode: 'select',
+      options: ['无/轻微', '中度', '明显', '伴咬合紊乱']
+    },
+    {
+      id: 'tok_occlusion',
+      name: '咬合情况',
+      mode: 'select',
+      options: ['基本正常', '早接触/反合', '开合', '错合明显', '无法评估']
+    },
+    {
+      id: 'tok_soft_tissue',
+      name: '软组织损伤',
+      mode: 'select',
+      options: ['无', '挫裂伤', '贯通伤', '缺损', '血肿', '异物污染', '其他（自填）']
+    },
+    {
+      id: 'tok_wound',
+      name: '创口污染程度',
+      mode: 'select',
+      options: ['清洁', '污染', '重度污染']
+    },
+    {
+      id: 'tok_imaging',
+      name: '影像学主要所见',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_ct',
+      name: 'CT主要所见',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_lab',
+      name: '关键检验指标',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_admit_dx',
+      name: '入院诊断',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_preop_dx',
+      name: '术前诊断',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_postop_dx',
+      name: '术后诊断',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_discharge_dx',
+      name: '出院诊断',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_op_name',
+      name: '手术名称',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_op_dt',
+      name: '手术日期',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_anesthesia',
+      name: '麻醉方式',
+      mode: 'select',
+      options: ['局麻', '神经阻滞麻醉', '静脉镇静', '全麻(气管插管)', '全麻(喉罩)', '其他（自填）']
+    },
+    {
+      id: 'tok_approach',
+      name: '手术入路/切口',
+      mode: 'select',
+      options: ['口内切口', '颌下切口', '颏下切口', '耳前切口', '联合入路', '其他（自填）']
+    },
+    {
+      id: 'tok_drain_type',
+      name: '引流方式',
+      mode: 'select',
+      options: ['无', '橡皮片引流', '负压引流管', '双套管引流', 'Penrose引流', '其他（自填）']
+    },
+    {
+      id: 'tok_fixation',
+      name: '固定方式',
+      mode: 'select',
+      options: ['无', '颌间牵引/橡皮圈', '钢丝结扎', '小钢板/钛板螺钉内固定', '外固定支架', '其他（自填）']
+    },
+    {
+      id: 'tok_implant',
+      name: '植入物/材料',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_blood_loss',
+      name: '术中出血量(ml)',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_specimen',
+      name: '标本送检',
+      mode: 'select',
+      options: ['否', '是-病理', '是-细菌培养', '是-两者']
+    },
+    {
+      id: 'tok_complication',
+      name: '术中/术后并发症',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_wound_class',
+      name: '切口/手术切口等级',
+      mode: 'select',
+      options: ['I类(清洁)', 'II类(清洁-污染)', 'III类(污染)', 'IV类(污秽/感染)', '不适用']
+    },
+    {
+      id: 'tok_drain_out',
+      name: '术后引流量',
+      mode: 'text',
+      options: []
+    },
+    {
+      id: 'tok_disposition',
+      name: '出院去向',
+      mode: 'select',
+      options: ['回家', '转院', '转科', '死亡', '其他（自填）']
+    },
+    {
+      id: 'tok_followup',
+      name: '随访/复诊时间',
+      mode: 'select',
+      options: ['3天', '1周', '2周', '1月', '3月', '6月', '其他（自填）']
+    },
+    {
+      id: 'tok_diet',
+      name: '饮食医嘱',
+      mode: 'select',
+      options: ['禁食', '流质', '半流质', '软食', '普食', '其他（自填）']
+    },
+    {
+      id: 'tok_oral_care',
+      name: '口腔护理',
+      mode: 'select',
+      options: ['温盐水/漱口液漱口', '保持口腔清洁', '避免刺激性食物', '其他（自填）']
+    },
+    {
+      id: 'tok_train',
+      name: '功能锻炼',
+      mode: 'select',
+      options: ['张口训练', '咬合/咀嚼训练', '颈肩功能训练', '无需', '其他（自填）']
+    },
+    {
+      id: 'tok_warning',
+      name: '返院警示症状',
+      mode: 'select',
+      options: ['发热/寒战', '呼吸困难', '疼痛加重', '伤口渗血/渗液', '肿胀加重', '吞咽困难加重', '其他（自填）']
     }
   ];
 }
+
+/* ================== 字段元素：分组/筛选（V6.5） ================== */
+const __TOKEN_GROUP_ORDER = ['通用','体征/定位','感染','囊肿','肿瘤/唾液腺','创伤/骨折','检查/影像','诊断/手术','出院/随访','自定义'];
+let __tokenInsertGroup = '全部';
+let __tokenManagerGroup = '全部';
+
+const __LS_TOKEN_INSERT_GROUP = 'myemr_token_insert_group';
+const __LS_TOKEN_MANAGER_GROUP = 'myemr_token_manager_group';
+const __LS_TOKEN_GROUP_USAGE  = 'myemr_token_group_usage';
+
+function __safeJsonParse(s, fallback){
+  try { return JSON.parse(s); } catch(e) { return fallback; }
+}
+
+function __getSavedTokenGroup(mode){
+  try {
+    const key = (mode === 'manager') ? __LS_TOKEN_MANAGER_GROUP : __LS_TOKEN_INSERT_GROUP;
+    return String(localStorage.getItem(key) || '').trim() || '全部';
+  } catch(e) { return '全部'; }
+}
+
+function __saveTokenGroup(mode, group){
+  try {
+    const key = (mode === 'manager') ? __LS_TOKEN_MANAGER_GROUP : __LS_TOKEN_INSERT_GROUP;
+    localStorage.setItem(key, String(group || '全部'));
+  } catch(e) {}
+}
+
+function __coerceTokenGroup(g){
+  const v = String(g || '').trim() || '全部';
+  if (v === '全部') return '全部';
+  const groups = __getAllTokenGroups();
+  return groups.includes(v) ? v : '全部';
+}
+
+function __getTokenGroupUsage(){
+  try {
+    const raw = localStorage.getItem(__LS_TOKEN_GROUP_USAGE) || '{}';
+    const obj = __safeJsonParse(raw, {});
+    return (obj && typeof obj === 'object') ? obj : {};
+  } catch(e) { return {}; }
+}
+
+function __bumpTokenGroupUsage(group){
+  try {
+    const g = __normGroup(group) || '自定义';
+    const usage = __getTokenGroupUsage();
+    usage[g] = (Number(usage[g] || 0) + 1);
+    localStorage.setItem(__LS_TOKEN_GROUP_USAGE, JSON.stringify(usage));
+  } catch(e) {}
+}
+
+function __getTopUsedGroups(groups, maxN){
+  const usage = __getTokenGroupUsage();
+  const arr = (groups || []).map(g => ({
+    g,
+    n: Number(usage[g] || 0),
+    idx: __TOKEN_GROUP_ORDER.indexOf(g)
+  })).filter(x => x.n > 0);
+
+  arr.sort((a,b) => {
+    if (b.n !== a.n) return b.n - a.n;
+    const ai = (a.idx === -1 ? 999 : a.idx);
+    const bi = (b.idx === -1 ? 999 : b.idx);
+    if (ai !== bi) return ai - bi;
+    return String(a.g).localeCompare(String(b.g), 'zh-Hans-CN');
+  });
+
+  return arr.slice(0, Math.max(0, Number(maxN || 0))).map(x => x.g);
+}
+
+function __normGroup(g){
+  const s = String(g ?? '').trim();
+  return s || '';
+}
+
+function __inferTokenGroup(def){
+  const n = String(def?.name ?? '').trim();
+  if (!n) return '自定义';
+
+  const has = (kw) => n.includes(kw);
+
+  // 出院/随访
+  if (has('出院') || has('随访') || has('复诊') || has('饮食') || has('口腔护理') || has('功能锻炼') || has('警示') || has('去向')) return '出院/随访';
+
+  // 诊断/手术
+  if (has('诊断') || has('手术') || has('麻醉') || has('切口') || has('入路') || has('引流') || has('植入') || has('出血') || has('标本') || has('并发症') || has('切口等级')) return '诊断/手术';
+
+  // 检查/影像
+  if (has('影像') || has('CT') || has('MRI') || has('CBCT') || has('检查') || has('化验') || has('检验') || has('血') || has('尿') || has('培养') || has('药敏')) return '检查/影像';
+
+  // 创伤/骨折
+  if (has('骨折') || has('创伤') || has('创口') || has('移位') || has('固定') || has('Le Fort') || has('咬合')) return '创伤/骨折';
+
+  // 肿瘤/唾液腺
+  if (has('肿瘤') || has('肿物') || has('腮腺') || has('颌下腺') || has('舌下腺') || has('唾液腺') || has('淋巴结') || has('病理') || has('切缘') || has('恶性') || has('良性')) return '肿瘤/唾液腺';
+
+  // 囊肿
+  if (has('囊肿') || has('囊性') || has('囊腔') || has('囊壁')) return '囊肿';
+
+  // 感染
+  if (has('感染') || has('间隙') || has('脓肿') || has('蜂窝织炎') || has('气道') || has('抗生素') || has('抗感染') || has('张口受限') || has('吞咽') || has('呼吸受限')) return '感染';
+
+  // 体征/定位
+  if (has('发病部位') || has('侧别') || has('牙位') || has('病程') || has('起病') || has('疼痛') || has('最大张口') || has('张口度') || has('感觉异常')) return '体征/定位';
+
+  // 通用
+  if (['姓名','性别','年龄','病案号/住院号','门诊号','床号','病区/科室','入院日期','出院日期','主诉','现病史要点','既往史要点','过敏史','合并症/基础疾病','体温','脉搏','呼吸','血压','SpO₂','体重'].includes(n)) return '通用';
+
+  return '自定义';
+}
+
+function __getTokenGroup(def){
+  const g = __normGroup(def?.group);
+  return g || __inferTokenGroup(def);
+}
+
+function __ensureTokenGroups(){
+  __loadTokenDefs();
+  if (!Array.isArray(__tokenDefs)) return;
+  let changed = false;
+  for (const t of __tokenDefs) {
+    const g = __getTokenGroup(t);
+    if (!__normGroup(t.group) || __normGroup(t.group) !== g) {
+      t.group = g;
+      changed = true;
+    }
+  }
+  if (changed) __saveTokenDefs();
+}
+
+function __getAllTokenGroups(){
+  __loadTokenDefs();
+  const set = new Set();
+  (__tokenDefs || []).forEach(t => set.add(__getTokenGroup(t)));
+  const base = __TOKEN_GROUP_ORDER.filter(g => set.has(g));
+  const extra = Array.from(set).filter(g => !__TOKEN_GROUP_ORDER.includes(g)).sort((a,b) => a.localeCompare(b, 'zh-Hans-CN'));
+  return [...base, ...extra];
+}
+
+function renderTokenGroupChips(mode){
+  __ensureTokenGroups();
+  const containerId = (mode === 'manager') ? 'tokenManagerGroups' : 'tokenInsertGroups';
+  const el = document.getElementById(containerId);
+  if (!el) return;
+
+  const groups = __getAllTokenGroups();
+  const pinned = __getTopUsedGroups(groups, 4);
+  const pinnedSet = new Set(pinned);
+  const ordered = [...pinned, ...groups.filter(g => !pinnedSet.has(g))];
+  const active = (mode === 'manager') ? __tokenManagerGroup : __tokenInsertGroup;
+  const all = ['全部', ...ordered];
+
+  el.innerHTML = all.map(g => {
+    const enc = encodeURIComponent(g);
+    const cls = (g === active) ? 'filter-chip active' : 'filter-chip';
+    const label = pinnedSet.has(g) ? `★ ${g}` : g;
+    return `<button class="${cls}" type="button" onclick="setTokenGroupFilter('${mode}', decodeURIComponent('${enc}'))">${escapeHtml(label)}</button>`;
+  }).join('');
+}
+
+function setTokenGroupFilter(mode, group){
+  if (mode === 'manager') {
+    __tokenManagerGroup = group || '全部';
+    __saveTokenGroup('manager', __tokenManagerGroup);
+    renderTokenGroupChips('manager');
+    renderTokenManagerList();
+  } else {
+    __tokenInsertGroup = group || '全部';
+    __saveTokenGroup('insert', __tokenInsertGroup);
+    renderTokenGroupChips('insert');
+    renderTokenInsertList();
+  }
+}
+
+function __groupTokenItems(items){
+  const map = {};
+  (items || []).forEach(t => {
+    const g = __getTokenGroup(t);
+    if (!map[g]) map[g] = [];
+    map[g].push(t);
+  });
+  Object.keys(map).forEach(g => {
+    map[g].sort((a,b) => String(a.name||'').localeCompare(String(b.name||''), 'zh-Hans-CN'));
+  });
+  return map;
+}
+
+
 
 function __loadTokenDefs(){
   if (__tokenDefs) return;
@@ -3516,10 +4217,38 @@ function __loadTokenDefs(){
   } catch(e) {
     __tokenDefs = null;
   }
+
+  // 兼容升级：无论是否已有自定义字段，都确保“内置字段库”存在（按 id 去重，不覆盖用户字段）
+  if (!Array.isArray(__tokenDefs)) __tokenDefs = [];
+  const builtin = __defaultTokenDefs();
+  if (Array.isArray(builtin) && builtin.length) {
+    const byId = new Map((__tokenDefs || []).map(t => [String(t.id), t]));
+    for (const t of builtin) {
+      if (!t || !t.id || !t.name) continue;
+      if (byId.has(String(t.id))) continue;
+      byId.set(String(t.id), {
+        id: String(t.id),
+        name: String(t.name),
+        mode: (String(t.mode) === 'text' ? 'text' : 'select'),
+        options: Array.isArray(t.options) ? t.options.map(x => String(x)) : []
+      });
+    }
+    __tokenDefs = Array.from(byId.values());
+  }
+
   if (!Array.isArray(__tokenDefs) || __tokenDefs.length === 0) {
     __tokenDefs = __defaultTokenDefs();
-    __saveTokenDefs();
   }
+
+  // 分组字段兼容：补齐 group（不影响用户自定义字段内容）
+  try {
+    for (const t of (__tokenDefs || [])) {
+      if (!t) continue;
+      const g = __getTokenGroup(t);
+      t.group = g;
+    }
+  } catch(e) {}
+  __saveTokenDefs();
 }
 
 function __saveTokenDefs(){
@@ -3544,6 +4273,9 @@ function mergeTokenDefs(incoming){
     });
   }
   __tokenDefs = Array.from(byId.values());
+
+  // 分组字段兼容：导入后补齐 group
+  try { (__tokenDefs || []).forEach(t => { if (t) t.group = __getTokenGroup(t); }); } catch(e) {}
   __saveTokenDefs();
 }
 
@@ -3605,35 +4337,66 @@ function openTokenInsert(){
   __loadTokenDefs();
   const inp = document.getElementById('tokenInsertSearch');
   if (inp) inp.value = '';
+  __tokenInsertGroup = __coerceTokenGroup(__getSavedTokenGroup('insert'));
+  renderTokenGroupChips('insert');
   renderTokenInsertList();
   openModal('tokenInsertModal');
 }
 
 function renderTokenInsertList(){
   __loadTokenDefs();
+  renderTokenGroupChips('insert');
+
   const q = (document.getElementById('tokenInsertSearch')?.value || '').trim().toLowerCase();
   const list = document.getElementById('tokenInsertList');
   if (!list) return;
-  const items = (__tokenDefs || []).filter(t => !q || (t.name || '').toLowerCase().includes(q));
-  list.innerHTML = items.map(t => {
-    const sub = t.mode === 'select' ? `下拉选择 · ${(t.options||[]).length} 项` : '自由输入';
-    return `<div class="token-item">
-      <div class="meta">
-        <div class="name">${escapeHtml(t.name)}</div>
-        <div class="sub">${escapeHtml(sub)}</div>
-      </div>
-      <div class="ops">
-        <button class="icon-btn icon-only" type="button" title="插入" aria-label="插入" onclick="insertTokenById('${t.id}')">
-          <span class="ico">${ICONS.svg('plus')}</span>
-        </button>
-      </div>
-    </div>`;
-  }).join('') || `<div class="hint">没有匹配的字段元素。你可以在“设置 → 字段元素”中新增。</div>`;
+
+  const groupFilter = __tokenInsertGroup || '全部';
+  const filtered = (__tokenDefs || []).filter(t => {
+    if (!t) return false;
+    const name = (t.name || '').toLowerCase();
+    if (q && !name.includes(q)) return false;
+    const g = __getTokenGroup(t);
+    if (groupFilter !== '全部' && g !== groupFilter) return false;
+    return true;
+  });
+
+  const grouped = __groupTokenItems(filtered);
+  const order = __getAllTokenGroups();
+
+  const parts = [];
+  const showHead = (groupFilter === '全部');
+  for (const g of order) {
+    const arr = grouped[g];
+    if (!arr || arr.length === 0) continue;
+    if (showHead) parts.push(`<div class="token-group-title">${escapeHtml(g)}</div>`);
+    parts.push(arr.map(t => {
+      const sub = `${g} · ` + (t.mode === 'select' ? `下拉选择 · ${(t.options||[]).length} 项` : '自由输入');
+      return `<div class="token-item">
+        <div class="meta">
+          <div class="name">${escapeHtml(t.name)}</div>
+          <div class="sub">${escapeHtml(sub)}</div>
+        </div>
+        <div class="ops">
+          <button class="icon-btn icon-only" type="button" title="插入" aria-label="插入" onclick="insertTokenById('${t.id}')">
+            <span class="ico">${ICONS.svg('plus')}</span>
+          </button>
+        </div>
+      </div>`;
+    }).join(''));
+  }
+
+  if (parts.length === 0) {
+    list.innerHTML = `<div class="hint">未找到匹配的字段元素。</div>`;
+  } else {
+    list.innerHTML = parts.join('');
+  }
 }
 
 function insertTokenById(id){
   const def = __findTokenDef(id);
   if (!def) return;
+  __bumpTokenGroupUsage(__getTokenGroup(def));
   const editor = document.getElementById('inputContentEditor');
   if (!editor) return;
   editor.focus();
@@ -3804,28 +4567,62 @@ function applyTokenValue(){
 
 function openTokenManager(){
   __loadTokenDefs();
+  const inp = document.getElementById('tokenManagerSearch');
+  if (inp) inp.value = '';
+  __tokenManagerGroup = __coerceTokenGroup(__getSavedTokenGroup('manager'));
+  renderTokenGroupChips('manager');
   renderTokenManagerList();
   openModal('tokenManagerModal');
 }
 
 function renderTokenManagerList(){
   __loadTokenDefs();
+  renderTokenGroupChips('manager');
+
   const list = document.getElementById('tokenManagerList');
   if (!list) return;
-  const items = (__tokenDefs || []);
-  list.innerHTML = items.map(t => {
-    const sub = t.mode === 'select' ? `下拉选择 · ${(t.options||[]).length} 项` : '自由输入';
-    return `<div class="token-item">
-      <div class="meta">
-        <div class="name">${escapeHtml(t.name)}</div>
-        <div class="sub">${escapeHtml(sub)}</div>
-      </div>
-      <div class="ops">
-        <button class="icon-btn icon-only" type="button" title="编辑" aria-label="编辑" onclick="openTokenEdit('${t.id}')"><span class="ico">${ICONS.svg('pen')}</span></button>
-        <button class="icon-btn icon-only danger" type="button" title="删除" aria-label="删除" onclick="deleteTokenDef('${t.id}')"><span class="ico">${ICONS.svg('trash')}</span></button>
-      </div>
-    </div>`;
-  }).join('') || `<div class="hint">暂无字段元素。点击上方“新增字段元素”。</div>`;
+
+  const q = (document.getElementById('tokenManagerSearch')?.value || '').trim().toLowerCase();
+  const groupFilter = __tokenManagerGroup || '全部';
+
+  const filtered = (__tokenDefs || []).filter(t => {
+    if (!t) return false;
+    const name = (t.name || '').toLowerCase();
+    if (q && !name.includes(q)) return false;
+    const g = __getTokenGroup(t);
+    if (groupFilter !== '全部' && g !== groupFilter) return false;
+    return true;
+  });
+
+  const grouped = __groupTokenItems(filtered);
+  const order = __getAllTokenGroups();
+
+  const parts = [];
+  const showHead = (groupFilter === '全部');
+  for (const g of order) {
+    const arr = grouped[g];
+    if (!arr || arr.length === 0) continue;
+    if (showHead) parts.push(`<div class="token-group-title">${escapeHtml(g)}</div>`);
+    parts.push(arr.map(t => {
+      const sub = `${g} · ` + (t.mode === 'select' ? `下拉选择 · ${(t.options||[]).length} 项` : '自由输入');
+      return `<div class="token-item">
+        <div class="meta">
+          <div class="name">${escapeHtml(t.name)}</div>
+          <div class="sub">${escapeHtml(sub)}</div>
+        </div>
+        <div class="ops">
+          <button class="icon-btn icon-only" type="button" title="编辑" aria-label="编辑" onclick="openTokenEdit('${t.id}')"><span class="ico">${ICONS.svg('pen')}</span></button>
+          <button class="icon-btn icon-only danger" type="button" title="删除" aria-label="删除" onclick="deleteTokenDef('${t.id}')"><span class="ico">${ICONS.svg('trash')}</span></button>
+        </div>
+      </div>`;
+    }).join(''));
+  }
+
+  if (parts.length === 0) {
+    list.innerHTML = `<div class="hint">未找到匹配的字段元素。</div>`;
+  } else {
+    list.innerHTML = parts.join('');
+  }
 }
 
 function openTokenEdit(id){
@@ -3837,6 +4634,9 @@ function openTokenEdit(id){
   document.getElementById('tokenEditTitle').textContent = isNew ? '新增字段元素' : '编辑字段元素';
   document.getElementById('tokenEditId').value = def.id;
   document.getElementById('tokenEditName').value = def.name || '';
+  
+  const grp = document.getElementById('tokenEditGroup');
+  if (grp) grp.value = __getTokenGroup(def) || '自定义';
   document.getElementById('tokenEditMode').value = def.mode || 'select';
   document.getElementById('tokenEditOptions').value = Array.isArray(def.options) ? def.options.join('\n') : '';
   toggleTokenEditOptions();
@@ -3855,6 +4655,10 @@ function saveTokenDef(){
   const name = (document.getElementById('tokenEditName')?.value || '').trim();
   const mode = (document.getElementById('tokenEditMode')?.value || 'select').trim();
   const rawOpts = (document.getElementById('tokenEditOptions')?.value || '').trim();
+
+  
+  const groupRaw = (document.getElementById('tokenEditGroup')?.value || '').trim();
+  const group = groupRaw || '自定义';
 
   if (!name) {
     openAlertModal('字段名称不能为空。', '保存失败');
@@ -3880,10 +4684,12 @@ function saveTokenDef(){
     existing.name = name;
     existing.mode = (mode === 'text' ? 'text' : 'select');
     existing.options = opts;
+    existing.group = group;
   } else {
-    (__tokenDefs || []).push({ id, name, mode: (mode === 'text' ? 'text' : 'select'), options: opts });
+    (__tokenDefs || []).push({ id, name, group, mode: (mode === 'text' ? 'text' : 'select'), options: opts });
   }
   __saveTokenDefs();
+  renderTokenGroupChips('manager');
   renderTokenManagerList();
   requestCloseModal('tokenEditModal');
   __enhanceTokensInEditor();
@@ -5471,7 +6277,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V6.3_${getExportStamp()}.json`;
+  a.download = `EMR_V6.5_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -5492,7 +6298,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V6.3_${getExportStamp()}.doc`;
+  a.download = `EMR_V6.5_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -5538,7 +6344,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'MyEMR V6.3';
+  const versionLabel = 'MyEMR V6.5';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -5649,7 +6455,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V6.3</title>
+<title>MyEMR V6.5</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
@@ -5700,6 +6506,18 @@ function buildWordBackupHtml(data) {
     .emr-token .emr-token-value{ opacity:.92; }
     .emr-token[data-emr-value=""] .emr-token-value{ opacity:.6; }
     .token-list{ display:flex; flex-direction:column; gap:10px; }
+    .token-sticky-header{
+      position: sticky;
+      top: 0;
+      z-index: 6;
+      background: rgba(255,255,255,.96);
+      backdrop-filter: blur(8px);
+      padding-top: 6px;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid rgba(17,24,39,.08);
+    }
+
     .token-item{
       display:flex; align-items:center; justify-content:space-between; gap:10px;
       padding:10px 12px; border:1px solid rgba(17,24,39,.12);
@@ -5753,9 +6571,15 @@ function buildWordBackupHtml(data) {
         </span>
       </div>
       <div class="modal-body">
-        <div class="settings-row" style="margin-bottom:10px;">
-          <div class="settings-label" style="min-width:72px;">搜索</div>
-          <input class="form-input" id="tokenInsertSearch" placeholder="输入字段名称关键词…" oninput="renderTokenInsertList()">
+        <div class="token-sticky-header">
+          <div class="settings-row" style="margin-bottom:10px;">
+            <div class="settings-label" style="min-width:72px;">搜索</div>
+            <input class="form-input" id="tokenInsertSearch" placeholder="输入字段名称关键词…" oninput="renderTokenInsertList()">
+          </div>
+          <div class="settings-row" style="margin-bottom:10px;">
+            <div class="settings-label" style="min-width:72px;">分组</div>
+            <div class="filter-chips" id="tokenInsertGroups"></div>
+          </div>
         </div>
         <div id="tokenInsertList" class="token-list"></div>
       </div>
@@ -5797,11 +6621,21 @@ function buildWordBackupHtml(data) {
         </span>
       </div>
       <div class="modal-body">
-        <div class="settings-actions" style="margin-bottom:10px;">
-          <button class="action-btn" type="button" onclick="openTokenEdit('')">
-            <span class="ico" id="icoTokenAdd"></span>
-            <span>新增字段元素</span>
-          </button>
+        <div class="token-sticky-header">
+          <div class="settings-actions" style="margin-bottom:10px;">
+            <button class="action-btn" type="button" onclick="openTokenEdit('')">
+              <span class="ico" id="icoTokenAdd"></span>
+              <span>新增字段元素</span>
+            </button>
+          </div>
+          <div class="settings-row" style="margin-bottom:10px;">
+            <div class="settings-label" style="min-width:72px;">搜索</div>
+            <input class="form-input" id="tokenManagerSearch" placeholder="输入字段名称关键词…" oninput="renderTokenManagerList()">
+          </div>
+          <div class="settings-row" style="margin-bottom:10px;">
+            <div class="settings-label" style="min-width:72px;">分组</div>
+            <div class="filter-chips" id="tokenManagerGroups"></div>
+          </div>
         </div>
         <div id="tokenManagerList" class="token-list"></div>
         <div class="hint" style="margin-top:8px;">提示：字段元素插入到模板内容后，可点击该字段进行快速选择/填写。</div>
@@ -5828,6 +6662,10 @@ function buildWordBackupHtml(data) {
           <div class="form-col">
             <label class="form-label">字段名称</label>
             <input class="form-input" id="tokenEditName" placeholder="例如：发病部位">
+          </div>
+          <div class="form-col">
+            <label class="form-label">分组</label>
+            <input class="form-input" id="tokenEditGroup" list="tokenGroupDatalist" placeholder="例如：感染">
           </div>
           <div class="form-col">
             <label class="form-label">填写方式</label>
