@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V7.1</title>
+  <title>MyEMR V7.4</title>
 
   <style>
     :root {
@@ -730,6 +730,67 @@ body.modal-open {
       .more-menu-item.danger { color: #b91c1c; }
       .more-menu-item.danger:hover { background: rgba(185,28,28,0.08); }
     }
+
+    /* Mobile: polish Category Manager modal layout (stack columns, improve inputs, keep counts) */
+    @media (max-width: 560px){
+      #categoryModal .modal-content{ width: min(94vw, 560px) !important; }
+      #categoryModal .manage-layout{
+        flex-direction: column;
+        height: auto;
+        gap: 12px;
+      }
+      #categoryModal .manage-col{ border-radius: 14px; }
+      #categoryModal .manage-header{ padding: 10px; font-size: 12.5px; }
+      #categoryModal .manage-list{ padding: 6px; max-height: 220px; }
+      #categoryModal .manage-item{ padding: 8px 9px; }
+      #categoryModal .manage-item-left{ gap: 6px; min-width: 0; }
+      #categoryModal .manage-item-left .count-badge{ margin-left: 6px; }
+
+      /* input + buttons: convert to tidy 2-row grid */
+      #categoryModal .manage-input-row{
+        display: grid;
+        grid-template-columns: 42px 1fr auto;
+        grid-auto-rows: auto;
+        gap: 8px;
+        padding: 10px;
+        border-top: 1px solid #eef2f7;
+        background: #fff;
+      }
+      #categoryModal .manage-input-row .new-icon-preview{
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+      }
+      #categoryModal .manage-input-row .icon-btn.iconpick{
+        grid-column: 2;
+        justify-self: start;
+      }
+      #categoryModal .manage-input-row input.form-input{
+        grid-column: 1 / -1;
+        width: 100% !important;
+        min-width: 0 !important;
+      }
+      #categoryModal .manage-input-row .btn.btn-primary.btn-sm{
+        grid-column: 3;
+        justify-self: end;
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+    }
+
+    @media (max-width: 360px){
+      #categoryModal .manage-list{ max-height: 200px; }
+      #categoryModal .manage-input-row{
+        grid-template-columns: 42px 1fr;
+      }
+      #categoryModal .manage-input-row .btn.btn-primary.btn-sm{
+        grid-column: 1 / -1;
+        justify-self: stretch;
+        width: 100%;
+      }
+    }
+
+
       .item-controls .icon-btn { padding: 6px; }
       /* give the name line a little breathing room */
       .manage-item-left .name { padding-right: 2px; }
@@ -1289,7 +1350,10 @@ body.modal-open {
 
 /* ---- Dialog modal (alert/confirm) ---- */
 .modal-content-dialog { max-width: 560px; }
-.dialog-body { white-space: pre-wrap; font-size: 14px; color: var(--text-primary); }
+
+    .modal-content-dialog .modal-body{ padding: 14px 18px 10px; }
+.dialog-body { white-space: pre-wrap; font-size: 14px; color: var(--text-primary); line-height: 1.6; }
+
 .btn.btn-danger { background: #dc2626; border-color: #dc2626; color: #fff; }
 .btn.btn-danger:hover { filter: brightness(0.95); }
 
@@ -1520,7 +1584,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V7.1</div>
+        <div class="auth-ver">V7.4</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -1935,7 +1999,7 @@ body.modal-open {
 <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V7.1</span>
+          <span id="aboutVersion">MyEMR V7.4</span>
         </div>
       </div>
 
@@ -2719,7 +2783,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V7.1';
+  if (about) about.textContent = 'MyEMR V7.4';
   openModal('settingsModal');
 }
 
@@ -4154,7 +4218,7 @@ function __defaultTokenDefs(){
   ];
 }
 
-/* ================== 字段元素：分组/筛选（V7.1） ================== */
+/* ================== 字段元素：分组/筛选（V7.4） ================== */
 const __TOKEN_GROUP_ORDER = ['通用','体征/定位','感染','囊肿','肿瘤/唾液腺','创伤/骨折','检查/影像','诊断/手术','出院/随访','自定义'];
 let __tokenInsertGroup = '全部';
 let __tokenManagerGroup = '全部';
@@ -4697,7 +4761,7 @@ function clearTokenValue(){
   if (grid) grid.querySelectorAll('.token-opt').forEach(el => el.classList.remove('is-selected'));
 }
 
-/* ================== 字段值：自动补单位（V7.1） ================== */
+/* ================== 字段值：自动补单位（V7.4） ================== */
 function __extractUnitFromName(name){
   const s = String(name ?? '').trim();
   const m = s.match(/(?:\(|（)\s*([^)）]{1,20})\s*(?:\)|）)\s*$/);
@@ -5738,20 +5802,61 @@ function openMoveModal(id) {
 
   document.getElementById('moveId').value = id;
 
+  // 默认：优先使用“上一次移动目标路径”，便于连续移动多个模板
+  const lastRaw = getLastMovePath();
+  const last = normalizeMovePathByCategoryTree(lastRaw);
+  const targetMain = last ? last.mainCat : t.mainCat;
+  const targetSub  = last ? last.subCat  : (t.subCat || '');
+  const usingLast  = !!last;
+
   const mainSel = document.getElementById('moveMainCat');
   mainSel.innerHTML = '';
   categoryTree.forEach(c => {
     const opt = document.createElement('option');
     opt.value = c.name;
     opt.textContent = c.name;
-    if (c.name === t.mainCat) opt.selected = true;
+    if (c.name === targetMain) opt.selected = true;
     mainSel.appendChild(opt);
   });
 
-  updateMoveSubCatOptions(t.subCat);
+  updateMoveSubCatOptions(targetSub);
+  updateMoveLastPathHint(usingLast, last);
+
   openModal('moveModal');
   takeMoveModalSnapshot();
 }
+
+function updateMoveLastPathHint(usingLast, lastPath) {
+  const body = document.querySelector('#moveModal .modal-body');
+  if (!body) return;
+
+  let el = document.getElementById('moveLastPathHint');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'moveLastPathHint';
+    el.className = 'hint';
+    el.style.marginTop = '8px';
+    el.style.marginBottom = '10px';
+
+    const formRow = body.querySelector('.form-row');
+    if (formRow) {
+      formRow.insertAdjacentElement('afterend', el);
+    } else {
+      body.insertBefore(el, body.firstChild);
+    }
+  }
+
+  if (!usingLast || !lastPath) {
+    el.style.display = 'none';
+    el.textContent = '';
+    return;
+  }
+
+  const pathText = lastPath.mainCat + (lastPath.subCat ? ' / ' + lastPath.subCat : '');
+  el.style.display = 'block';
+  el.textContent = '已自动选择上次移动目标：' + pathText;
+}
+
 
 function updateMoveSubCatOptions(selectedSub = '') {
   const mainVal = document.getElementById('moveMainCat').value;
@@ -5793,6 +5898,7 @@ function confirmMoveTemplate(silentClose = false) {
       autoBackup('move_template');
       t.mainCat = newMain;
       t.subCat = newSub;
+      setLastMovePath(newMain, newSub);
 
       saveToLocal();
       moveModalSnapshot = null;
@@ -6523,7 +6629,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V7.1_${getExportStamp()}.json`;
+  a.download = `EMR_V7.4_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -6544,7 +6650,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V7.1_${getExportStamp()}.doc`;
+  a.download = `EMR_V7.4_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -6590,7 +6696,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'MyEMR V7.1';
+  const versionLabel = 'MyEMR V7.4';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -6701,7 +6807,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V7.1</title>
+<title>MyEMR V7.4</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
@@ -7225,6 +7331,47 @@ function copyContent(id, btn) {
    ========================= */
 function saveToLocal() { localStorage.setItem('med_templates_v3', JSON.stringify(templates)); }
 function saveCategories() { localStorage.setItem('med_categories_v3', JSON.stringify(categoryTree)); }
+
+/* =========================
+   24A) 记住“移动模板”的上一次目标路径（一级/二级分类）
+   ========================= */
+const LAST_MOVE_PATH_KEY = 'myemr_last_move_path_v1';
+
+function getLastMovePath() {
+  try {
+    const raw = localStorage.getItem(LAST_MOVE_PATH_KEY);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    if (!obj || typeof obj.mainCat !== 'string') return null;
+    const mainCat = obj.mainCat.trim();
+    const subCat = (typeof obj.subCat === 'string') ? obj.subCat.trim() : '';
+    if (!mainCat) return null;
+    return { mainCat, subCat };
+  } catch (e) {
+    return null;
+  }
+}
+
+function setLastMovePath(mainCat, subCat) {
+  try {
+    const main = (mainCat || '').toString().trim();
+    const sub  = (subCat || '').toString().trim();
+    if (!main) return;
+    localStorage.setItem(LAST_MOVE_PATH_KEY, JSON.stringify({ mainCat: main, subCat: sub, ts: Date.now() }));
+  } catch (e) {}
+}
+
+function normalizeMovePathByCategoryTree(pathObj) {
+  if (!pathObj || !pathObj.mainCat) return null;
+  const main = pathObj.mainCat;
+  const catObj = categoryTree.find(c => c.name === main);
+  if (!catObj) return null;
+  const subs = (catObj && Array.isArray(catObj.subs)) ? catObj.subs : [];
+  const subNames = subs.map(s => typeof s === 'string' ? s : s.name).filter(Boolean);
+  const sub = pathObj.subCat && subNames.includes(pathObj.subCat) ? pathObj.subCat : '';
+  return { mainCat: main, subCat: sub };
+}
+
 
 /* =========================
    24) 处理“users”图标缺失的容错（你默认分类里用了 users）
