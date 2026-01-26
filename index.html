@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V6.5</title>
+  <title>MyEMR V6.9</title>
 
   <style>
     :root {
@@ -330,7 +330,9 @@
       width: 720px;
       max-width: 100%;
       max-height: 90vh;
-      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
       box-shadow: var(--shadow-md);
     }
 
@@ -421,16 +423,17 @@ body.modal-open {
     .hint { font-size: 12px; color: var(--text-muted); margin-top: 8px; line-height: 1.55; }
 
     /* ====== 模板编辑：底部按钮始终可见（sticky）====== */
+    
     .modal-footer {
-      position: sticky;
-      bottom: -18px;
+      flex: 0 0 auto;
+      margin: 0 -18px -18px;
+      padding: 12px 18px calc(12px + env(safe-area-inset-bottom));
       background: linear-gradient(to top, rgba(255,255,255,0.98), rgba(255,255,255,0.86));
-      padding: 12px 0 0;
-      margin-top: 14px;
       display: flex;
       justify-content: flex-end;
       gap: 10px;
       border-top: 1px solid rgba(229,231,235,0.65);
+      border-radius: 0 0 16px 16px;
       backdrop-filter: blur(6px);
     }
 
@@ -446,7 +449,10 @@ body.modal-open {
       overflow-y: auto;
       padding-right: 6px;
       padding-bottom: 6px;
-    }
+    
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+}
     .modal-content-editor .modal-footer{
       position: relative;
       bottom: auto;
@@ -767,6 +773,18 @@ body.modal-open {
       padding-right: 6px;
       padding-bottom: 6px;
     }
+    /* Icon Picker: keep hint + search fixed while scrolling the icon grid */
+    .icon-picker-sticky{
+      position: sticky;
+      top: 0;
+      z-index: 6;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(8px);
+      padding-top: 6px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(229,231,235,0.85);
+    }
+
     /* Title bar stays visually separated from scrolling grid */
     #iconPickerModal .modal-title{
       margin-bottom: 0;
@@ -1346,6 +1364,48 @@ body.modal-open {
       margin-top: 12px;
       border-top: 1px solid rgba(0,0,0,0.08);
     }
+
+    /* Token Insert/Manager/Edit modals: keep title/footer fixed; scroll only body (consistent with Settings) */
+    #tokenInsertModal .modal-content,
+    #tokenManagerModal .modal-content,
+    #tokenEditModal .modal-content{
+      display:flex;
+      flex-direction:column;
+      overflow:hidden; /* prevent outer scroll; body scrolls */
+    }
+    #tokenInsertModal .modal-title,
+    #tokenManagerModal .modal-title,
+    #tokenEditModal .modal-title{
+      position:sticky;
+      top:0;
+      z-index:2;
+      background: var(--panel-bg);
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+    }
+    #tokenInsertModal .modal-body,
+    #tokenManagerModal .modal-body,
+    #tokenEditModal .modal-body{
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-right: 6px;
+      padding-bottom: 6px;
+      overscroll-behavior: contain;
+    }
+    #tokenInsertModal .modal-footer,
+    #tokenManagerModal .modal-footer,
+    #tokenEditModal .modal-footer{
+      flex: 0 0 auto;
+      margin: 0 -18px -18px;
+      padding: 12px 18px calc(12px + env(safe-area-inset-bottom));
+      background: linear-gradient(to top, rgba(255,255,255,0.98), rgba(255,255,255,0.86));
+      border-top: 1px solid rgba(229,231,235,0.65);
+      border-radius: 0 0 16px 16px;
+      backdrop-filter: blur(6px);
+    }
     #settingsModal .modal-close{ white-space: nowrap; }
 
 
@@ -1395,7 +1455,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V6.5</div>
+        <div class="auth-ver">V6.9</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -1614,7 +1674,8 @@ body.modal-open {
           <span>关闭</span>
         </span>
       </div>
-      <input type="hidden" id="moveId" />
+      
+      <div class="modal-body"><input type="hidden" id="moveId" />
 
       <div class="form-row">
         <div class="form-col">
@@ -1628,6 +1689,8 @@ body.modal-open {
       </div>
 
       <div class="hint">仅移动分类归属，不改动标题、内容与标签。</div>
+      </div>
+
 
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="requestCloseModal('moveModal')">
@@ -1651,7 +1714,8 @@ body.modal-open {
         </span>
       </div>
 
-      <div class="hint" style="margin-top:-4px; margin-bottom:10px;">
+      
+      <div class="modal-body"><div class="hint" style="margin-top:-4px; margin-bottom:10px;">
         说明：一级分类图标全局不重复；二级分类图标全局也不重复。点击“调色盘”按钮可重新选择图标。
       </div>
 
@@ -1690,6 +1754,8 @@ body.modal-open {
           </div>
         </div>
       </div>
+
+      </div>
     </div>
   </div>
 
@@ -1704,14 +1770,17 @@ body.modal-open {
         </span>
       </div>
 
-      <div class="icon-picker-body">
-        <div class="hint" id="iconPickerHint">点击图标即可应用。</div>
+      <div class="modal-body icon-picker-body">
+        <div class="icon-picker-sticky">
+          <div class="hint" id="iconPickerHint">点击图标即可应用。</div>
 
         <div class="form-row" style="margin-top:10px;">
           <div class="form-col">
             <label class="form-label">搜索图标（按名称/描述）</label>
             <input type="text" class="form-input" id="iconSearchInput" placeholder="例如：手术、药物、影像、风险..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" inputmode="search" enterkeyhint="search" oninput="renderIconPickerGrid()" />
           </div>
+        </div>
+
         </div>
 
         <div class="icon-grid" id="iconGrid"></div>
@@ -1801,7 +1870,7 @@ body.modal-open {
 <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V6.5</span>
+          <span id="aboutVersion">MyEMR V6.9</span>
         </div>
       </div>
 
@@ -2585,7 +2654,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V6.5';
+  if (about) about.textContent = 'MyEMR V6.9';
   openModal('settingsModal');
 }
 
@@ -4020,7 +4089,7 @@ function __defaultTokenDefs(){
   ];
 }
 
-/* ================== 字段元素：分组/筛选（V6.5） ================== */
+/* ================== 字段元素：分组/筛选（V6.9） ================== */
 const __TOKEN_GROUP_ORDER = ['通用','体征/定位','感染','囊肿','肿瘤/唾液腺','创伤/骨折','检查/影像','诊断/手术','出院/随访','自定义'];
 let __tokenInsertGroup = '全部';
 let __tokenManagerGroup = '全部';
@@ -4149,6 +4218,15 @@ function __ensureTokenGroups(){
   }
   if (changed) __saveTokenDefs();
 }
+
+function __tokenQueryMatch(def, q){
+  const terms = (q || '').trim().toLowerCase().split(/\s+/).filter(Boolean);
+  if (terms.length === 0) return true;
+  const opts = Array.isArray(def?.options) ? def.options.join(' ') : '';
+  const hay = (`${def?.name || ''} ${def?.id || ''} ${__getTokenGroup(def) || ''} ${def?.placeholder || ''} ${def?.mode || ''} ${opts}`).toLowerCase();
+  return terms.every(t => hay.includes(t));
+}
+
 
 function __getAllTokenGroups(){
   __loadTokenDefs();
@@ -4354,8 +4432,7 @@ function renderTokenInsertList(){
   const groupFilter = __tokenInsertGroup || '全部';
   const filtered = (__tokenDefs || []).filter(t => {
     if (!t) return false;
-    const name = (t.name || '').toLowerCase();
-    if (q && !name.includes(q)) return false;
+    if (q && !__tokenQueryMatch(t, q)) return false;
     const g = __getTokenGroup(t);
     if (groupFilter !== '全部' && g !== groupFilter) return false;
     return true;
@@ -4502,13 +4579,16 @@ function renderTokenOptGrid(options, selectedVal){
 function addTokenOptFromInput(){
   const inp = document.getElementById('tokenNewOpt');
   if (!inp) return;
-  const val = (inp.value || '').toString().trim();
-  if (!val) return;
+  const rawVal = (inp.value || '').toString().trim();
+  if (!rawVal) return;
 
   if (!__activeTokenEl) return;
   const id = __activeTokenEl.getAttribute('data-emr-id') || '';
   const def = __findTokenDef(id);
   if (!def) return;
+
+  // ✅ 对带单位的字段：输入数值后自动补单位
+  const val = __applyTokenAutoUnit(def, rawVal);
 
   if (!Array.isArray(def.options)) def.options = [];
   const exists = def.options.some(o => (o ?? '').toString().trim() === val);
@@ -4552,13 +4632,83 @@ function clearTokenValue(){
   if (grid) grid.querySelectorAll('.token-opt').forEach(el => el.classList.remove('is-selected'));
 }
 
+/* ================== 字段值：自动补单位（V6.9） ================== */
+function __extractUnitFromName(name){
+  const s = String(name ?? '').trim();
+  const m = s.match(/(?:\(|（)\s*([^)）]{1,20})\s*(?:\)|）)\s*$/);
+  if (!m) return '';
+  const u = String(m[1] ?? '').trim();
+  if (!u) return '';
+  if (u.length > 12) return '';
+  if (/自填|其他|示例|说明|提示|可选/.test(u)) return '';
+  return u;
+}
+
+function __tokenUnit(def){
+  const u = String(def?.unit ?? '').trim();
+  return u || __extractUnitFromName(def?.name);
+}
+
+function __valueHasUnit(val, unit){
+  const v = String(val ?? '').trim();
+  const u = String(unit ?? '').trim();
+  if (!v || !u) return false;
+
+  if (u === '℃') return /(℃|°\s*c)$/i.test(v);
+  if (u === '%' || u === '％') return /[%％]$/.test(v);
+
+  const vlow = v.toLowerCase();
+  const ulow = u.toLowerCase();
+  return vlow.endsWith(ulow);
+}
+
+function __looksNumericForUnit(val){
+  const s = String(val ?? '').trim();
+  if (!s) return false;
+
+  // 纯数字/小数
+  if (/^[+-]?\d+(\.\d+)?$/.test(s)) return true;
+
+  // 形如 120/80
+  if (/^\d+(\.\d+)?\s*\/\s*\d+(\.\d+)?$/.test(s)) return true;
+
+  // 区间：36-38 / 36～38
+  if (/^\d+(\.\d+)?\s*[-~～—]\s*\d+(\.\d+)?$/.test(s)) return true;
+
+  // 尺寸：2×3 / 2x3x1
+  if (/^\d+(\.\d+)?\s*[x×X]\s*\d+(\.\d+)?(\s*[x×X]\s*\d+(\.\d+)?)?$/.test(s)) return true;
+
+  return false;
+}
+
+function __applyTokenAutoUnit(def, rawVal){
+  const v = String(rawVal ?? '').trim();
+  if (!v) return v;
+
+  const unit = __tokenUnit(def);
+  if (!unit) return v;
+
+  // 已包含单位 -> 不重复追加
+  if (__valueHasUnit(v, unit)) return v;
+
+  // 仅对“看起来是数值/数值组合”的输入自动补单位
+  if (!__looksNumericForUnit(v)) return v;
+
+  const joiner = (def && typeof def.unitJoin !== 'undefined') ? String(def.unitJoin) : '';
+  return `${v}${joiner}${unit}`;
+}
+
 function applyTokenValue(){
   if (!__activeTokenEl) { requestCloseModal('tokenValueModal'); return; }
   const id = __activeTokenEl.getAttribute('data-emr-id') || '';
   const def = __findTokenDef(id);
   if (!def) { requestCloseModal('tokenValueModal'); return; }
   const inp = document.getElementById('tokenValueCustom');
-  const val = (inp ? inp.value : '').toString().trim();
+  const rawVal = (inp ? inp.value : '').toString().trim();
+
+  // ✅ 对带单位的字段：输入数值后自动补单位（如：36.8 -> 36.8℃，35 -> 35mm）
+  const val = __applyTokenAutoUnit(def, rawVal);
+
   __activeTokenEl.setAttribute('data-emr-value', val);
   __renderTokenSpan(__activeTokenEl);
   requestCloseModal('tokenValueModal');
@@ -4587,8 +4737,7 @@ function renderTokenManagerList(){
 
   const filtered = (__tokenDefs || []).filter(t => {
     if (!t) return false;
-    const name = (t.name || '').toLowerCase();
-    if (q && !name.includes(q)) return false;
+    if (q && !__tokenQueryMatch(t, q)) return false;
     const g = __getTokenGroup(t);
     if (groupFilter !== '全部' && g !== groupFilter) return false;
     return true;
@@ -6277,7 +6426,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V6.5_${getExportStamp()}.json`;
+  a.download = `EMR_V6.9_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -6298,7 +6447,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V6.5_${getExportStamp()}.doc`;
+  a.download = `EMR_V6.9_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -6344,7 +6493,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'MyEMR V6.5';
+  const versionLabel = 'MyEMR V6.9';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -6455,7 +6604,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V6.5</title>
+<title>MyEMR V6.9</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
@@ -7019,6 +7168,7 @@ document.addEventListener('scroll', () => closeAllRowMoreMenus(), true);
 </script>
 
 
+  
   <!-- 字段元素：插入选择 -->
   <div class="modal" id="tokenInsertModal" onclick="noopClose(event)">
     <div class="modal-content" style="width: 520px;" onclick="event.stopPropagation()">
@@ -7030,14 +7180,22 @@ document.addEventListener('scroll', () => closeAllRowMoreMenus(), true);
         </span>
       </div>
       <div class="modal-body">
-        <div class="settings-row" style="margin-bottom:10px;">
-          <div class="settings-label" style="min-width:72px;">搜索</div>
-          <input class="form-input" id="tokenInsertSearch" placeholder="输入字段名称关键词…" oninput="renderTokenInsertList()">
+        <div class="token-sticky-header">
+          <div class="settings-row" style="margin-bottom:10px;">
+            <div class="settings-label" style="min-width:72px;">搜索</div>
+            <input class="form-input" id="tokenInsertSearch" placeholder="可搜字段名/字段值（下拉项）…" oninput="renderTokenInsertList()">
+          </div>
+          <div class="settings-row" style="margin-bottom:10px;">
+            <div class="settings-label" style="min-width:72px;">分组</div>
+            <div class="filter-chips" id="tokenInsertGroups"></div>
+          </div>
         </div>
         <div id="tokenInsertList" class="token-list"></div>
       </div>
       <div class="modal-footer">
-        <button class="btn secondary" type="button" onclick="requestCloseModal('tokenInsertModal')">取消</button>
+        <button class="btn btn-secondary" type="button" onclick="requestCloseModal('tokenInsertModal')">
+          <span>取消</span>
+        </button>
       </div>
     </div>
   </div>
@@ -7056,9 +7214,9 @@ document.addEventListener('scroll', () => closeAllRowMoreMenus(), true);
         <div id="tokenValueBody"></div>
       </div>
       <div class="modal-footer">
-        <button class="btn danger" type="button" onclick="clearTokenValue()">清空</button>
-        <button class="btn secondary" type="button" onclick="requestCloseModal('tokenValueModal')">取消</button>
-        <button class="btn" type="button" onclick="applyTokenValue()">确定</button>
+        <button class="btn btn-danger" type="button" onclick="clearTokenValue()">清空</button>
+        <button class="btn btn-secondary" type="button" onclick="requestCloseModal('tokenValueModal')">取消</button>
+        <button class="btn btn-primary" type="button" onclick="applyTokenValue()">确定</button>
       </div>
     </div>
   </div>
@@ -7074,17 +7232,28 @@ document.addEventListener('scroll', () => closeAllRowMoreMenus(), true);
         </span>
       </div>
       <div class="modal-body">
-        <div class="settings-actions" style="margin-bottom:10px;">
-          <button class="action-btn" type="button" onclick="openTokenEdit('')">
-            <span class="ico" id="icoTokenAdd"></span>
-            <span>新增字段元素</span>
-          </button>
+        <div class="token-sticky-header">
+          <div class="settings-actions" style="margin-bottom:10px;">
+            <button class="action-btn" type="button" onclick="openTokenEdit('')">
+              <span class="ico" id="icoTokenAdd"></span>
+              <span>新增字段元素</span>
+            </button>
+          </div>
+          <div class="settings-row" style="margin-bottom:10px;">
+            <div class="settings-label" style="min-width:72px;">搜索</div>
+            <input class="form-input" id="tokenManagerSearch" placeholder="可搜字段名/字段值（下拉项）…" oninput="renderTokenManagerList()">
+          </div>
+          <div class="settings-row" style="margin-bottom:10px;">
+            <div class="settings-label" style="min-width:72px;">分组</div>
+            <div class="filter-chips" id="tokenManagerGroups"></div>
+          </div>
         </div>
+
         <div id="tokenManagerList" class="token-list"></div>
         <div class="hint" style="margin-top:8px;">提示：字段元素插入到模板内容后，可点击该字段进行快速选择/填写。</div>
       </div>
       <div class="modal-footer">
-        <button class="btn secondary" type="button" onclick="requestCloseModal('tokenManagerModal')">关闭</button>
+        <button class="btn btn-secondary" type="button" onclick="requestCloseModal('tokenManagerModal')">关闭</button>
       </div>
     </div>
   </div>
@@ -7107,6 +7276,10 @@ document.addEventListener('scroll', () => closeAllRowMoreMenus(), true);
             <input class="form-input" id="tokenEditName" placeholder="例如：发病部位">
           </div>
           <div class="form-col">
+            <label class="form-label">分组</label>
+            <input class="form-input" id="tokenEditGroup" list="tokenGroupDatalist" placeholder="例如：感染">
+          </div>
+          <div class="form-col">
             <label class="form-label">填写方式</label>
             <select class="form-select" id="tokenEditMode" onchange="toggleTokenEditOptions()">
               <option value="select">下拉选择</option>
@@ -7120,8 +7293,8 @@ document.addEventListener('scroll', () => closeAllRowMoreMenus(), true);
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn secondary" type="button" onclick="requestCloseModal('tokenEditModal')">取消</button>
-        <button class="btn" type="button" onclick="saveTokenDef()">保存</button>
+        <button class="btn btn-secondary" type="button" onclick="requestCloseModal('tokenEditModal')">取消</button>
+        <button class="btn btn-primary" type="button" onclick="saveTokenDef()">保存</button>
       </div>
     </div>
   </div>
