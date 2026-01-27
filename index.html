@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V7.9</title>
+  <title>MyEMR V8.0</title>
 
   <style>
     :root {
@@ -1718,6 +1718,99 @@ body.modal-open {
       font-size: 13px;
     }
 
+
+
+/* ===== Category Manager (CategoryModal) rebuild for mobile usability ===== */
+#categoryModal .modal-content{ max-height: 90vh; }
+#categoryModal .modal-body{ padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
+
+/* Tabs (mobile only) */
+#categoryModal .manage-tabs{
+  display:none;
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  margin: -2px 0 10px;
+  padding: 10px 10px 8px;
+  background: rgba(255,255,255,0.96);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(229,231,235,0.85);
+  border-radius: 12px;
+  gap: 8px;
+  align-items: center;
+}
+#categoryModal .manage-tabs .seg-btn{
+  border: 1px solid rgba(16,163,127,0.25);
+  background: rgba(16,163,127,0.08);
+  color: #0f766e;
+  font-weight: 700;
+  padding: 8px 12px;
+  border-radius: 999px;
+  line-height: 1;
+  white-space: nowrap;
+}
+#categoryModal .manage-tabs .seg-btn.active{
+  background: rgba(16,163,127,0.16);
+  border-color: rgba(16,163,127,0.45);
+}
+#categoryModal .manage-tabs .seg-btn:disabled{
+  opacity: .45;
+}
+#categoryModal .manage-tabs .selected-chip{
+  margin-left: auto;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(17,24,39,0.04);
+  border: 1px solid rgba(229,231,235,0.9);
+  font-weight: 600;
+  color:#111827;
+  max-width: 46%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Mobile: one panel at a time (no long stacked panels) */
+@media (max-width: 720px){
+  #categoryModal .modal-content{ width: min(96vw, 540px) !important; }
+  #categoryModal .manage-tabs{ display:flex; }
+  #categoryModal .manage-layout{ height: auto !important; display:block !important; }
+  #categoryModal .manage-layout .manage-col{ display:none; }
+  #categoryModal[data-view="main"] .manage-layout .manage-col:first-child{ display:flex; }
+  #categoryModal[data-view="sub"]  .manage-layout .manage-col:last-child{ display:flex; }
+
+  /* make controls row compact & aligned */
+  #categoryModal .manage-item{ padding: 10px 10px; }
+  #categoryModal .manage-item-left{ min-width: 0; }
+  #categoryModal .manage-item .name{ max-width: 100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+  #categoryModal .item-controls{
+    display:flex !important;
+    align-items:center;
+    gap: 8px;
+    flex-wrap: nowrap !important;
+  }
+
+  /* Add row: icon + pick on first row, input+add on second row */
+  #categoryModal .manage-input-row{
+    display:grid !important;
+    grid-template-columns: 44px 1fr;
+    grid-auto-rows: auto;
+    gap: 10px;
+    align-items:center;
+  }
+  #categoryModal .manage-input-row .new-icon-preview{ width: 44px; height: 44px; }
+  #categoryModal .manage-input-row .iconpick{ justify-content: center; }
+  #categoryModal .manage-input-row input.form-input{ grid-column: 1 / 3; width: 100%; min-width: 0 !important; }
+  #categoryModal .manage-input-row button.btn{ grid-column: 2 / 3; justify-self: end; }
+  /* keep input + add on one line in sub/main add areas */
+  #categoryModal .manage-input-row{ padding-top: 10px; }
+  #categoryModal .manage-input-row .btn.btn-primary{ padding-left: 14px; padding-right: 14px; }
+}
+
+/* Accessibility: allow iOS to scroll the modal body smoothly */
+#categoryModal .modal-body{ -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; }
+
 </style>
 </head>
 
@@ -1728,7 +1821,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V7.9</div>
+        <div class="auth-ver">V8.0</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -1977,7 +2070,7 @@ body.modal-open {
   </div>
 
   <!-- 分类管理 -->
-  <div class="modal" id="categoryModal" onclick="noopClose(event)">
+  <div class="modal" id="categoryModal" data-view="main" onclick="noopClose(event)">
     <div class="modal-content" style="width: 860px;" onclick="event.stopPropagation()">
       <div class="modal-title">
         <span>管理分类与排序（支持重命名 / 选图标 / 二级分类图标）</span>
@@ -1990,6 +2083,13 @@ body.modal-open {
       
       <div class="modal-body"><div class="hint" style="margin-top:-4px; margin-bottom:10px;">
         说明：一级分类图标全局不重复；二级分类图标全局也不重复。点击“调色盘”按钮可重新选择图标。
+      </div>
+
+      <!-- Mobile quick switch: avoid overlong category manager -->
+      <div class="manage-tabs" id="catManageTabs" aria-label="分类管理视图切换">
+        <button class="seg-btn active" type="button" data-view="main" onclick="setCategoryManageView('main')">一级分类</button>
+        <button class="seg-btn" type="button" data-view="sub" onclick="setCategoryManageView('sub')" id="btnCatViewSub" disabled>二级分类</button>
+        <div class="selected-chip" id="manageSelectedMainChip" title="当前选择的一级分类">未选择</div>
       </div>
 
       <div class="manage-layout">
@@ -2143,7 +2243,7 @@ body.modal-open {
 <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V7.9</span>
+          <span id="aboutVersion">MyEMR V8.0</span>
         </div>
       </div>
 
@@ -2927,7 +3027,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V7.9';
+  if (about) about.textContent = 'MyEMR V8.0';
   openModal('settingsModal');
 }
 
@@ -4362,7 +4462,7 @@ function __defaultTokenDefs(){
   ];
 }
 
-/* ================== 字段元素：分组/筛选（V7.9） ================== */
+/* ================== 字段元素：分组/筛选（V8.0） ================== */
 const __TOKEN_GROUP_ORDER = ['通用','体征/定位','感染','囊肿','肿瘤/唾液腺','创伤/骨折','检查/影像','诊断/手术','出院/随访','自定义'];
 let __tokenInsertGroup = '全部';
 let __tokenManagerGroup = '全部';
@@ -4905,7 +5005,7 @@ function clearTokenValue(){
   if (grid) grid.querySelectorAll('.token-opt').forEach(el => el.classList.remove('is-selected'));
 }
 
-/* ================== 字段值：自动补单位（V7.9） ================== */
+/* ================== 字段值：自动补单位（V8.0） ================== */
 function __extractUnitFromName(name){
   const s = String(name ?? '').trim();
   const m = s.match(/(?:\(|（)\s*([^)）]{1,20})\s*(?:\)|）)\s*$/);
@@ -6060,8 +6160,66 @@ function confirmMoveTemplate(silentClose = false) {
    ========================= */
 function openCategoryManager() {
   openModal('categoryModal');
+  initCategoryManageTabs();
   renderManageMainList();
-  renderManageSubList(null);
+  renderManageSubList(editingCategoryMain || null);
+}
+
+/* ===== Category manager view switch (mobile) ===== */
+function isCategoryManagerMobile() {
+  return window.matchMedia && window.matchMedia('(max-width: 720px)').matches;
+}
+
+function initCategoryManageTabs() {
+  const modal = document.getElementById('categoryModal');
+  if (!modal) return;
+
+  // Default view: main. Keep last view if user used it.
+  const saved = localStorage.getItem('myemr_cat_manage_view');
+  const view = (saved === 'sub' || saved === 'main') ? saved : 'main';
+  modal.setAttribute('data-view', isCategoryManagerMobile() ? view : 'main');
+
+  syncCategoryManageTabs();
+}
+
+function setCategoryManageView(view) {
+  const modal = document.getElementById('categoryModal');
+  if (!modal) return;
+
+  // Sub view requires selected main category
+  const selectedNameEl = document.getElementById('selectedMainCatName');
+  const selectedName = selectedNameEl ? selectedNameEl.textContent.trim() : '未选择';
+  if (view === 'sub' && (!selectedName || selectedName === '未选择')) {
+    // Keep main view if not selected
+    view = 'main';
+  }
+
+  modal.setAttribute('data-view', view);
+  localStorage.setItem('myemr_cat_manage_view', view);
+  syncCategoryManageTabs();
+
+  // UX: reset scroll to top when switching
+  const body = modal.querySelector('.modal-body');
+  if (body) body.scrollTop = 0;
+}
+
+function syncCategoryManageTabs() {
+  const modal = document.getElementById('categoryModal');
+  const tabs = document.getElementById('catManageTabs');
+  if (!modal || !tabs) return;
+
+  const view = modal.getAttribute('data-view') || 'main';
+  const btns = tabs.querySelectorAll('.seg-btn');
+  btns.forEach(b => b.classList.toggle('active', (b.getAttribute('data-view') || '') === view));
+
+  const selectedNameEl = document.getElementById('selectedMainCatName');
+  const selectedName = selectedNameEl ? selectedNameEl.textContent.trim() : '未选择';
+
+  const chip = document.getElementById('manageSelectedMainChip');
+  if (chip) chip.textContent = (selectedName && selectedName !== '未选择') ? `当前：${selectedName}` : '未选择';
+
+  const btnSub = document.getElementById('btnCatViewSub');
+  if (btnSub) btnSub.disabled = !(selectedName && selectedName !== '未选择');
 }
 
 function renderManageMainList() {
@@ -6078,6 +6236,10 @@ function renderManageMainList() {
       editingCategoryMain = c;
       renderManageMainList();
       renderManageSubList(c);
+      syncCategoryManageTabs();
+      if (isCategoryManagerMobile()) {
+        setCategoryManageView('sub');
+      }
     };
 
     item.innerHTML = `      <div class="manage-item-left">
@@ -6144,6 +6306,7 @@ function renderManageSubList(catObj) {
     input.disabled = true;
     btn.disabled = true;
     btnPick.disabled = true;
+    syncCategoryManageTabs();
     return;
   }
 
@@ -6152,6 +6315,7 @@ function renderManageSubList(catObj) {
   input.disabled = false;
   btn.disabled = false;
   btnPick.disabled = false;
+  syncCategoryManageTabs();
 
   const subs = Array.isArray(catObj.subs) ? catObj.subs : [];
   subs.forEach((sub, index) => {
@@ -6775,7 +6939,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V7.9_${getExportStamp()}.json`;
+  a.download = `EMR_V8.0_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -6796,7 +6960,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V7.9_${getExportStamp()}.doc`;
+  a.download = `EMR_V8.0_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -6842,7 +7006,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'MyEMR V7.9';
+  const versionLabel = 'MyEMR V8.0';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -6953,7 +7117,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V7.9</title>
+<title>MyEMR V8.0</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
