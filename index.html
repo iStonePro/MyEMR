@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V8.6</title>
+  <title>MyEMR V8.7</title>
 
   <style>
     :root {
@@ -602,6 +602,8 @@ body.modal-open {
     -webkit-overflow-scrolling: touch;
     gap: 6px;
     padding: 6px;
+    /* 预留右侧空间，避免最后一个按钮被固定的“插入字段”遮住 */
+    padding-right: 118px;
     align-items: center;
     /* 避免被弹窗裁切时显得拥挤 */
     border-radius: 12px 12px 0 0;
@@ -626,6 +628,10 @@ body.modal-open {
     position: sticky;
     right: 0;
     z-index: 2;
+    /* 固定按钮需不透明背景，避免与下层按钮叠影 */
+    background: #e9f7f1;
+    background-clip: padding-box;
+    border-color: rgba(16,163,127,0.70);
     /* 右侧淡淡的遮罩，提示可左右滑动 */
     box-shadow: -12px 0 14px rgba(251,251,252,0.95);
   }
@@ -1642,7 +1648,7 @@ body.modal-open {
     }
 
 /* =========================
-   分类管理：两行布局（名称+数量微标；第二行操作/更多菜单）（V8.6）
+   分类管理：两行布局（名称+数量微标；第二行操作/更多菜单）（V8.7）
    - 第一行：名称 + 数量微标（微标尽量靠右，给名称让位）
    - 第二行：操作按钮；“更多”展开菜单显示在第二行，支持横向滑动
    ========================= */
@@ -1775,7 +1781,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V8.6</div>
+        <div class="auth-ver">V8.7</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -2200,7 +2206,7 @@ body.modal-open {
 <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V8.6</span>
+          <span id="aboutVersion">MyEMR V8.7</span>
         </div>
       </div>
 
@@ -2984,7 +2990,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V8.6';
+  if (about) about.textContent = 'MyEMR V8.7';
   openModal('settingsModal');
 }
 
@@ -4533,7 +4539,7 @@ function __defaultTokenDefs(){
   ];
 }
 
-/* ================== 字段元素：分组/筛选（V8.6） ================== */
+/* ================== 字段元素：分组/筛选（V8.7） ================== */
 const __TOKEN_GROUP_ORDER = ['通用','体征/定位','感染','囊肿','肿瘤/唾液腺','创伤/骨折','检查/影像','诊断/手术','出院/随访','自定义'];
 let __tokenInsertGroup = '全部';
 let __tokenManagerGroup = '全部';
@@ -5076,7 +5082,7 @@ function clearTokenValue(){
   if (grid) grid.querySelectorAll('.token-opt').forEach(el => el.classList.remove('is-selected'));
 }
 
-/* ================== 字段值：自动补单位（V8.6） ================== */
+/* ================== 字段值：自动补单位（V8.7） ================== */
 function __extractUnitFromName(name){
   const s = String(name ?? '').trim();
   const m = s.match(/(?:\(|（)\s*([^)）]{1,20})\s*(?:\)|）)\s*$/);
@@ -6921,7 +6927,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V8.6_${getExportStamp()}.json`;
+  a.download = `EMR_V8.7_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -6942,7 +6948,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V8.6_${getExportStamp()}.doc`;
+  a.download = `EMR_V8.7_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -6988,7 +6994,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'MyEMR V8.6';
+  const versionLabel = 'MyEMR V8.7';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -7099,7 +7105,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V8.6</title>
+<title>MyEMR V8.7</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
