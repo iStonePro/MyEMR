@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V7.7</title>
+  <title>MyEMR V7.8</title>
 
   <style>
     :root {
@@ -678,6 +678,21 @@ body.modal-open {
         font-size: 12px;
       }
 
+
+      /* Keep count + more button in one horizontal row (avoid vertical stacking on iOS) */
+      #categoryModal .item-controls{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 6px;
+        flex-shrink: 0;
+        white-space: nowrap;
+      }
+      #categoryModal .item-controls .count-badge{
+        flex: 0 0 auto;
+        margin-right: 2px;
+      }
       /* Add-row: icon + icon button on first line; input + add on one line */
       #categoryModal .manage-input-row{
         flex-wrap: wrap;
@@ -1711,7 +1726,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V7.7</div>
+        <div class="auth-ver">V7.8</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -2126,7 +2141,7 @@ body.modal-open {
 <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V7.7</span>
+          <span id="aboutVersion">MyEMR V7.8</span>
         </div>
       </div>
 
@@ -2910,7 +2925,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V7.7';
+  if (about) about.textContent = 'MyEMR V7.8';
   openModal('settingsModal');
 }
 
@@ -4345,7 +4360,7 @@ function __defaultTokenDefs(){
   ];
 }
 
-/* ================== 字段元素：分组/筛选（V7.7） ================== */
+/* ================== 字段元素：分组/筛选（V7.8） ================== */
 const __TOKEN_GROUP_ORDER = ['通用','体征/定位','感染','囊肿','肿瘤/唾液腺','创伤/骨折','检查/影像','诊断/手术','出院/随访','自定义'];
 let __tokenInsertGroup = '全部';
 let __tokenManagerGroup = '全部';
@@ -4888,7 +4903,7 @@ function clearTokenValue(){
   if (grid) grid.querySelectorAll('.token-opt').forEach(el => el.classList.remove('is-selected'));
 }
 
-/* ================== 字段值：自动补单位（V7.7） ================== */
+/* ================== 字段值：自动补单位（V7.8） ================== */
 function __extractUnitFromName(name){
   const s = String(name ?? '').trim();
   const m = s.match(/(?:\(|（)\s*([^)）]{1,20})\s*(?:\)|）)\s*$/);
@@ -6066,9 +6081,10 @@ function renderManageMainList() {
     item.innerHTML = `      <div class="manage-item-left">
         <span class="ico">${ICONS.svg(c.iconKey || 'folder')}</span>
         <span class="name cat-name" title="双击编辑名称" ondblclick="event.stopPropagation(); startInlineRenameMain(${index});">${escapeHtml(c.name)}</span>
-        <span class="count-badge sm ${((counts.byMain[c.name] || 0) === 0) ? 'zero' : ''}" title="模板数量">${counts.byMain[c.name] || 0}</span>
-      </div>
+        </div>
       <div class="item-controls" onclick="event.stopPropagation()">
+        <span class="count-badge sm ${((counts.byMain[c.name] || 0) === 0) ? \'zero\' : \'\'}" title="模板数量">${counts.byMain[c.name] || 0}</span>
+
         <button class="icon-btn iconpick icon-only" type="button" title="更换图标" aria-label="更换图标" onclick="openIconPickerForMain(${index})">
           <span class="ico">${ICONS.svg('palette')}</span>
         </button>
@@ -6147,9 +6163,10 @@ function renderManageSubList(catObj) {
     item.innerHTML = `      <div class="manage-item-left">
         <span class="ico">${ICONS.svg(iconKey)}</span>
         <span class="name cat-name" title="点击编辑名称" onclick="event.stopPropagation(); startInlineRenameSub(${index});">${escapeHtml(subName)}</span>
-        <span class="count-badge sm ${((counts.bySub[subName] || 0) === 0) ? 'zero' : ''}" title="模板数量">${counts.bySub[subName] || 0}</span>
-      </div>
+        </div>
       <div class="item-controls" onclick="event.stopPropagation()">
+        <span class="count-badge sm ${((counts.bySub[subName] || 0) === 0) ? \'zero\' : \'\'}" title="模板数量">${counts.bySub[subName] || 0}</span>
+
         <button class="icon-btn iconpick icon-only" type="button" title="更换图标" aria-label="更换图标" onclick="openIconPickerForSub(${index})">
           <span class="ico">${ICONS.svg('palette')}</span>
         </button>
@@ -6756,7 +6773,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V7.7_${getExportStamp()}.json`;
+  a.download = `EMR_V7.8_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -6777,7 +6794,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V7.7_${getExportStamp()}.doc`;
+  a.download = `EMR_V7.8_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -6823,7 +6840,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'MyEMR V7.7';
+  const versionLabel = 'MyEMR V7.8';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -6934,7 +6951,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V7.7</title>
+<title>MyEMR V7.8</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
