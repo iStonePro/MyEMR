@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V7.6</title>
+  <title>MyEMR V7.7</title>
 
   <style>
     :root {
@@ -630,7 +630,7 @@ body.modal-open {
     .manage-layout { display: flex; gap: 15px; height: 420px; }
     .manage-col { flex: 1; border: 1px solid #e5e7eb; border-radius: 14px; display: flex; flex-direction: column; overflow:hidden; background:#fff; }
     .manage-header { padding: 10px; background: #fbfbfc; border-bottom: 1px solid #e5e7eb; font-weight: 900; font-size: 13px; color:#374151; }
-    .manage-list { flex: 1; overflow-y: auto; padding: 6px; }
+    .manage-list { flex: 1; overflow-y: auto; padding: 6px; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
 
     .manage-item {
       padding: 8px 10px;
@@ -1514,7 +1514,7 @@ body.modal-open {
     }
 
 /* =========================
-   分类管理：两行布局（名称+数量微标；第二行操作/更多菜单）（V7.6）
+   分类管理：两行布局（名称+数量微标；第二行操作/更多菜单）（V7.7）
    - 第一行：名称 + 数量微标（微标尽量靠右，给名称让位）
    - 第二行：操作按钮；“更多”展开菜单显示在第二行，支持横向滑动
    ========================= */
@@ -1625,7 +1625,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V7.6</div>
+        <div class="auth-ver">V7.7</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -2040,7 +2040,7 @@ body.modal-open {
 <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V7.6</span>
+          <span id="aboutVersion">MyEMR V7.7</span>
         </div>
       </div>
 
@@ -2824,7 +2824,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V7.6';
+  if (about) about.textContent = 'MyEMR V7.7';
   openModal('settingsModal');
 }
 
@@ -3160,14 +3160,27 @@ function anyModalVisible() {
 }
 
 function lockBodyScrollForModal() {
-  // Robust iOS scroll lock: lock BOTH <html> and <body>.
+  // Robust scroll lock for both "window scrolling" and internal scroll containers (e.g., .content-area).
   if (document.documentElement.classList.contains('modal-open')) return;
+
+  // Remember current scroll positions.
   __bodyScrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+
+  const ca = document.querySelector('.content-area');
+  if (ca) {
+    __contentAreaScrollTop = ca.scrollTop || 0;
+    ca.setAttribute('data-prev-overflow-y', ca.style.overflowY || '');
+    ca.setAttribute('data-prev-touch-action', ca.style.touchAction || '');
+    // Freeze background scrolling container.
+    ca.style.overflowY = 'hidden';
+    // Reduce scroll chaining on touch devices.
+    ca.style.touchAction = 'none';
+  }
 
   document.documentElement.classList.add('modal-open');
   document.body.classList.add('modal-open');
 
-  // Freeze the page at the current scroll position.
+  // Freeze the page at the current scroll position (mainly for iOS/Safari when body scrolls).
   document.documentElement.style.top = `-${__bodyScrollY}px`;
   document.body.style.top = `-${__bodyScrollY}px`;
 }
@@ -3178,12 +3191,27 @@ function unlockBodyScrollForModal() {
   document.documentElement.classList.remove('modal-open');
   document.body.classList.remove('modal-open');
 
+  // Restore page scroll.
   const y = __bodyScrollY || 0;
   document.documentElement.style.top = '';
   document.body.style.top = '';
-
   window.scrollTo(0, y);
+
+  // Restore internal scroll container, if used.
+  const ca = document.querySelector('.content-area');
+  if (ca) {
+    const prevOv = ca.getAttribute('data-prev-overflow-y');
+    const prevTA = ca.getAttribute('data-prev-touch-action');
+    ca.style.overflowY = (prevOv !== null) ? prevOv : '';
+    ca.style.touchAction = (prevTA !== null) ? prevTA : '';
+    ca.removeAttribute('data-prev-overflow-y');
+    ca.removeAttribute('data-prev-touch-action');
+    if (typeof __contentAreaScrollTop !== 'undefined' && __contentAreaScrollTop !== null) {
+      ca.scrollTop = __contentAreaScrollTop;
+    }
+  }
 }
+
 
 function openModal(id) {
   // Mobile: if the sidebar drawer is open, close it before showing a modal.
@@ -3194,7 +3222,7 @@ function openModal(id) {
   el.style.display = 'flex';
   __modalLockCount++;
   // On mobile we use page scrolling; lock it to prevent background move while scrolling the modal.
-  if (isMobile()) lockBodyScrollForModal();
+  lockBodyScrollForModal();
 }
 
 function closeModalDirect(id) {
@@ -3202,7 +3230,7 @@ function closeModalDirect(id) {
   if (el) el.style.display = 'none';
   __modalLockCount = Math.max(0, __modalLockCount - 1);
   // If no modal is visible, unlock the page scroll.
-  if (isMobile() && !anyModalVisible()) unlockBodyScrollForModal();
+  if (!anyModalVisible()) unlockBodyScrollForModal();
 }
 
 // iOS Safari: prevent scroll from propagating to the background while a modal is open.
@@ -4259,7 +4287,7 @@ function __defaultTokenDefs(){
   ];
 }
 
-/* ================== 字段元素：分组/筛选（V7.6） ================== */
+/* ================== 字段元素：分组/筛选（V7.7） ================== */
 const __TOKEN_GROUP_ORDER = ['通用','体征/定位','感染','囊肿','肿瘤/唾液腺','创伤/骨折','检查/影像','诊断/手术','出院/随访','自定义'];
 let __tokenInsertGroup = '全部';
 let __tokenManagerGroup = '全部';
@@ -4802,7 +4830,7 @@ function clearTokenValue(){
   if (grid) grid.querySelectorAll('.token-opt').forEach(el => el.classList.remove('is-selected'));
 }
 
-/* ================== 字段值：自动补单位（V7.6） ================== */
+/* ================== 字段值：自动补单位（V7.7） ================== */
 function __extractUnitFromName(name){
   const s = String(name ?? '').trim();
   const m = s.match(/(?:\(|（)\s*([^)）]{1,20})\s*(?:\)|）)\s*$/);
@@ -6647,7 +6675,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V7.6_${getExportStamp()}.json`;
+  a.download = `EMR_V7.7_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -6668,7 +6696,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V7.6_${getExportStamp()}.doc`;
+  a.download = `EMR_V7.7_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -6714,7 +6742,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'MyEMR V7.6';
+  const versionLabel = 'MyEMR V7.7';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -6825,7 +6853,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V7.6</title>
+<title>MyEMR V7.7</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
