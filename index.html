@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V8.0</title>
+  <title>MyEMR V8.1</title>
 
   <style>
     :root {
@@ -810,6 +810,75 @@ body.modal-open {
     /* More (overflow) button for mobile compact layout */
     .icon-btn.more { display: none; }
     .more-menu { display: none; }
+
+    /* Category manager (V8.1): two-line row layout per item (name+badge / actions) */
+    #categoryModal .manage-item{
+      display:block;
+    }
+    #categoryModal .manage-item-top{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+      min-width: 0;
+    }
+    #categoryModal .manage-item-top .manage-item-left{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+    #categoryModal .manage-item-top .manage-item-left .name{
+      min-width: 0;
+      font-weight: 700;
+    }
+    #categoryModal .manage-item-actions{
+      display:flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      gap: 8px;
+      margin-top: 8px;
+      padding-left: 30px; /* align under text after icon */
+      scrollbar-width: none;
+
+    #categoryModal .manage-item-actions::-webkit-scrollbar{ display:none; }
+    }
+    #categoryModal .cat-act-btn{
+      cursor: pointer;
+      padding: 6px 10px;
+      color: #374151;
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      background: rgba(255,255,255,0.98);
+      user-select:none;
+      display:inline-flex;
+      align-items:center;
+      gap: 6px;
+      font-size: 12px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    #categoryModal .cat-act-btn:hover{
+      background: rgba(17,24,39,0.04);
+    }
+    #categoryModal .cat-act-btn.danger{
+      color: #b91c1c;
+      border-color: rgba(239,68,68,0.35);
+      background: rgba(239,68,68,0.06);
+    }
+    #categoryModal .cat-act-btn .ico{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width: 16px;
+      height: 16px;
+    }
+    #categoryModal .cat-act-btn .lbl{
+      font-weight: 700;
+    }
+
 
     .icon-btn.icon-only { padding: 6px; gap: 0; }
 
@@ -1770,42 +1839,36 @@ body.modal-open {
   white-space: nowrap;
 }
 
-/* Mobile: one panel at a time (no long stacked panels) */
+/* Mobile: keep V7.3 two-column layout (no segmented switch) */
 @media (max-width: 720px){
-  #categoryModal .modal-content{ width: min(96vw, 540px) !important; }
-  #categoryModal .manage-tabs{ display:flex; }
-  #categoryModal .manage-layout{ height: auto !important; display:block !important; }
-  #categoryModal .manage-layout .manage-col{ display:none; }
-  #categoryModal[data-view="main"] .manage-layout .manage-col:first-child{ display:flex; }
-  #categoryModal[data-view="sub"]  .manage-layout .manage-col:last-child{ display:flex; }
+  #categoryModal .modal-content{ width: min(96vw, 860px) !important; }
+  #categoryModal .manage-tabs{ display:none !important; }
 
-  /* make controls row compact & aligned */
+  /* two columns */
+  #categoryModal .manage-layout{ height: auto !important; display:flex !important; gap: 10px; }
+  #categoryModal .manage-layout .manage-col{ display:flex !important; flex: 1 1 0; min-width: 0; }
+  #categoryModal .manage-col{ width: auto; }
+  #categoryModal .manage-list{ overflow: visible !important; }
+
+  /* name row */
   #categoryModal .manage-item{ padding: 10px 10px; }
-  #categoryModal .manage-item-left{ min-width: 0; }
-  #categoryModal .manage-item .name{ max-width: 100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #categoryModal .manage-item .cat-name{ max-width: 100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
-  #categoryModal .item-controls{
-    display:flex !important;
-    align-items:center;
-    gap: 8px;
-    flex-wrap: nowrap !important;
-  }
+  /* actions: icon-only on mobile */
+  #categoryModal .manage-item-actions .lbl{ display:none; }
+  #categoryModal .cat-act-btn{ padding: 6px 8px; }
 
-  /* Add row: icon + pick on first row, input+add on second row */
+  /* add row: keep input + add on one line */
   #categoryModal .manage-input-row{
-    display:grid !important;
-    grid-template-columns: 44px 1fr;
-    grid-auto-rows: auto;
+    display:flex !important;
+    flex-wrap: wrap;
     gap: 10px;
     align-items:center;
   }
-  #categoryModal .manage-input-row .new-icon-preview{ width: 44px; height: 44px; }
-  #categoryModal .manage-input-row .iconpick{ justify-content: center; }
-  #categoryModal .manage-input-row input.form-input{ grid-column: 1 / 3; width: 100%; min-width: 0 !important; }
-  #categoryModal .manage-input-row button.btn{ grid-column: 2 / 3; justify-self: end; }
-  /* keep input + add on one line in sub/main add areas */
-  #categoryModal .manage-input-row{ padding-top: 10px; }
-  #categoryModal .manage-input-row .btn.btn-primary{ padding-left: 14px; padding-right: 14px; }
+  #categoryModal .manage-input-row .new-icon-preview{ width: 38px; height: 38px; }
+  #categoryModal .manage-input-row .iconpick{ padding: 8px 10px; }
+  #categoryModal .manage-input-row input.form-input{ flex: 1 1 auto; min-width: 0 !important; }
+  #categoryModal .manage-input-row button.btn{ flex: 0 0 auto; white-space: nowrap; }
 }
 
 /* Accessibility: allow iOS to scroll the modal body smoothly */
@@ -1821,7 +1884,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V8.0</div>
+        <div class="auth-ver">V8.1</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -2083,16 +2146,7 @@ body.modal-open {
       
       <div class="modal-body"><div class="hint" style="margin-top:-4px; margin-bottom:10px;">
         说明：一级分类图标全局不重复；二级分类图标全局也不重复。点击“调色盘”按钮可重新选择图标。
-      </div>
-
-      <!-- Mobile quick switch: avoid overlong category manager -->
-      <div class="manage-tabs" id="catManageTabs" aria-label="分类管理视图切换">
-        <button class="seg-btn active" type="button" data-view="main" onclick="setCategoryManageView('main')">一级分类</button>
-        <button class="seg-btn" type="button" data-view="sub" onclick="setCategoryManageView('sub')" id="btnCatViewSub" disabled>二级分类</button>
-        <div class="selected-chip" id="manageSelectedMainChip" title="当前选择的一级分类">未选择</div>
-      </div>
-
-      <div class="manage-layout">
+      </div><div class="manage-layout">
         <div class="manage-col">
           <div class="manage-header">一级分类（点击选中）</div>
           <div class="manage-list" id="manageMainList"></div>
@@ -2243,7 +2297,7 @@ body.modal-open {
 <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V8.0</span>
+          <span id="aboutVersion">MyEMR V8.1</span>
         </div>
       </div>
 
@@ -3027,7 +3081,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V8.0';
+  if (about) about.textContent = 'MyEMR V8.1';
   openModal('settingsModal');
 }
 
@@ -4462,7 +4516,7 @@ function __defaultTokenDefs(){
   ];
 }
 
-/* ================== 字段元素：分组/筛选（V8.0） ================== */
+/* ================== 字段元素：分组/筛选（V8.1） ================== */
 const __TOKEN_GROUP_ORDER = ['通用','体征/定位','感染','囊肿','肿瘤/唾液腺','创伤/骨折','检查/影像','诊断/手术','出院/随访','自定义'];
 let __tokenInsertGroup = '全部';
 let __tokenManagerGroup = '全部';
@@ -5005,7 +5059,7 @@ function clearTokenValue(){
   if (grid) grid.querySelectorAll('.token-opt').forEach(el => el.classList.remove('is-selected'));
 }
 
-/* ================== 字段值：自动补单位（V8.0） ================== */
+/* ================== 字段值：自动补单位（V8.1） ================== */
 function __extractUnitFromName(name){
   const s = String(name ?? '').trim();
   const m = s.match(/(?:\(|（)\s*([^)）]{1,20})\s*(?:\)|）)\s*$/);
@@ -6236,53 +6290,35 @@ function renderManageMainList() {
       editingCategoryMain = c;
       renderManageMainList();
       renderManageSubList(c);
-      syncCategoryManageTabs();
-      if (isCategoryManagerMobile()) {
-        setCategoryManageView('sub');
-      }
     };
 
-    item.innerHTML = `      <div class="manage-item-left">
-        <span class="ico">${ICONS.svg(c.iconKey || 'folder')}</span>
-        <span class="name cat-name" title="双击编辑名称" ondblclick="event.stopPropagation(); startInlineRenameMain(${index});">${escapeHtml(c.name)}</span>
+    const count = counts.byMain[c.name] || 0;
+
+    item.innerHTML = `
+      <div class="manage-item-top">
+        <div class="manage-item-left">
+          <span class="ico">${ICONS.svg(c.iconKey || 'folder')}</span>
+          <span class="name cat-name" title="双击编辑名称" ondblclick="event.stopPropagation(); startInlineRenameMain(${index});">${escapeHtml(c.name)}</span>
         </div>
-      <div class="item-controls" onclick="event.stopPropagation()">
-        <span class="count-badge sm ${((counts.byMain[c.name] || 0) === 0) ? 'zero' : ''}" title="模板数量">${counts.byMain[c.name] || 0}</span>
+        <span class="count-badge sm ${count === 0 ? 'zero' : ''}" title="模板数量">${count}</span>
+      </div>
 
-        <button class="icon-btn iconpick icon-only" type="button" title="更换图标" aria-label="更换图标" onclick="openIconPickerForMain(${index})">
-          <span class="ico">${ICONS.svg('palette')}</span>
+      <div class="manage-item-actions" onclick="event.stopPropagation()">
+        <button class="cat-act-btn" type="button" title="更换图标" aria-label="更换图标" onclick="openIconPickerForMain(${index})">
+          <span class="ico">${ICONS.svg('palette')}</span><span class="lbl">图标</span>
         </button>
-        <button class="icon-btn rename icon-only" type="button" title="编辑名称" aria-label="编辑名称" onclick="startInlineRenameMain(${index})">
-          <span class="ico">${ICONS.svg('pen')}</span>
+        <button class="cat-act-btn" type="button" title="重命名" aria-label="重命名" onclick="startInlineRenameMain(${index})">
+          <span class="ico">${ICONS.svg('pen')}</span><span class="lbl">重命名</span>
         </button>
-
-        <button class="icon-btn more icon-only" type="button" title="更多" aria-label="更多" onclick="toggleRowMoreMenu(this)">
-          <span class="ico">${ICONS.svg('more')}</span>
+        <button class="cat-act-btn" type="button" title="上移" aria-label="上移" onclick="moveMainCat(${index}, -1)">
+          <span class="ico">${ICONS.svg('chevronUp')}</span><span class="lbl">上移</span>
         </button>
-
-        <button class="icon-btn" type="button" title="上移" onclick="moveMainCat(${index}, -1)">↑</button>
-        <button class="icon-btn" type="button" title="下移" onclick="moveMainCat(${index}, 1)">↓</button>
-        <button class="icon-btn delete" type="button" title="删除" onclick="deleteMainCat(${index})">
-          <span class="ico">${ICONS.svg('trash')}</span>
+        <button class="cat-act-btn" type="button" title="下移" aria-label="下移" onclick="moveMainCat(${index}, 1)">
+          <span class="ico">${ICONS.svg('chevronDown')}</span><span class="lbl">下移</span>
         </button>
-
-        <div class="more-menu" onclick="event.stopPropagation()">
-          <button class="more-menu-item" type="button" onclick="openIconPickerForMain(${index}); closeAllRowMoreMenus();">
-            <span class="ico">${ICONS.svg('palette')}</span><span>更换图标</span>
-          </button>
-          <button class="more-menu-item" type="button" onclick="startInlineRenameMain(${index}); closeAllRowMoreMenus();">
-            <span class="ico">${ICONS.svg('pen')}</span><span>编辑名称</span>
-          </button>
-          <button class="more-menu-item" type="button" onclick="moveMainCat(${index}, -1); closeAllRowMoreMenus();">
-            <span class="ico">${ICONS.svg('chevronUp')}</span><span>上移</span>
-          </button>
-          <button class="more-menu-item" type="button" onclick="moveMainCat(${index}, 1); closeAllRowMoreMenus();">
-            <span class="ico">${ICONS.svg('chevronDown')}</span><span>下移</span>
-          </button>
-          <button class="more-menu-item danger" type="button" onclick="deleteMainCat(${index}); closeAllRowMoreMenus();">
-            <span class="ico">${ICONS.svg('trash')}</span><span>删除</span>
-          </button>
-        </div>
+        <button class="cat-act-btn danger" type="button" title="删除" aria-label="删除" onclick="deleteMainCat(${index})">
+          <span class="ico">${ICONS.svg('trash')}</span><span class="lbl">删除</span>
+        </button>
       </div>
     `;
     list.appendChild(item);
@@ -6306,7 +6342,6 @@ function renderManageSubList(catObj) {
     input.disabled = true;
     btn.disabled = true;
     btnPick.disabled = true;
-    syncCategoryManageTabs();
     return;
   }
 
@@ -6315,7 +6350,6 @@ function renderManageSubList(catObj) {
   input.disabled = false;
   btn.disabled = false;
   btnPick.disabled = false;
-  syncCategoryManageTabs();
 
   const subs = Array.isArray(catObj.subs) ? catObj.subs : [];
   subs.forEach((sub, index) => {
@@ -6326,47 +6360,33 @@ function renderManageSubList(catObj) {
     item.className = 'manage-item';
     item.setAttribute('data-sub-index', index);
 
-    item.innerHTML = `      <div class="manage-item-left">
-        <span class="ico">${ICONS.svg(iconKey)}</span>
-        <span class="name cat-name" title="点击编辑名称" onclick="event.stopPropagation(); startInlineRenameSub(${index});">${escapeHtml(subName)}</span>
+    const count = counts.bySub[subName] || 0;
+
+    item.innerHTML = `
+      <div class="manage-item-top">
+        <div class="manage-item-left">
+          <span class="ico">${ICONS.svg(iconKey)}</span>
+          <span class="name cat-name" title="双击编辑名称" ondblclick="event.stopPropagation(); startInlineRenameSub(${index});">${escapeHtml(subName)}</span>
         </div>
-      <div class="item-controls" onclick="event.stopPropagation()">
-        <span class="count-badge sm ${((counts.bySub[subName] || 0) === 0) ? 'zero' : ''}" title="模板数量">${counts.bySub[subName] || 0}</span>
+        <span class="count-badge sm ${count === 0 ? 'zero' : ''}" title="模板数量">${count}</span>
+      </div>
 
-        <button class="icon-btn iconpick icon-only" type="button" title="更换图标" aria-label="更换图标" onclick="openIconPickerForSub(${index})">
-          <span class="ico">${ICONS.svg('palette')}</span>
+      <div class="manage-item-actions" onclick="event.stopPropagation()">
+        <button class="cat-act-btn" type="button" title="更换图标" aria-label="更换图标" onclick="openIconPickerForSub(${index})">
+          <span class="ico">${ICONS.svg('palette')}</span><span class="lbl">图标</span>
         </button>
-        <button class="icon-btn rename icon-only" type="button" title="编辑名称" aria-label="编辑名称" onclick="startInlineRenameSub(${index})">
-          <span class="ico">${ICONS.svg('pen')}</span>
+        <button class="cat-act-btn" type="button" title="重命名" aria-label="重命名" onclick="startInlineRenameSub(${index})">
+          <span class="ico">${ICONS.svg('pen')}</span><span class="lbl">重命名</span>
         </button>
-
-        <button class="icon-btn more icon-only" type="button" title="更多" aria-label="更多" onclick="toggleRowMoreMenu(this)">
-          <span class="ico">${ICONS.svg('more')}</span>
+        <button class="cat-act-btn" type="button" title="上移" aria-label="上移" onclick="moveSubCat(${index}, -1)">
+          <span class="ico">${ICONS.svg('chevronUp')}</span><span class="lbl">上移</span>
         </button>
-
-        <button class="icon-btn" type="button" title="上移" onclick="moveSubCat(${index}, -1)">↑</button>
-        <button class="icon-btn" type="button" title="下移" onclick="moveSubCat(${index}, 1)">↓</button>
-        <button class="icon-btn delete" type="button" title="删除" onclick="deleteSubCat(${index})">
-          <span class="ico">${ICONS.svg('trash')}</span>
+        <button class="cat-act-btn" type="button" title="下移" aria-label="下移" onclick="moveSubCat(${index}, 1)">
+          <span class="ico">${ICONS.svg('chevronDown')}</span><span class="lbl">下移</span>
         </button>
-
-        <div class="more-menu" onclick="event.stopPropagation()">
-          <button class="more-menu-item" type="button" onclick="openIconPickerForSub(${index}); closeAllRowMoreMenus();">
-            <span class="ico">${ICONS.svg('palette')}</span><span>更换图标</span>
-          </button>
-          <button class="more-menu-item" type="button" onclick="startInlineRenameSub(${index}); closeAllRowMoreMenus();">
-            <span class="ico">${ICONS.svg('pen')}</span><span>编辑名称</span>
-          </button>
-          <button class="more-menu-item" type="button" onclick="moveSubCat(${index}, -1); closeAllRowMoreMenus();">
-            <span class="ico">${ICONS.svg('chevronUp')}</span><span>上移</span>
-          </button>
-          <button class="more-menu-item" type="button" onclick="moveSubCat(${index}, 1); closeAllRowMoreMenus();">
-            <span class="ico">${ICONS.svg('chevronDown')}</span><span>下移</span>
-          </button>
-          <button class="more-menu-item danger" type="button" onclick="deleteSubCat(${index}); closeAllRowMoreMenus();">
-            <span class="ico">${ICONS.svg('trash')}</span><span>删除</span>
-          </button>
-        </div>
+        <button class="cat-act-btn danger" type="button" title="删除" aria-label="删除" onclick="deleteSubCat(${index})">
+          <span class="ico">${ICONS.svg('trash')}</span><span class="lbl">删除</span>
+        </button>
       </div>
     `;
     list.appendChild(item);
@@ -6939,7 +6959,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V8.0_${getExportStamp()}.json`;
+  a.download = `EMR_V8.1_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -6960,7 +6980,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V8.0_${getExportStamp()}.doc`;
+  a.download = `EMR_V8.1_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -7006,7 +7026,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'MyEMR V8.0';
+  const versionLabel = 'MyEMR V8.1';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -7117,7 +7137,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V8.0</title>
+<title>MyEMR V8.1</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
