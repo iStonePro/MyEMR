@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V8.0</title>
+  <title>MyEMR V8.1</title>
 
   <style>
     :root {
@@ -774,6 +774,28 @@ body.modal-open {
       background:#fff;
       align-items: center;
       flex-wrap: wrap;
+    }
+
+    /* 分类管理：新增分类行适配（防止输入框右侧被裁切） */
+    .manage-input-row .form-input{
+      width: auto;
+      flex: 1 1 220px;
+      min-width: 0;
+    }
+    .manage-input-row .btn.btn-primary.btn-sm{
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
+    @media (max-width: 560px){
+      .manage-input-row .form-input{
+        flex: 1 1 100%;
+        width: 100%;
+      }
+      .manage-input-row .btn.btn-primary.btn-sm{
+        flex: 1 1 100%;
+        width: 100%;
+        justify-content: center;
+      }
     }
     .new-icon-preview {
       width: 34px;
@@ -1560,7 +1582,7 @@ body.modal-open {
     }
 
 /* =========================
-   分类管理：两行布局（名称+数量微标；第二行操作/更多菜单）（V8.0）
+   分类管理：两行布局（名称+数量微标；第二行操作/更多菜单）（V8.1）
    - 第一行：名称 + 数量微标（微标尽量靠右，给名称让位）
    - 第二行：操作按钮；“更多”展开菜单显示在第二行，支持横向滑动
    ========================= */
@@ -1693,7 +1715,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V8.0</div>
+        <div class="auth-ver">V8.1</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -1967,7 +1989,7 @@ body.modal-open {
             <button class="icon-btn iconpick" type="button" onclick="openIconPickerForNewMain()">
               <span class="ico" id="icoPalette1"></span> 图标
             </button>
-            <input type="text" id="newMainCatName" class="form-input" placeholder="新一级分类名" style="flex:1; min-width:180px;" />
+            <input type="text" id="newMainCatName" class="form-input" placeholder="新一级分类名" style="flex:1; min-width:0;" />
             <button class="btn btn-primary btn-sm" onclick="addMainCategory()">
               <span class="ico" id="icoPlus3"></span> 添加
             </button>
@@ -1985,7 +2007,7 @@ body.modal-open {
             <button class="icon-btn iconpick" type="button" id="btnPickNewSubIcon" onclick="openIconPickerForNewSub()" disabled>
               <span class="ico" id="icoPalette2"></span> 图标
             </button>
-            <input type="text" id="newSubCatName" class="form-input" placeholder="新二级分类名" style="flex:1; min-width:180px;" disabled />
+            <input type="text" id="newSubCatName" class="form-input" placeholder="新二级分类名" style="flex:1; min-width:0;" disabled />
             <button class="btn btn-primary btn-sm" id="btnAddSub" onclick="addSubCategory()" disabled>
               <span class="ico" id="icoPlus4"></span> 添加
             </button>
@@ -2108,7 +2130,7 @@ body.modal-open {
 <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V8.0</span>
+          <span id="aboutVersion">MyEMR V8.1</span>
         </div>
       </div>
 
@@ -2892,7 +2914,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V8.0';
+  if (about) about.textContent = 'MyEMR V8.1';
   openModal('settingsModal');
 }
 
@@ -4355,7 +4377,7 @@ function __defaultTokenDefs(){
   ];
 }
 
-/* ================== 字段元素：分组/筛选（V8.0） ================== */
+/* ================== 字段元素：分组/筛选（V8.1） ================== */
 const __TOKEN_GROUP_ORDER = ['通用','体征/定位','感染','囊肿','肿瘤/唾液腺','创伤/骨折','检查/影像','诊断/手术','出院/随访','自定义'];
 let __tokenInsertGroup = '全部';
 let __tokenManagerGroup = '全部';
@@ -4898,7 +4920,7 @@ function clearTokenValue(){
   if (grid) grid.querySelectorAll('.token-opt').forEach(el => el.classList.remove('is-selected'));
 }
 
-/* ================== 字段值：自动补单位（V8.0） ================== */
+/* ================== 字段值：自动补单位（V8.1） ================== */
 function __extractUnitFromName(name){
   const s = String(name ?? '').trim();
   const m = s.match(/(?:\(|（)\s*([^)）]{1,20})\s*(?:\)|）)\s*$/);
@@ -6743,7 +6765,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V8.0_${getExportStamp()}.json`;
+  a.download = `EMR_V8.1_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -6764,7 +6786,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V8.0_${getExportStamp()}.doc`;
+  a.download = `EMR_V8.1_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -6810,7 +6832,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'MyEMR V8.0';
+  const versionLabel = 'MyEMR V8.1';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -6921,7 +6943,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V8.0</title>
+<title>MyEMR V8.1</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
