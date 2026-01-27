@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V8.1</title>
+  <title>MyEMR V8.3</title>
 
   <style>
     :root {
@@ -640,24 +640,33 @@ body.modal-open {
         height: 90vh;
         max-height: 90vh;
       }
-      #categoryModal .modal-body{
+            /* Category modal: prevent columns from turning into a long page */
+      #categoryModal .manage-layout{ overflow: hidden; }
+      #categoryModal .manage-col{ border-radius: 12px; }
+
+#categoryModal .modal-body{
         overflow-y: auto !important;
         -webkit-overflow-scrolling: touch;
         overscroll-behavior: contain;
       }
 
-      /* Stack main/sub panels vertically */
+      /* Two-column layout (like V7.3): keep main/sub panels side-by-side on mobile */
       #categoryModal .manage-layout{
-        flex-direction: column;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        gap: 12px;
         height: auto;
-        gap: 14px;
+        align-items: stretch;
       }
 
-      /* Remove nested scrolling and any clipping inside panels */
+/* Remove nested scrolling and any clipping inside panels */
       #categoryModal .manage-col{
-        width: 100%;
-        display: block;      /* avoid internal flex-height quirks on iOS */
-        overflow: visible;   /* do not clip content; let modal-body scroll */
+        flex: 1 1 0;
+        min-width: 0;          /* allow text truncation instead of forcing wrap */
+        width: auto;
+        display: flex;
+        flex-direction: column;
       }
       #categoryModal .manage-list{
         flex: none !important;
@@ -811,7 +820,7 @@ body.modal-open {
     .icon-btn.more { display: none; }
     .more-menu { display: none; }
 
-    /* Category manager (V8.1): two-line row layout per item (name+badge / actions) */
+    /* Category manager (V8.3): two-line row layout per item (name+badge / actions) */
     #categoryModal .manage-item{
       display:block;
     }
@@ -934,9 +943,12 @@ body.modal-open {
         padding-bottom: calc(18px + env(safe-area-inset-bottom));
       }
       #categoryModal .manage-layout{
-        flex-direction: column;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
         height: auto;
         gap: 12px;
+        align-items: stretch;
       }
       #categoryModal .manage-col{
         border-radius: 14px;
@@ -1884,7 +1896,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V8.1</div>
+        <div class="auth-ver">V8.3</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -2297,7 +2309,7 @@ body.modal-open {
 <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V8.1</span>
+          <span id="aboutVersion">MyEMR V8.3</span>
         </div>
       </div>
 
@@ -3081,7 +3093,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V8.1';
+  if (about) about.textContent = 'MyEMR V8.3';
   openModal('settingsModal');
 }
 
@@ -4516,7 +4528,7 @@ function __defaultTokenDefs(){
   ];
 }
 
-/* ================== 字段元素：分组/筛选（V8.1） ================== */
+/* ================== 字段元素：分组/筛选（V8.3） ================== */
 const __TOKEN_GROUP_ORDER = ['通用','体征/定位','感染','囊肿','肿瘤/唾液腺','创伤/骨折','检查/影像','诊断/手术','出院/随访','自定义'];
 let __tokenInsertGroup = '全部';
 let __tokenManagerGroup = '全部';
@@ -5059,7 +5071,7 @@ function clearTokenValue(){
   if (grid) grid.querySelectorAll('.token-opt').forEach(el => el.classList.remove('is-selected'));
 }
 
-/* ================== 字段值：自动补单位（V8.1） ================== */
+/* ================== 字段值：自动补单位（V8.3） ================== */
 function __extractUnitFromName(name){
   const s = String(name ?? '').trim();
   const m = s.match(/(?:\(|（)\s*([^)）]{1,20})\s*(?:\)|）)\s*$/);
@@ -6959,7 +6971,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V8.1_${getExportStamp()}.json`;
+  a.download = `EMR_V8.3_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -6980,7 +6992,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V8.1_${getExportStamp()}.doc`;
+  a.download = `EMR_V8.3_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -7026,7 +7038,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'MyEMR V8.1';
+  const versionLabel = 'MyEMR V8.3';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -7137,7 +7149,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V8.1</title>
+<title>MyEMR V8.3</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
