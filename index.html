@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V7.7</title>
+  <title>MyEMR V7.8</title>
 
   <style>
     :root {
@@ -1070,8 +1070,28 @@ body.modal-open {
   /* Sticky footer should not be covered by Safari bottom bar */
   .modal-footer{
     bottom: 0;
-    padding: 12px 0 calc(10px + env(safe-area-inset-bottom));
-    margin-bottom: 0;
+
+    /* iOS 小屏修复：移动端 .modal-content padding=14px，但桌面 footer 使用 -18px 负边距，
+       会导致按钮在右侧/左侧被裁剪（overflow:hidden）。这里统一改为与 14px 对齐，并预留安全区。 */
+    margin: 0 -14px -14px;
+    padding: 12px calc(14px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));
+
+    /* 避免按钮太多/太宽时被挤出：可换行 + 也支持横向滑动 */
+    flex-wrap: wrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  .modal-footer::-webkit-scrollbar{ display:none; }
+
+  /* 覆盖部分弹窗在桌面端使用的 -18px 负边距，防止移动端裁切 */
+  .modal-content-editor .modal-footer,
+  #tokenInsertModal .modal-footer,
+  #tokenManagerModal .modal-footer,
+  #tokenEditModal .modal-footer{
+    margin: 0 -14px -14px !important;
+    padding-left: calc(14px + env(safe-area-inset-left)) !important;
+    padding-right: calc(14px + env(safe-area-inset-right)) !important;
   }
 
   /* Prevent iOS Safari auto-zoom on focus (keep inputs >= 16px) */
@@ -1514,7 +1534,7 @@ body.modal-open {
     }
 
 /* =========================
-   分类管理：两行布局（名称+数量微标；第二行操作/更多菜单）（V7.7）
+   分类管理：两行布局（名称+数量微标；第二行操作/更多菜单）（V7.8）
    - 第一行：名称 + 数量微标（微标尽量靠右，给名称让位）
    - 第二行：操作按钮；“更多”展开菜单显示在第二行，支持横向滑动
    ========================= */
@@ -1625,7 +1645,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V7.7</div>
+        <div class="auth-ver">V7.8</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -2040,7 +2060,7 @@ body.modal-open {
 <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V7.7</span>
+          <span id="aboutVersion">MyEMR V7.8</span>
         </div>
       </div>
 
@@ -2824,7 +2844,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V7.7';
+  if (about) about.textContent = 'MyEMR V7.8';
   openModal('settingsModal');
 }
 
@@ -4287,7 +4307,7 @@ function __defaultTokenDefs(){
   ];
 }
 
-/* ================== 字段元素：分组/筛选（V7.7） ================== */
+/* ================== 字段元素：分组/筛选（V7.8） ================== */
 const __TOKEN_GROUP_ORDER = ['通用','体征/定位','感染','囊肿','肿瘤/唾液腺','创伤/骨折','检查/影像','诊断/手术','出院/随访','自定义'];
 let __tokenInsertGroup = '全部';
 let __tokenManagerGroup = '全部';
@@ -4830,7 +4850,7 @@ function clearTokenValue(){
   if (grid) grid.querySelectorAll('.token-opt').forEach(el => el.classList.remove('is-selected'));
 }
 
-/* ================== 字段值：自动补单位（V7.7） ================== */
+/* ================== 字段值：自动补单位（V7.8） ================== */
 function __extractUnitFromName(name){
   const s = String(name ?? '').trim();
   const m = s.match(/(?:\(|（)\s*([^)）]{1,20})\s*(?:\)|）)\s*$/);
@@ -6675,7 +6695,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V7.7_${getExportStamp()}.json`;
+  a.download = `EMR_V7.8_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -6696,7 +6716,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V7.7_${getExportStamp()}.doc`;
+  a.download = `EMR_V7.8_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -6742,7 +6762,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'MyEMR V7.7';
+  const versionLabel = 'MyEMR V7.8';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -6853,7 +6873,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V7.7</title>
+<title>MyEMR V7.8</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
