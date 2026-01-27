@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V7.8</title>
+  <title>MyEMR V7.9</title>
 
   <style>
     :root {
@@ -565,6 +565,32 @@ body.modal-open {
       overflow-y: auto;
     }
     .rte-editor:focus { box-shadow: 0 0 0 3px rgba(16,163,127,0.10); }
+
+    /* 富文本列表缩进修复：避免标记符号被裁切（移动端/电脑端通用） */
+    .rte-editor ul, .rte-editor ol,
+    .card-body ul, .card-body ol {
+      list-style-position: inside;
+      padding-left: 1.15em;
+      margin: 6px 0;
+    }
+    .rte-editor li, .card-body li { margin: 2px 0; }
+    .rte-editor ul ul, .rte-editor ol ol, .rte-editor ul ol, .rte-editor ol ul,
+    .card-body ul ul, .card-body ol ol, .card-body ul ol, .card-body ol ul {
+      margin-left: 0.8em;
+    }
+
+    /* “插入字段”按钮高亮（保持系统主色一致） */
+    .rte-btn.rte-insert{
+      border-color: rgba(16,163,127,0.55);
+      background: rgba(16,163,127,0.10);
+      color: #065f46;
+      font-weight: 800;
+    }
+    .rte-btn.rte-insert:hover{
+      border-color: rgba(16,163,127,0.70);
+      background: rgba(16,163,127,0.16);
+    }
+
 
     /* 标签选择器 */
     .tag-picker {
@@ -1534,7 +1560,7 @@ body.modal-open {
     }
 
 /* =========================
-   分类管理：两行布局（名称+数量微标；第二行操作/更多菜单）（V7.8）
+   分类管理：两行布局（名称+数量微标；第二行操作/更多菜单）（V7.9）
    - 第一行：名称 + 数量微标（微标尽量靠右，给名称让位）
    - 第二行：操作按钮；“更多”展开菜单显示在第二行，支持横向滑动
    ========================= */
@@ -1645,7 +1671,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V7.8</div>
+        <div class="auth-ver">V7.9</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -1815,7 +1841,7 @@ body.modal-open {
           <button class="rte-btn" type="button" onclick="rteColor('#111827')">黑色</button>
           <span class="rte-divider"></span>
           <span class="rte-divider"></span>
-          <button class="rte-btn" type="button" onclick="openTokenInsert()">插入字段</button>
+          <button class="rte-btn rte-insert" type="button" onclick="openTokenInsert()">插入字段</button>
           <button class="rte-btn" type="button" onclick="rteCmd('removeFormat')">清除格式</button>
           <button class="rte-btn" type="button" onclick="rteCmd('undo')">撤销</button>
           <button class="rte-btn" type="button" onclick="rteCmd('redo')">重做</button>
@@ -2060,7 +2086,7 @@ body.modal-open {
 <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V7.8</span>
+          <span id="aboutVersion">MyEMR V7.9</span>
         </div>
       </div>
 
@@ -2844,7 +2870,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V7.8';
+  if (about) about.textContent = 'MyEMR V7.9';
   openModal('settingsModal');
 }
 
@@ -4307,7 +4333,7 @@ function __defaultTokenDefs(){
   ];
 }
 
-/* ================== 字段元素：分组/筛选（V7.8） ================== */
+/* ================== 字段元素：分组/筛选（V7.9） ================== */
 const __TOKEN_GROUP_ORDER = ['通用','体征/定位','感染','囊肿','肿瘤/唾液腺','创伤/骨折','检查/影像','诊断/手术','出院/随访','自定义'];
 let __tokenInsertGroup = '全部';
 let __tokenManagerGroup = '全部';
@@ -4850,7 +4876,7 @@ function clearTokenValue(){
   if (grid) grid.querySelectorAll('.token-opt').forEach(el => el.classList.remove('is-selected'));
 }
 
-/* ================== 字段值：自动补单位（V7.8） ================== */
+/* ================== 字段值：自动补单位（V7.9） ================== */
 function __extractUnitFromName(name){
   const s = String(name ?? '').trim();
   const m = s.match(/(?:\(|（)\s*([^)）]{1,20})\s*(?:\)|）)\s*$/);
@@ -6695,7 +6721,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V7.8_${getExportStamp()}.json`;
+  a.download = `EMR_V7.9_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -6716,7 +6742,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V7.8_${getExportStamp()}.doc`;
+  a.download = `EMR_V7.9_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -6762,7 +6788,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'MyEMR V7.8';
+  const versionLabel = 'MyEMR V7.9';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -6873,7 +6899,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V7.8</title>
+<title>MyEMR V7.9</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
