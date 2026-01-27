@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V8.3</title>
+  <title>MyEMR V8.4</title>
 
   <style>
     :root {
@@ -634,11 +634,19 @@ body.modal-open {
 
     /* ===== Category Manager mobile UX fix (iOS scroll + layout) ===== */
     @media (max-width: 640px){
+      /* Keep the modal centered and away from top/bottom browser UI */
+      #categoryModal{ padding: calc(12px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom)) 12px; }
+
       /* iOS Safari: make the modal-body the ONLY scroll container. */
       #categoryModal .modal-content{
         /* Give flex children a definite height so .modal-body can scroll reliably on iOS */
-        height: 90vh;
-        max-height: 90vh;
+        /* Centered modal with safe-area padding; only .modal-body scrolls */
+        width: 100%;
+        max-width: 860px;
+        height: auto;
+        /* Use dynamic viewport height on iOS; fallback to vh */
+        max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 24px);
+        max-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 24px);
       }
             /* Category modal: prevent columns from turning into a long page */
       #categoryModal .manage-layout{ overflow: hidden; }
@@ -2309,7 +2317,7 @@ body.modal-open {
 <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V8.3</span>
+          <span id="aboutVersion">MyEMR V8.4</span>
         </div>
       </div>
 
@@ -3093,7 +3101,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V8.3';
+  if (about) about.textContent = 'MyEMR V8.4';
   openModal('settingsModal');
 }
 
@@ -7038,7 +7046,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'MyEMR V8.3';
+  const versionLabel = 'MyEMR V8.4';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -7149,7 +7157,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V8.3</title>
+<title>MyEMR V8.4</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
