@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V8.9</title>
+  <title>MyEMR V9.0</title>
 
   <style>
     :root {
@@ -1660,7 +1660,7 @@ body.modal-open {
     }
 
 /* =========================
-   分类管理：两行布局（名称+数量微标；第二行操作/更多菜单）（V8.9）
+   分类管理：两行布局（名称+数量微标；第二行操作/更多菜单）（V9.0）
    - 第一行：名称 + 数量微标（微标尽量靠右，给名称让位）
    - 第二行：操作按钮；“更多”展开菜单显示在第二行，支持横向滑动
    ========================= */
@@ -1793,7 +1793,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V8.9</div>
+        <div class="auth-ver">V9.0</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -2214,7 +2214,7 @@ body.modal-open {
 <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V8.9</span>
+          <span id="aboutVersion">MyEMR V9.0</span>
         </div>
       </div>
 
@@ -2998,7 +2998,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V8.9';
+  if (about) about.textContent = 'MyEMR V9.0';
   openModal('settingsModal');
 }
 
@@ -4545,7 +4545,7 @@ function __defaultTokenDefs(){
   ];
 }
 
-/* ================== 字段元素：分组/筛选（V8.9） ================== */
+/* ================== 字段元素：分组/筛选（V9.0） ================== */
 const __TOKEN_GROUP_ORDER = ['通用','体征/定位','感染','囊肿','肿瘤/唾液腺','创伤/骨折','检查/影像','诊断/手术','出院/随访','自定义'];
 let __tokenInsertGroup = '全部';
 let __tokenManagerGroup = '全部';
@@ -5088,7 +5088,7 @@ function clearTokenValue(){
   if (grid) grid.querySelectorAll('.token-opt').forEach(el => el.classList.remove('is-selected'));
 }
 
-/* ================== 字段值：自动补单位（V8.9） ================== */
+/* ================== 字段值：自动补单位（V9.0） ================== */
 function __extractUnitFromName(name){
   const s = String(name ?? '').trim();
   const m = s.match(/(?:\(|（)\s*([^)）]{1,20})\s*(?:\)|）)\s*$/);
@@ -5962,6 +5962,7 @@ function renderTemplates() {
 
     const card = document.createElement('div');
     card.className = 'template-card';
+    card.setAttribute('data-tid', t.id);
     card.innerHTML = `
       <div class="card-header">
         <div class="card-title">${escapeHtml(t.title)}</div>
@@ -6025,8 +6026,33 @@ function saveTemplate(silentClose = false) {
 
   takeTemplateModalSnapshot();
   if (!silentClose) closeModalDirect('templateModal');
+
+  // Preserve scroll position after saving to avoid jumping back to the top.
+  const __scroller = document.querySelector('.content-area');
+  const __prevScrollTop = __scroller ? __scroller.scrollTop : (window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0);
+  const __anchorId = data.id;
+
   renderTemplates();
   updateTopbarHeight();
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      try {
+        if (__scroller) __scroller.scrollTop = __prevScrollTop;
+        else window.scrollTo(0, __prevScrollTop);
+
+        const __card = document.querySelector(`.template-card[data-tid="${__anchorId}"]`);
+        if (__card) {
+          const r = __card.getBoundingClientRect();
+          const topPad = 80;
+          const botPad = 140;
+          if (r.top < topPad || r.bottom > (window.innerHeight - botPad)) {
+            __card.scrollIntoView({ block: 'center' });
+          }
+        }
+      } catch (e) {}
+    });
+  });
   return true;
 }
 
@@ -6048,8 +6074,22 @@ function deleteTemplate() {
       rebuildTagPool([]);
       templateModalSnapshot = null;
       closeModalDirect('templateModal');
+
+      // Preserve scroll position after deletion to avoid jumping to the top.
+      const __scroller = document.querySelector('.content-area');
+      const __prevScrollTop = __scroller ? __scroller.scrollTop : (window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0);
+
       renderTemplates();
       updateTopbarHeight();
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          try {
+            if (__scroller) __scroller.scrollTop = __prevScrollTop;
+            else window.scrollTo(0, __prevScrollTop);
+          } catch (e) {}
+        });
+      });
     }
   });
 }
@@ -6970,7 +7010,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V8.9_${getExportStamp()}.json`;
+  a.download = `EMR_V9.0_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -6991,7 +7031,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V8.9_${getExportStamp()}.doc`;
+  a.download = `EMR_V9.0_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -7037,7 +7077,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'MyEMR V8.9';
+  const versionLabel = 'MyEMR V9.0';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -7148,7 +7188,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V8.9</title>
+<title>MyEMR V9.0</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
