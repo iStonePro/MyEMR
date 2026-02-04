@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V9.2</title>
+  <title>MyEMR V9.4</title>
 
   <style>
     :root {
@@ -29,6 +29,9 @@
 
       --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
       --shadow-md: 0 8px 24px rgba(0,0,0,0.10);
+
+      --tpl-card-font-size: 14px; /* 模板卡片正文字号 */
+      --tpl-editor-font-size: var(--tpl-card-font-size); /* 新增/编辑富文本字号 */
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -336,7 +339,7 @@
     .tag-sub { background: rgba(22,163,74,0.10); color: #15803d; border-color: rgba(22,163,74,0.18); }
 
     .card-body {
-      font-size: 14px;
+      font-size: var(--tpl-card-font-size);
       line-height: 1.65;
       color: #374151;
       background-color: #fbfbfc;
@@ -578,6 +581,16 @@ body.modal-open {
       overflow-y: auto;
     }
     .rte-editor:focus { box-shadow: 0 0 0 3px rgba(16,163,127,0.10); }
+
+    /* ===== RTE 字号统一：编辑窗口与新增模板一致（V9.4） ===== */
+    :root{ --tpl-editor-font-size: var(--tpl-card-font-size); }
+    #inputContentEditor{
+      font-size: var(--tpl-editor-font-size) !important;
+    }
+    #inputContentEditor *{
+      font-size: inherit !important;
+    }
+
 
     /* 富文本列表缩进修复：避免标记符号被裁切（移动端/电脑端通用） */
     .rte-editor ul, .rte-editor ol,
@@ -1659,7 +1672,7 @@ body.modal-open {
     }
 
 /* =========================
-   分类管理：两行布局（名称+数量微标；第二行操作/更多菜单）（V9.2）
+   分类管理：两行布局（名称+数量微标；第二行操作/更多菜单）（V9.4）
    - 第一行：名称 + 数量微标（微标尽量靠右，给名称让位）
    - 第二行：操作按钮；“更多”展开菜单显示在第二行，支持横向滑动
    ========================= */
@@ -1792,7 +1805,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V9.2</div>
+        <div class="auth-ver">V9.4</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -2216,7 +2229,7 @@ body.modal-open {
 <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V9.2</span>
+          <span id="aboutVersion">MyEMR V9.4</span>
         </div>
       </div>
 
@@ -3000,7 +3013,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V9.2';
+  if (about) about.textContent = 'MyEMR V9.4';
   openModal('settingsModal');
 }
 
@@ -4608,7 +4621,7 @@ function __defaultTokenDefs(){
   ];
 }
 
-/* ================== 字段元素：分组/筛选（V9.2） ================== */
+/* ================== 字段元素：分组/筛选（V9.4） ================== */
 const __TOKEN_GROUP_ORDER = ['通用','体征/定位','感染','囊肿','肿瘤/唾液腺','创伤/骨折','检查/影像','诊断/手术','出院/随访','自定义'];
 let __tokenInsertGroup = '全部';
 let __tokenManagerGroup = '全部';
@@ -5151,7 +5164,7 @@ function clearTokenValue(){
   if (grid) grid.querySelectorAll('.token-opt').forEach(el => el.classList.remove('is-selected'));
 }
 
-/* ================== 字段值：自动补单位（V9.2） ================== */
+/* ================== 字段值：自动补单位（V9.4） ================== */
 function __extractUnitFromName(name){
   const s = String(name ?? '').trim();
   const m = s.match(/(?:\(|（)\s*([^)）]{1,20})\s*(?:\)|）)\s*$/);
@@ -6207,6 +6220,26 @@ function deleteTemplate() {
   });
 }
 
+
+/* =========================
+   RTE：字号同步（V9.4）
+   - 目标：编辑窗口中的富文本字号与“新增模板”一致
+   ========================= */
+let __tplEditorBaseFontSize = null;
+function __syncTemplateEditorFontSize(){
+  try{
+    const ed = document.getElementById('inputContentEditor');
+    if (!ed) return;
+    if (!__tplEditorBaseFontSize) {
+      const prev = ed.style.fontSize;
+      ed.style.fontSize = '';
+      __tplEditorBaseFontSize = (window.getComputedStyle(ed).fontSize || '16px');
+      ed.style.fontSize = prev;
+    }
+    document.documentElement.style.setProperty('--tpl-editor-font-size', __tplEditorBaseFontSize);
+  } catch(e) {}
+}
+
 function editTemplate(id) {
   const t = templates.find(i => i.id === id);
   if(!t) return;
@@ -6224,6 +6257,7 @@ function editTemplate(id) {
   rebuildTagPool(preTags);
 
   setEditorContentFromStored(t.content);
+  __syncTemplateEditorFontSize();
 
   openModal('templateModal');
   takeTemplateModalSnapshot();
@@ -6250,6 +6284,7 @@ function openTemplateModal() {
   rebuildTagPool([]);
 
   setEditorContentFromStored('');
+  __syncTemplateEditorFontSize();
 
   openModal('templateModal');
   takeTemplateModalSnapshot();
@@ -7123,7 +7158,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V9.2_${getExportStamp()}.json`;
+  a.download = `EMR_V9.4_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -7144,7 +7179,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V9.2_${getExportStamp()}.doc`;
+  a.download = `EMR_V9.4_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -7190,7 +7225,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'MyEMR V9.2';
+  const versionLabel = 'MyEMR V9.4';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -7301,7 +7336,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V9.2</title>
+<title>MyEMR V9.4</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
