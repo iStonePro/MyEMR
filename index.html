@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V9.4</title>
+  <title>MyEMR V9.5</title>
 
   <style>
     :root {
@@ -582,7 +582,7 @@ body.modal-open {
     }
     .rte-editor:focus { box-shadow: 0 0 0 3px rgba(16,163,127,0.10); }
 
-    /* ===== RTE 字号统一：编辑窗口与新增模板一致（V9.4） ===== */
+    /* ===== RTE 字号统一：编辑窗口与新增模板一致（V9.5） ===== */
     :root{ --tpl-editor-font-size: var(--tpl-card-font-size); }
     #inputContentEditor{
       font-size: var(--tpl-editor-font-size) !important;
@@ -1467,7 +1467,8 @@ body.modal-open {
       color:#111827;
       font-size:13px;
       line-height:1.4;
-      user-select:none;
+      user-select:text;
+      -webkit-user-select:text;
       cursor:pointer;
       white-space:nowrap;
       vertical-align:baseline;
@@ -1672,7 +1673,7 @@ body.modal-open {
     }
 
 /* =========================
-   分类管理：两行布局（名称+数量微标；第二行操作/更多菜单）（V9.4）
+   分类管理：两行布局（名称+数量微标；第二行操作/更多菜单）（V9.5）
    - 第一行：名称 + 数量微标（微标尽量靠右，给名称让位）
    - 第二行：操作按钮；“更多”展开菜单显示在第二行，支持横向滑动
    ========================= */
@@ -1805,7 +1806,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V9.4</div>
+        <div class="auth-ver">V9.5</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -2229,7 +2230,7 @@ body.modal-open {
 <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V9.4</span>
+          <span id="aboutVersion">MyEMR V9.5</span>
         </div>
       </div>
 
@@ -3013,7 +3014,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V9.4';
+  if (about) about.textContent = 'MyEMR V9.5';
   openModal('settingsModal');
 }
 
@@ -4621,7 +4622,7 @@ function __defaultTokenDefs(){
   ];
 }
 
-/* ================== 字段元素：分组/筛选（V9.4） ================== */
+/* ================== 字段元素：分组/筛选（V9.5） ================== */
 const __TOKEN_GROUP_ORDER = ['通用','体征/定位','感染','囊肿','肿瘤/唾液腺','创伤/骨折','检查/影像','诊断/手术','出院/随访','自定义'];
 let __tokenInsertGroup = '全部';
 let __tokenManagerGroup = '全部';
@@ -4931,18 +4932,37 @@ function __enhanceTokensInEditor(){
   if (!editor) return;
   editor.querySelectorAll('span.emr-token, span[data-emr-id]').forEach(sp => __renderTokenSpan(sp));
 
+  // ✅ 兼容：部分浏览器/移动端在 contenteditable 内点击 span 时，event.target 可能是 TextNode
+  // 这里统一把 target 提升为 Element，并同时监听 click/touchend/pointerup，避免“点了字段没反应”
   if (!editor.__tokenBound) {
     editor.__tokenBound = true;
-    editor.addEventListener('click', (ev) => {
-      const token = ev.target && ev.target.closest ? ev.target.closest('span.emr-token') : null;
+
+    const handler = (ev) => {
+      const t0 = ev && ev.target;
+      const el = (t0 && t0.nodeType === 3) ? (t0.parentElement || null) : t0;
+      const token = el && el.closest ? el.closest('span.emr-token') : null;
       if (!token) return;
-      ev.preventDefault();
-      ev.stopPropagation();
+
+      // 防止触摸事件 + click 双触发重复打开
+      const now = Date.now();
+      if (editor.__tokenLastOpenAt && (now - editor.__tokenLastOpenAt) < 250) return;
+      editor.__tokenLastOpenAt = now;
+
+      try { ev.preventDefault(); } catch(e) {}
+      try { ev.stopPropagation(); } catch(e) {}
       openTokenValue(token);
-    });
+    };
+
+    editor.addEventListener('click', handler);
+
+    // iOS Safari: 在 contenteditable 内对 contenteditable="false" 元素有时不触发 click
+    try { editor.addEventListener('touchend', handler, { passive: false }); }
+    catch(e){ editor.addEventListener('touchend', handler); }
+
+    // 部分设备更可靠（与 touchend/click 互补）
+    try { editor.addEventListener('pointerup', handler); } catch(e) {}
   }
 }
-
 function openTokenInsert(){
   __loadTokenDefs();
   const inp = document.getElementById('tokenInsertSearch');
@@ -5006,15 +5026,54 @@ function insertTokenById(id){
   const def = __findTokenDef(id);
   if (!def) return;
   __bumpTokenGroupUsage(__getTokenGroup(def));
+
   const editor = document.getElementById('inputContentEditor');
   if (!editor) return;
   editor.focus();
-  const html = `<span class="emr-token" contenteditable="false" data-emr-id="${escapeHtml(def.id)}" data-emr-value="">${escapeHtml(def.name)}：未填</span>&nbsp;`;
-  document.execCommand('insertHTML', false, html);
+
+  // ✅ 用 Range API 插入（比 execCommand 更稳定），并返回可操作的元素引用
+  const span = document.createElement('span');
+  span.className = 'emr-token';
+  span.setAttribute('data-emr-id', String(def.id));
+  span.setAttribute('data-emr-value', '');
+  __renderTokenSpan(span);
+
+  const space = document.createTextNode(' ');
+  const sel = window.getSelection();
+  let range = (sel && sel.rangeCount) ? sel.getRangeAt(0) : null;
+
+  if (!range || !editor.contains(range.commonAncestorContainer)) {
+    range = document.createRange();
+    range.selectNodeContents(editor);
+    range.collapse(false);
+  }
+
+  try { range.deleteContents(); } catch(e) {}
+
+  const frag = document.createDocumentFragment();
+  frag.appendChild(span);
+  frag.appendChild(space);
+  range.insertNode(frag);
+
+  // 把光标放到字段后面，继续输入更自然
+  try {
+    const nr = document.createRange();
+    nr.setStartAfter(space);
+    nr.collapse(true);
+    if (sel) {
+      sel.removeAllRanges();
+      sel.addRange(nr);
+    }
+  } catch(e) {}
+
   __enhanceTokensInEditor();
   requestCloseModal('tokenInsertModal');
-}
 
+  // ✅ 插入后立即弹出填写界面：避免用户误以为“插入的是固定文字”
+  setTimeout(() => {
+    try { openTokenValue(span); } catch(e) {}
+  }, 0);
+}
 function openTokenValue(tokenEl){
   __activeTokenEl = tokenEl;
   const id = tokenEl.getAttribute('data-emr-id') || '';
@@ -5164,7 +5223,7 @@ function clearTokenValue(){
   if (grid) grid.querySelectorAll('.token-opt').forEach(el => el.classList.remove('is-selected'));
 }
 
-/* ================== 字段值：自动补单位（V9.4） ================== */
+/* ================== 字段值：自动补单位（V9.5） ================== */
 function __extractUnitFromName(name){
   const s = String(name ?? '').trim();
   const m = s.match(/(?:\(|（)\s*([^)）]{1,20})\s*(?:\)|）)\s*$/);
@@ -6222,7 +6281,7 @@ function deleteTemplate() {
 
 
 /* =========================
-   RTE：字号同步（V9.4）
+   RTE：字号同步（V9.5）
    - 目标：编辑窗口中的富文本字号与“新增模板”一致
    ========================= */
 let __tplEditorBaseFontSize = null;
@@ -7158,7 +7217,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V9.4_${getExportStamp()}.json`;
+  a.download = `EMR_V9.5_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -7179,7 +7238,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V9.4_${getExportStamp()}.doc`;
+  a.download = `EMR_V9.5_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -7225,7 +7284,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'MyEMR V9.4';
+  const versionLabel = 'MyEMR V9.5';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -7336,7 +7395,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V9.4</title>
+<title>MyEMR V9.5</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
@@ -7377,7 +7436,8 @@ function buildWordBackupHtml(data) {
       color:#111827;
       font-size:13px;
       line-height:1.4;
-      user-select:none;
+      user-select:text;
+      -webkit-user-select:text;
       cursor:pointer;
       white-space:nowrap;
       vertical-align:baseline;
