@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V10</title>
+  <title>MyEMR V12</title>
 
   <style>
     :root {
@@ -316,6 +316,54 @@
     }
     .template-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
 
+
+    /* --- 批量选择 / 批量移动 --- */
+    .card-title-row{ display:flex; align-items:center; gap:10px; min-width:0; }
+    .batch-checkbox{ width:20px; height:20px; accent-color: var(--accent-color); cursor:pointer; flex:0 0 auto; }
+    .template-card.batch-selected{
+      border-color: rgba(16,163,127,0.55);
+      box-shadow: 0 0 0 3px rgba(16,163,127,0.10);
+    }
+    .batch-bar{
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(0,0,0,0.08);
+      z-index: 25000;
+    }
+    body.batch-mode .batch-bar{ display: flex; }
+    body.batch-mode .content-area{ padding-bottom: 92px; }
+    .batch-actions{ display:flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .batch-btn{
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      color: #111827;
+      padding: 8px 10px;
+      border-radius: 12px;
+      font-size: 13px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .batch-btn:disabled{ opacity: 0.5; cursor: not-allowed; }
+    .batch-btn.primary{
+      border-color: rgba(16,163,127,0.35);
+      background: rgba(16,163,127,0.10);
+      color: var(--accent-color);
+      font-weight: 700;
+    }
+    .icon-btn.is-active{
+      border-color: rgba(16,163,127,0.45);
+      background: rgba(16,163,127,0.08);
+      color: var(--accent-color);
+    }
+
+
     .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 10px; }
     .card-title { font-weight: 800; font-size: 15px; color: #111827; line-height: 1.3; }
     .card-actions { display:flex; gap:8px; align-items:center; flex-shrink:0; }
@@ -582,7 +630,7 @@ body.modal-open {
     }
     .rte-editor:focus { box-shadow: 0 0 0 3px rgba(16,163,127,0.10); }
 
-    /* ===== RTE 字号统一：编辑窗口与新增模板一致（V10） ===== */
+    /* ===== RTE 字号统一：编辑窗口与新增模板一致（V12） ===== */
     :root{ --tpl-editor-font-size: var(--tpl-card-font-size); }
     #inputContentEditor{
       font-size: var(--tpl-editor-font-size) !important;
@@ -1673,7 +1721,7 @@ body.modal-open {
     }
 
 /* =========================
-   分类管理：两行布局（名称+数量微标；第二行操作/更多菜单）（V10）
+   分类管理：两行布局（名称+数量微标；第二行操作/更多菜单）（V12）
    - 第一行：名称 + 数量微标（微标尽量靠右，给名称让位）
    - 第二行：操作按钮；“更多”展开菜单显示在第二行，支持横向滑动
    ========================= */
@@ -1806,7 +1854,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V10</div>
+        <div class="auth-ver">V12</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -1890,12 +1938,28 @@ body.modal-open {
       </button>
       <div class="current-filter" id="currentFilterLabel">全部模板</div>
       <input type="text" class="search-box" id="searchInput" placeholder="搜索内容、标题、关键词或分类..." oninput="renderTemplates()" />
+      <button class="icon-btn icon-only" id="btnBatch" type="button" onclick="toggleBatchMode()" title="批量移动/多选" aria-label="批量移动/多选">
+        <span class="ico" id="icoBatch"></span>
+      </button>
     </div>
 
     <div class="content-area">
       <div class="content-container" id="templateList"></div>
     </div>
   </div>
+
+  <!-- 批量操作栏（批量移动） -->
+  <div class="batch-bar" id="batchBar" onclick="event.stopPropagation()">
+    <div class="batch-left"><span id="batchCount">已选择 0 项</span></div>
+    <div class="batch-actions">
+      <button class="batch-btn" type="button" onclick="batchSelectAllRendered()">全选</button>
+      <button class="batch-btn" id="batchClearBtn" type="button" onclick="batchClearSelection()" disabled>清空</button>
+      <button class="batch-btn primary" id="batchMoveBtn" type="button" onclick="openBatchMoveModal()" disabled>批量移动</button>
+      <button class="batch-btn" type="button" onclick="exitBatchMode()">取消</button>
+    </div>
+  </div>
+
+
 
   <!-- 模板编辑/新建 -->
   <div class="modal" id="templateModal" onclick="noopClose(event)">
@@ -2022,7 +2086,7 @@ body.modal-open {
   <div class="modal" id="moveModal" onclick="noopClose(event)">
     <div class="modal-content" style="width:560px;" onclick="event.stopPropagation()">
       <div class="modal-title">
-        <span>移动模板到其他分类</span>
+        <span id="moveModalTitleText">移动模板到其他分类</span>
         <span class="modal-close" onclick="requestCloseModal('moveModal')">
           <span class="ico" id="icoClose2"></span>
           <span>关闭</span>
@@ -2230,7 +2294,7 @@ body.modal-open {
 <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V10</span>
+          <span id="aboutVersion">MyEMR V12</span>
         </div>
       </div>
 
@@ -2365,7 +2429,7 @@ const ICONS = (() => {
     eye: s(`<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>`),
     lock: s(`<rect x="6" y="11" width="12" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>`),
     unlock: s(`<rect x="6" y="11" width="12" height="10" rx="2"/><path d="M10 11V8a4 4 0 0 1 7-2"/>`),
-    home: s(`<path d="M3 11l9-8 9 8"/><path d="M5 10v11h14V10"/><path d="M10 21v-6h4v6"/>`),
+    home: s(`<path d="M3 11l9-8 9 8"/><path d="M5 10v11h14V12"/><path d="M10 21v-6h4v6"/>`),
     hospital: s(`<path d="M5 22V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/><path d="M9 10h6"/><path d="M12 7v6"/><path d="M7 22v-6h10v6"/>`),
     ambulance: s(`<path d="M3 16V8h10v8"/><path d="M13 12h5l3 3v1"/><path d="M5 16a2 2 0 1 0 4 0"/><path d="M15 16a2 2 0 1 0 4 0"/><path d="M16 10h2"/><path d="M9 10h.01"/><path d="M7 11h4"/><path d="M9 9v4"/>`),
     bed: s(`<path d="M4 12V7a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v5"/><path d="M4 12h16v6"/><path d="M4 18v3"/><path d="M20 18v3"/><path d="M16 12V9h4a2 2 0 0 1 2 2v1"/>`),
@@ -2394,7 +2458,7 @@ const ICONS = (() => {
     handover: s(`<path d="M7 7h10"/><path d="M17 7l-2-2"/><path d="M17 7l-2 2"/><path d="M17 17H7"/><path d="M7 17l2-2"/><path d="M7 17l2 2"/>`),
     rounds: s(`<circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M3 21c1.2-4 4-6 5-6"/><path d="M21 21c-1.2-4-4-6-5-6"/><path d="M9 14c1 .2 2 .5 3 .5s2-.3 3-.5"/>`),
     report: s(`<path d="M6 2h9l3 3v17H6z"/><path d="M15 2v3h3"/><path d="M9 10h6"/><path d="M9 14h6"/><path d="M9 18h4"/>`),
-    barChart: s(`<path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-8"/><path d="M22 20H2"/>`),
+    barChart: s(`<path d="M4 20V12"/><path d="M10 20V4"/><path d="M16 20v-8"/><path d="M22 20H2"/>`),
     pieChart: s(`<path d="M12 2v10h10"/><path d="M12 12a10 10 0 1 1 0-10"/><path d="M12 12l7 7"/>`),
     fileText: s(`<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8 13h8"/><path d="M8 17h6"/>`),
     fileCheck: s(`<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 14l2 2 4-4"/>`),
@@ -2462,6 +2526,23 @@ const ICONS = (() => {
     clipboardPulse: s(`<path d="M9 4h6"/><path d="M10 4a2 2 0 0 0-2 2v2h8V6a2 2 0 0 0-2-2"/><path d="M6 8h12v13H6z"/><path d="M7.5 14h2l1.2 3 2-6 1.6 5 1-2H17"/>`),
     radiation: s(`<circle cx="12" cy="12" r="2"/><path d="M12 2a10 10 0 0 1 8.7 5"/><path d="M3.3 7A10 10 0 0 1 12 2"/><path d="M12 22a10 10 0 0 1-8.7-5"/><path d="M20.7 17A10 10 0 0 1 12 22"/>`),
     xray: s(`<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M9 9c0 3 6 3 6 6"/><path d="M15 9c0 3-6 3-6 6"/><path d="M12 7v10"/>`),
+
+gloves: s(`<path d="M9 22v-7l-2-2V7a1.5 1.5 0 0 1 3 0v6"/><path d="M10 13V6a1.5 1.5 0 0 1 3 0v7"/><path d="M13 13V7a1.5 1.5 0 0 1 3 0v9l-2 6H9z"/><path d="M17 22l1-4"/>`),
+medicineBottle: s(`<path d="M10 3h4"/><path d="M10 3v3h4V3"/><rect x="8" y="6" width="8" height="3" rx="1"/><rect x="7" y="9" width="10" height="12" rx="2"/><path d="M10 13h4"/><path d="M10 16h4"/>`),
+prescription: s(`<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 10h3a2 2 0 0 1 0 4H9z"/><path d="M12 14l3 5"/><path d="M13 16h4"/>`),
+suture: s(`<path d="M20 4l-8 8"/><path d="M12 12l2 2"/><path d="M10 14c-2.8 0-6 1.8-6 4.8C4 20.6 5.4 22 7.2 22c3.6 0 6.8-3.6 6.8-7.2"/>`),
+forceps: s(`<path d="M6 3l6 9 6-9"/><path d="M10.5 12.5L8 21"/><path d="M13.5 12.5L16 21"/><path d="M10 17h4"/>`),
+retractor: s(`<path d="M6 5v6"/><path d="M18 5v6"/><path d="M6 11h12"/><path d="M6 19v-6"/><path d="M18 19v-6"/><path d="M6 13h12"/>`),
+drill: s(`<path d="M4 8h10l3 3-3 3H4z"/><path d="M14 8l6-2v12l-6-2"/><path d="M8 11h4"/>`),
+implant: s(`<path d="M12 3c2.2 0 4 1.2 4 3s-1.8 3-4 3-4-1.2-4-3 1.8-3 4-3z"/><path d="M10 9v12"/><path d="M14 9v12"/><path d="M10 13h4"/><path d="M10 17h4"/><path d="M9 21h6"/>`),
+braces: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M8 12h8"/><path d="M10 10v4"/><path d="M14 10v4"/>`),
+jaw: s(`<path d="M6 8c0-2.5 2.7-5 6-5s6 2.5 6 5v5c0 4-3 8-6 8s-6-4-6-8V8z"/><path d="M8 12h8"/><path d="M9 16h6"/>`),
+skull: s(`<path d="M8 5c-2 1.2-3 3-3 5v3a5 5 0 0 0 4 5v3h6v-3a5 5 0 0 0 4-5v-3c0-2-1-3.8-3-5-2.3-1.4-5.7-1.4-8 0z"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><path d="M12 15v2"/><path d="M10 20h4"/>`),
+ivBag: s(`<path d="M10 2h4"/><rect x="8" y="4" width="8" height="10" rx="2"/><path d="M10 8h4"/><path d="M12 14v8"/><path d="M11 18h2"/>`),
+oxygen: s(`<path d="M10 2h4"/><path d="M9 2v4h6V2"/><path d="M9 6h6l2 4v10a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V10l2-4z"/><path d="M9 12h6"/>`),
+ecgMonitor: s(`<rect x="4" y="6" width="16" height="12" rx="2"/><path d="M6 12h3l2-3 2 6 2-3h3"/><path d="M8 20h8"/>`),
+toothSparkle: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M19 4v4"/><path d="M17 6h4"/>`),
+
 
   };
 
@@ -2591,6 +2672,23 @@ const ICONS = (() => {
     meta('clipboardPulse', '监测', '监测/生命体征'),
     meta('radiation', '放射', '放射/辐射'),
     meta('xray', 'X光', 'X光/放射'),
+
+meta('gloves', '手套', '无菌/手套/防护'),
+meta('medicineBottle', '药瓶', '药瓶/药液/药物'),
+meta('prescription', '处方', '处方/Rx/用药医嘱'),
+meta('suture', '缝合', '缝合/针线/拆线'),
+meta('forceps', '钳', '器械/止血钳/拔牙钳'),
+meta('retractor', '拉钩', '牵开/暴露/器械'),
+meta('drill', '钻', '钻/牙科器械/骨钻'),
+meta('implant', '种植', '种植/植体/修复'),
+meta('braces', '正畸', '正畸/托槽/矫治'),
+meta('jaw', '颌骨', '颌面/下颌/上颌'),
+meta('skull', '颅骨', '头颅/颅面/骨'),
+meta('ivBag', '输液袋', '输液袋/滴注/静脉治疗'),
+meta('oxygen', '氧气', '氧气/麻醉/镇静'),
+meta('ecgMonitor', '心电', '心电/监护/监测'),
+meta('toothSparkle', '口腔健康', '洁治/护理/口腔健康'),
+
 
 
     meta('activity', '生命体征', '生命体征/监护'),
@@ -2802,6 +2900,13 @@ function getPresetBackup(){
 
 
 let currentFilter = { type: 'ALL', value: '' }; // ALL/MAIN/SUB
+
+// ===== 批量选择/批量移动（模板）=====
+let __batchMode = false;
+let __batchSelected = new Set();
+let __lastRenderedTemplateIds = [];
+let __moveBatchIds = null;
+
 let editingCategoryMain = null;
 
 // 标签
@@ -3014,7 +3119,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V10';
+  if (about) about.textContent = 'MyEMR V12';
   openModal('settingsModal');
 }
 
@@ -3355,6 +3460,7 @@ function mountTopIcons() {
   setIcon('icoReceipt', 'receipt');      // 备份收据
   setIcon('icoRestore', 'restore');      // 恢复数据
   setIcon('icoMenu', 'menu');               // 移动端菜单按钮
+  setIcon('icoBatch', 'checkSquare');        // 顶部批量选择
   setIcon('icoSettings', 'settings');        // 侧边栏设置
 
   setIcon('icoCloseSettings', 'x');
@@ -4622,7 +4728,7 @@ function __defaultTokenDefs(){
   ];
 }
 
-/* ================== 字段元素：分组/筛选（V10） ================== */
+/* ================== 字段元素：分组/筛选（V12） ================== */
 const __TOKEN_GROUP_ORDER = ['通用','体征/定位','感染','囊肿','肿瘤/唾液腺','创伤/骨折','检查/影像','诊断/手术','出院/随访','自定义'];
 let __tokenInsertGroup = '全部';
 let __tokenManagerGroup = '全部';
@@ -5223,7 +5329,7 @@ function clearTokenValue(){
   if (grid) grid.querySelectorAll('.token-opt').forEach(el => el.classList.remove('is-selected'));
 }
 
-/* ================== 字段值：自动补单位（V10） ================== */
+/* ================== 字段值：自动补单位（V12） ================== */
 function __extractUnitFromName(name){
   const s = String(name ?? '').trim();
   const m = s.match(/(?:\(|（)\s*([^)）]{1,20})\s*(?:\)|）)\s*$/);
@@ -6115,6 +6221,161 @@ function setFilter(type, value, el) {
   if (isMobile()) closeSidebar();
 }
 
+
+/* =========================
+   16A) 模板批量选择与批量移动
+   ========================= */
+function toggleBatchMode(force) {
+  const on = (typeof force === 'boolean') ? force : !__batchMode;
+  __batchMode = !!on;
+
+  if (!__batchMode) {
+    __batchSelected.clear();
+    __moveBatchIds = null;
+  }
+
+  document.body.classList.toggle('batch-mode', __batchMode);
+
+  const btn = document.getElementById('btnBatch');
+  if (btn) btn.classList.toggle('is-active', __batchMode);
+
+  updateBatchBar();
+  renderTemplates();
+  updateTopbarHeight();
+}
+
+function exitBatchMode() { toggleBatchMode(false); }
+
+function updateBatchBar() {
+  const n = __batchSelected.size;
+  const countEl = document.getElementById('batchCount');
+  if (countEl) countEl.textContent = `已选择 ${n} 项`;
+
+  const moveBtn = document.getElementById('batchMoveBtn');
+  if (moveBtn) moveBtn.disabled = (n === 0);
+
+  const clearBtn = document.getElementById('batchClearBtn');
+  if (clearBtn) clearBtn.disabled = (n === 0);
+}
+
+function toggleTemplateSelect(id, ev) {
+  if (ev) ev.stopPropagation();
+  if (!__batchMode) return;
+
+  const checked = (ev && ev.target && typeof ev.target.checked === 'boolean') ? ev.target.checked : null;
+  if (checked === true) __batchSelected.add(id);
+  else if (checked === false) __batchSelected.delete(id);
+  else {
+    // 非 checkbox 触发：直接切换
+    if (__batchSelected.has(id)) __batchSelected.delete(id);
+    else __batchSelected.add(id);
+  }
+
+  updateBatchBar();
+
+  const card = document.querySelector(`.template-card[data-tid="${id}"]`);
+  if (card) card.classList.toggle('batch-selected', __batchSelected.has(id));
+
+  const cb = card ? card.querySelector('input.batch-checkbox') : null;
+  if (cb && typeof checked !== 'boolean') cb.checked = __batchSelected.has(id);
+}
+
+function batchSelectAllRendered() {
+  if (!__batchMode) return;
+  (__lastRenderedTemplateIds || []).forEach(id => __batchSelected.add(id));
+  updateBatchBar();
+  renderTemplates();
+}
+
+function batchClearSelection() {
+  if (!__batchMode) return;
+  __batchSelected.clear();
+  updateBatchBar();
+  renderTemplates();
+}
+
+function openBatchMoveModal() {
+  if (!__batchMode) return;
+  const ids = Array.from(__batchSelected);
+  if (ids.length === 0) {
+    openAlertModal('请先选择要移动的模板');
+    return;
+  }
+  openMoveModalBatch(ids);
+}
+
+function openMoveModalBatch(ids) {
+  __moveBatchIds = (Array.isArray(ids) ? ids.slice() : []).filter(Boolean);
+  if (__moveBatchIds.length === 0) return;
+
+  // 更新标题
+  const tt = document.getElementById('moveModalTitleText');
+  if (tt) tt.textContent = `批量移动（已选 ${__moveBatchIds.length} 个）`;
+
+  // 提示：显示部分模板标题
+  updateMoveBatchHint(__moveBatchIds);
+
+  // 默认目标：优先使用“上一次移动目标路径”，否则用第一条模板所在路径
+  const first = templates.find(x => x.id === __moveBatchIds[0]);
+  const lastRaw = getLastMovePath();
+  const last = normalizeMovePathByCategoryTree(lastRaw);
+
+  const targetMain = last ? last.mainCat : (first?.mainCat || (categoryTree[0]?.name || ''));
+  const targetSub  = last ? last.subCat  : (first?.subCat || '');
+  const usingLast  = !!last;
+
+  const mainSel = document.getElementById('moveMainCat');
+  mainSel.innerHTML = '';
+  categoryTree.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.name;
+    opt.textContent = c.name;
+    if (c.name === targetMain) opt.selected = true;
+    mainSel.appendChild(opt);
+  });
+
+  updateMoveSubCatOptions(targetSub);
+  updateMoveLastPathHint(usingLast, last);
+  openModal('moveModal');
+  takeMoveModalSnapshot();
+}
+
+function updateMoveBatchHint(ids) {
+  const body = document.querySelector('#moveModal .modal-body');
+  if (!body) return;
+
+  let el = document.getElementById('moveBatchHint');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'moveBatchHint';
+    el.className = 'hint';
+    el.style.marginTop = '8px';
+    el.style.marginBottom = '10px';
+
+    // 插入到第一个 form-row 后
+    const formRow = body.querySelector('.form-row');
+    if (formRow) formRow.insertAdjacentElement('afterend', el);
+    else body.insertBefore(el, body.firstChild);
+  }
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    el.style.display = 'none';
+    el.textContent = '';
+    return;
+  }
+
+  const titles = ids
+    .map(id => templates.find(t => t.id === id))
+    .filter(Boolean)
+    .map(t => String(t.title || '').trim())
+    .filter(Boolean);
+
+  const preview = titles.slice(0, 6).join('、') + (titles.length > 6 ? ` 等 ${titles.length} 个模板` : '');
+  el.style.display = 'block';
+  el.textContent = '将批量移动：' + preview;
+}
+
+
 function renderTemplates() {
   const search = document.getElementById('searchInput').value.toLowerCase();
   const container = document.getElementById('templateList');
@@ -6134,8 +6395,12 @@ function renderTemplates() {
     return textMatch && catMatch;
   });
 
+  const isBatch = !!__batchMode;
+  __lastRenderedTemplateIds = filtered.map(x => x.id);
+
   if (filtered.length === 0) {
     container.innerHTML = `<div style="text-align:center; color:#9ca3af; margin-top:50px;">暂无内容</div>`;
+    updateBatchBar();
     return;
   }
 
@@ -6145,12 +6410,20 @@ function renderTemplates() {
     const __rawContent = normalizeNbspArtifacts(t.content || '');
     const bodyHtml = isProbablyHtml(__rawContent) ? sanitizeHtml(__rawContent) : plainTextToHtml(__rawContent);
 
+    const isSel = isBatch && __batchSelected.has(t.id);
+
     const card = document.createElement('div');
-    card.className = 'template-card';
+    card.className = 'template-card' + (isSel ? ' batch-selected' : '');
     card.setAttribute('data-tid', t.id);
-    card.innerHTML = `
-      <div class="card-header">
-        <div class="card-title">${escapeHtml(t.title)}</div>
+
+    const titleHtml = isBatch
+      ? `<div class="card-title-row">
+          <input class="batch-checkbox" type="checkbox" ${isSel ? 'checked' : ''} onclick="toggleTemplateSelect('${t.id}', event)" />
+          <div class="card-title">${escapeHtml(t.title)}</div>
+        </div>`
+      : `<div class="card-title">${escapeHtml(t.title)}</div>`;
+
+    const actionsHtml = isBatch ? '' : `
         <div class="card-actions">
           <button class="btn-move" onclick="openMoveModal('${t.id}')">
             <span class="ico">${ICONS.svg('move')}</span> 移动
@@ -6159,17 +6432,30 @@ function renderTemplates() {
             <span class="ico">${ICONS.svg('copy')}</span> 复制
           </button>
         </div>
+    `;
+
+    const bodyOnclick = isBatch ? `toggleTemplateSelect('${t.id}', event)` : `editTemplate('${t.id}')`;
+    const bodyTitle = isBatch ? '点击选择' : '点击编辑';
+
+    card.innerHTML = `
+      <div class="card-header">
+        ${titleHtml}
+        ${actionsHtml}
       </div>
       <div class="card-meta">
         <span class="tag tag-main">${escapeHtml(t.mainCat || '未分类')}</span>
         ${t.subCat ? `<span class="tag tag-sub">${escapeHtml(t.subCat)}</span>` : ''}
         ${tagHtml}
       </div>
-      <div class="card-body" onclick="editTemplate('${t.id}')" title="点击编辑">${bodyHtml}</div>
+      <div class="card-body" onclick="${bodyOnclick}" title="${bodyTitle}">${bodyHtml}</div>
     `;
     container.appendChild(card);
   });
+
+  updateBatchBar();
 }
+
+
 
 /* =========================
    17) CRUD：模板
@@ -6281,7 +6567,7 @@ function deleteTemplate() {
 
 
 /* =========================
-   RTE：字号同步（V10）
+   RTE：字号同步（V12）
    - 目标：编辑窗口中的富文本字号与“新增模板”一致
    ========================= */
 let __tplEditorBaseFontSize = null;
@@ -6411,6 +6697,11 @@ function openMoveModal(id) {
   const t = templates.find(x => x.id === id);
   if (!t) return;
 
+  __moveBatchIds = null;
+  const tt = document.getElementById('moveModalTitleText');
+  if (tt) tt.textContent = '移动模板到其他分类';
+  updateMoveBatchHint([]);
+
   document.getElementById('moveId').value = id;
 
   // 默认：优先使用“上一次移动目标路径”，便于连续移动多个模板
@@ -6487,17 +6778,77 @@ function updateMoveSubCatOptions(selectedSub = '') {
 }
 
 function confirmMoveTemplate(silentClose = false) {
+  const newMain = document.getElementById('moveMainCat').value;
+  const newSub = document.getElementById('moveSubCat').value;
+
+  const batchIds = (Array.isArray(__moveBatchIds) && __moveBatchIds.length) ? __moveBatchIds.slice() : null;
+
+  if (batchIds) {
+    const items = batchIds.map(id => templates.find(x => x.id === id)).filter(Boolean);
+    if (items.length === 0) return false;
+
+    const toPath = newMain + (newSub ? ' / ' + newSub : '');
+    const fromPaths = Array.from(new Set(items.map(t => (t.mainCat || '未分类') + (t.subCat ? ' / ' + t.subCat : ''))));
+    const fromText = (fromPaths.length === 1) ? fromPaths[0] : `共 ${fromPaths.length} 个来源分类`;
+
+    const sampleTitles = items.slice(0, 6).map(t => `- ${t.title}`).join('
+') + (items.length > 6 ? `
+…（共 ${items.length} 个）` : '');
+
+    const msg =
+      `确定批量移动这些模板吗？
+
+` +
+      `数量：${items.length}
+` +
+      `来源：${fromText}
+` +
+      `目标：${toPath}
+
+` +
+      `示例：
+${sampleTitles}`;
+
+    openConfirmModal(msg, {
+      title: '确认批量移动',
+      okText: '移动',
+      cancelText: '取消',
+      danger: false,
+      onOk: () => {
+        autoBackup('batch_move_template');
+        items.forEach(t => { t.mainCat = newMain; t.subCat = newSub; });
+        setLastMovePath(newMain, newSub);
+
+        saveToLocal();
+        __moveBatchIds = null;
+        moveModalSnapshot = null;
+
+        if (__batchMode) {
+          __batchSelected.clear();
+          updateBatchBar();
+        }
+
+        if (!silentClose) closeModalDirect('moveModal');
+        renderTemplates();
+        updateTopbarHeight();
+      }
+    });
+
+    return true;
+  }
+
   const id = document.getElementById('moveId').value;
   const t = templates.find(x => x.id === id);
   if (!t) return false;
 
-  const newMain = document.getElementById('moveMainCat').value;
-  const newSub = document.getElementById('moveSubCat').value;
-
   const msg =
-    `确定移动该模板吗？\n\n` +
-    `标题：${t.title}\n` +
-    `从：${t.mainCat}${t.subCat ? ' / ' + t.subCat : ''}\n` +
+    `确定移动该模板吗？
+
+` +
+    `标题：${t.title}
+` +
+    `从：${t.mainCat}${t.subCat ? ' / ' + t.subCat : ''}
+` +
     `到：${newMain}${newSub ? ' / ' + newSub : ''}`;
 
   openConfirmModal(msg, {
@@ -6512,6 +6863,7 @@ function confirmMoveTemplate(silentClose = false) {
       setLastMovePath(newMain, newSub);
 
       saveToLocal();
+      __moveBatchIds = null;
       moveModalSnapshot = null;
       if (!silentClose) closeModalDirect('moveModal');
       renderTemplates();
@@ -6521,6 +6873,8 @@ function confirmMoveTemplate(silentClose = false) {
 
   return true;
 }
+
+
 
 /* =========================
    19) 分类管理（重命名/排序/删除/选图标/二级选图标）
@@ -7217,7 +7571,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V10_${getExportStamp()}.json`;
+  a.download = `EMR_V12_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -7238,7 +7592,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V10_${getExportStamp()}.doc`;
+  a.download = `EMR_V12_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -7284,7 +7638,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'MyEMR V10';
+  const versionLabel = 'MyEMR V12';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -7395,7 +7749,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V10</title>
+<title>MyEMR V12</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
