@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V13</title>
+  <title>MyEMR V14</title>
 
   <style>
     :root {
@@ -630,7 +630,7 @@ body.modal-open {
     }
     .rte-editor:focus { box-shadow: 0 0 0 3px rgba(16,163,127,0.10); }
 
-    /* ===== RTE 字号统一：编辑窗口与新增模板一致（V13） ===== */
+    /* ===== RTE 字号统一：编辑窗口与新增模板一致（V14） ===== */
     :root{ --tpl-editor-font-size: var(--tpl-card-font-size); }
     #inputContentEditor{
       font-size: var(--tpl-editor-font-size) !important;
@@ -1721,7 +1721,7 @@ body.modal-open {
     }
 
 /* =========================
-   分类管理：两行布局（名称+数量微标；第二行操作/更多菜单）（V13）
+   分类管理：两行布局（名称+数量微标；第二行操作/更多菜单）（V14）
    - 第一行：名称 + 数量微标（微标尽量靠右，给名称让位）
    - 第二行：操作按钮；“更多”展开菜单显示在第二行，支持横向滑动
    ========================= */
@@ -1854,7 +1854,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V13</div>
+        <div class="auth-ver">V14</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -2294,7 +2294,7 @@ body.modal-open {
 <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V13</span>
+          <span id="aboutVersion">MyEMR V14</span>
         </div>
       </div>
 
@@ -2429,7 +2429,7 @@ const ICONS = (() => {
     eye: s(`<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>`),
     lock: s(`<rect x="6" y="11" width="12" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>`),
     unlock: s(`<rect x="6" y="11" width="12" height="10" rx="2"/><path d="M10 11V8a4 4 0 0 1 7-2"/>`),
-    home: s(`<path d="M3 11l9-8 9 8"/><path d="M5 10v11h14V13"/><path d="M10 21v-6h4v6"/>`),
+    home: s(`<path d="M3 11l9-8 9 8"/><path d="M5 10v11h14V14"/><path d="M10 21v-6h4v6"/>`),
     hospital: s(`<path d="M5 22V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/><path d="M9 10h6"/><path d="M12 7v6"/><path d="M7 22v-6h10v6"/>`),
     ambulance: s(`<path d="M3 16V8h10v8"/><path d="M13 12h5l3 3v1"/><path d="M5 16a2 2 0 1 0 4 0"/><path d="M15 16a2 2 0 1 0 4 0"/><path d="M16 10h2"/><path d="M9 10h.01"/><path d="M7 11h4"/><path d="M9 9v4"/>`),
     bed: s(`<path d="M4 12V7a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v5"/><path d="M4 12h16v6"/><path d="M4 18v3"/><path d="M20 18v3"/><path d="M16 12V9h4a2 2 0 0 1 2 2v1"/>`),
@@ -2458,7 +2458,7 @@ const ICONS = (() => {
     handover: s(`<path d="M7 7h10"/><path d="M17 7l-2-2"/><path d="M17 7l-2 2"/><path d="M17 17H7"/><path d="M7 17l2-2"/><path d="M7 17l2 2"/>`),
     rounds: s(`<circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M3 21c1.2-4 4-6 5-6"/><path d="M21 21c-1.2-4-4-6-5-6"/><path d="M9 14c1 .2 2 .5 3 .5s2-.3 3-.5"/>`),
     report: s(`<path d="M6 2h9l3 3v17H6z"/><path d="M15 2v3h3"/><path d="M9 10h6"/><path d="M9 14h6"/><path d="M9 18h4"/>`),
-    barChart: s(`<path d="M4 20V13"/><path d="M10 20V4"/><path d="M16 20v-8"/><path d="M22 20H2"/>`),
+    barChart: s(`<path d="M4 20V14"/><path d="M10 20V4"/><path d="M16 20v-8"/><path d="M22 20H2"/>`),
     pieChart: s(`<path d="M12 2v10h10"/><path d="M12 12a10 10 0 1 1 0-10"/><path d="M12 12l7 7"/>`),
     fileText: s(`<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8 13h8"/><path d="M8 17h6"/>`),
     fileCheck: s(`<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 14l2 2 4-4"/>`),
@@ -3121,7 +3121,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V13';
+  if (about) about.textContent = 'MyEMR V14';
   openModal('settingsModal');
 }
 
@@ -4730,7 +4730,7 @@ function __defaultTokenDefs(){
   ];
 }
 
-/* ================== 字段元素：分组/筛选（V13） ================== */
+/* ================== 字段元素：分组/筛选（V14） ================== */
 const __TOKEN_GROUP_ORDER = ['通用','体征/定位','感染','囊肿','肿瘤/唾液腺','创伤/骨折','检查/影像','诊断/手术','出院/随访','自定义'];
 let __tokenInsertGroup = '全部';
 let __tokenManagerGroup = '全部';
@@ -5331,7 +5331,7 @@ function clearTokenValue(){
   if (grid) grid.querySelectorAll('.token-opt').forEach(el => el.classList.remove('is-selected'));
 }
 
-/* ================== 字段值：自动补单位（V13） ================== */
+/* ================== 字段值：自动补单位（V14） ================== */
 function __extractUnitFromName(name){
   const s = String(name ?? '').trim();
   const m = s.match(/(?:\(|（)\s*([^)）]{1,20})\s*(?:\)|）)\s*$/);
@@ -6569,7 +6569,7 @@ function deleteTemplate() {
 
 
 /* =========================
-   RTE：字号同步（V13）
+   RTE：字号同步（V14）
    - 目标：编辑窗口中的富文本字号与“新增模板”一致
    ========================= */
 let __tplEditorBaseFontSize = null;
@@ -6793,8 +6793,7 @@ function confirmMoveTemplate(silentClose = false) {
     const fromPaths = Array.from(new Set(items.map(t => (t.mainCat || '未分类') + (t.subCat ? ' / ' + t.subCat : ''))));
     const fromText = (fromPaths.length === 1) ? fromPaths[0] : `共 ${fromPaths.length} 个来源分类`;
 
-    const sampleTitles = items.slice(0, 6).map(t => `- ${t.title}`).join('
-') + (items.length > 6 ? `
+    const sampleTitles = items.slice(0, 6).map(t => `- ${t.title}`).join('\n') + (items.length > 6 ? `
 …（共 ${items.length} 个）` : '');
 
     const msg =
@@ -7573,7 +7572,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V13_${getExportStamp()}.json`;
+  a.download = `EMR_V14_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -7594,7 +7593,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V13_${getExportStamp()}.doc`;
+  a.download = `EMR_V14_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -7640,7 +7639,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'MyEMR V13';
+  const versionLabel = 'MyEMR V14';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -7751,7 +7750,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V13</title>
+<title>MyEMR V14</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
