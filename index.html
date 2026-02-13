@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MyEMR V17</title>
+  <title>MyEMR V18</title>
 
   <style>
     :root {
@@ -653,7 +653,7 @@ body.modal-open {
     }
     .rte-editor:focus { box-shadow: 0 0 0 3px rgba(16,163,127,0.10); }
 
-    /* ===== RTE 字号统一：编辑窗口与新增模板一致（V17） ===== */
+    /* ===== RTE 字号统一：编辑窗口与新增模板一致（V18） ===== */
     :root{ --tpl-editor-font-size: var(--tpl-card-font-size); }
     #inputContentEditor{
       font-size: var(--tpl-editor-font-size) !important;
@@ -1751,7 +1751,7 @@ body.modal-open {
     }
 
 /* =========================
-   分类管理：两行布局（名称+数量微标；第二行操作/更多菜单）（V17）
+   分类管理：两行布局（名称+数量微标；第二行操作/更多菜单）（V18）
    - 第一行：名称 + 数量微标（微标尽量靠右，给名称让位）
    - 第二行：操作按钮；“更多”展开菜单显示在第二行，支持横向滑动
    ========================= */
@@ -1884,7 +1884,7 @@ body.modal-open {
     <div class="auth-card" onclick="event.stopPropagation()">
       <div class="auth-head">
         <div class="auth-brand">MyEMR</div>
-        <div class="auth-ver">V17</div>
+        <div class="auth-ver">V18</div>
       </div>
 
       <div class="auth-section" id="authLoginSection" style="display:none">
@@ -2325,7 +2325,7 @@ body.modal-open {
 <div class="settings-section-title">关于</div>
         <div class="about-line">
           <span class="ico" id="icoSetInfo"></span>
-          <span id="aboutVersion">MyEMR V17</span>
+          <span id="aboutVersion">MyEMR V18</span>
         </div>
       </div>
 
@@ -2460,7 +2460,7 @@ const ICONS = (() => {
     eye: s(`<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>`),
     lock: s(`<rect x="6" y="11" width="12" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>`),
     unlock: s(`<rect x="6" y="11" width="12" height="10" rx="2"/><path d="M10 11V8a4 4 0 0 1 7-2"/>`),
-    home: s(`<path d="M3 11l9-8 9 8"/><path d="M5 10v11h14V17"/><path d="M10 21v-6h4v6"/>`),
+    home: s(`<path d="M3 11l9-8 9 8"/><path d="M5 10v11h14V18"/><path d="M10 21v-6h4v6"/>`),
     hospital: s(`<path d="M5 22V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/><path d="M9 10h6"/><path d="M12 7v6"/><path d="M7 22v-6h10v6"/>`),
     ambulance: s(`<path d="M3 16V8h10v8"/><path d="M13 12h5l3 3v1"/><path d="M5 16a2 2 0 1 0 4 0"/><path d="M15 16a2 2 0 1 0 4 0"/><path d="M16 10h2"/><path d="M9 10h.01"/><path d="M7 11h4"/><path d="M9 9v4"/>`),
     bed: s(`<path d="M4 12V7a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v5"/><path d="M4 12h16v6"/><path d="M4 18v3"/><path d="M20 18v3"/><path d="M16 12V9h4a2 2 0 0 1 2 2v1"/>`),
@@ -2489,7 +2489,7 @@ const ICONS = (() => {
     handover: s(`<path d="M7 7h10"/><path d="M17 7l-2-2"/><path d="M17 7l-2 2"/><path d="M17 17H7"/><path d="M7 17l2-2"/><path d="M7 17l2 2"/>`),
     rounds: s(`<circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M3 21c1.2-4 4-6 5-6"/><path d="M21 21c-1.2-4-4-6-5-6"/><path d="M9 14c1 .2 2 .5 3 .5s2-.3 3-.5"/>`),
     report: s(`<path d="M6 2h9l3 3v17H6z"/><path d="M15 2v3h3"/><path d="M9 10h6"/><path d="M9 14h6"/><path d="M9 18h4"/>`),
-    barChart: s(`<path d="M4 20V17"/><path d="M10 20V4"/><path d="M16 20v-8"/><path d="M22 20H2"/>`),
+    barChart: s(`<path d="M4 20V18"/><path d="M10 20V4"/><path d="M16 20v-8"/><path d="M22 20H2"/>`),
     pieChart: s(`<path d="M12 2v10h10"/><path d="M12 12a10 10 0 1 1 0-10"/><path d="M12 12l7 7"/>`),
     fileText: s(`<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8 13h8"/><path d="M8 17h6"/>`),
     fileCheck: s(`<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 14l2 2 4-4"/>`),
@@ -2574,6 +2574,109 @@ oxygen: s(`<path d="M10 2h4"/><path d="M9 2v4h6V2"/><path d="M9 6h6l2 4v10a2 2 0
 ecgMonitor: s(`<rect x="4" y="6" width="16" height="12" rx="2"/><path d="M6 12h3l2-3 2 6 2-3h3"/><path d="M8 20h8"/>`),
 toothSparkle: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M19 4v4"/><path d="M17 6h4"/>`),
 
+    /* ========== 口腔科扩展图标（100） ========== */
+    dentalCaries: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="10" cy="10" r="1.2"/>`),
+    dentalDeepCaries: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="10" cy="10" r="1.6"/><circle cx="10" cy="10" r="0.6"/>`),
+    dentalCavity: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M9 9h2v2H9z"/>`),
+    dentalCrack: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M12 7l-2 3 2 3-2 3"/>`),
+    dentalChip: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M8 3c-1 1-2 3-2 6"/><path d="M7 13l2-1"/>`),
+    dentalWear: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M8 8h8"/>`),
+    dentalWedge: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M8 12l2-2 2 2-2 2z"/>`),
+    dentalPulpitis: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M12 8v8"/><circle cx="12" cy="12" r="1.1"/>`),
+    dentalApical: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="12" cy="17" r="1.2"/>`),
+    dentalAbscess: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="12" cy="17" r="1.6"/><path d="M11 17h2"/>`),
+    dentalCyst: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="12" cy="18" r="2.2"/>`),
+    dentalCrown: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M8 6h8l-1 3H9z"/>`),
+    dentalVeneer: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M9 6v10"/><path d="M10 6v10"/>`),
+    dentalInlay: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M9.5 9h5v5h-5z"/>`),
+    dentalFilling: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M10 10h4v4h-4z"/><path d="M10 12h4"/>`),
+    dentalRootCanal: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M12 7v10"/><path d="M12 17l-2 2"/><path d="M12 17l2 2"/>`),
+    dentalRCTFill: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M12 7v10"/><path d="M11 10h2"/><path d="M11 13h2"/><path d="M11 16h2"/>`),
+    dentalRetreat: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M12 7v10"/><path d="M9 9l-2 2 2 2"/><path d="M15 9l2 2-2 2"/>`),
+    dentalExtraction: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M12 6v8"/><path d="M10 8l2-2 2 2"/><path d="M9 18h6"/>`),
+    dentalImpacted: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M8 18h8"/><path d="M10 16l2-2 2 2"/>`),
+    dentalWisdom: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M8 9h8"/><path d="M10 7h4"/>`),
+    dentalImplantTooth: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M12 18v3"/><path d="M11 21h2"/><path d="M10 18h4"/>`),
+    dentalImplantPost: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M12 14v8"/><path d="M10 16h4"/><path d="M10 18h4"/><path d="M10 20h4"/>`),
+    dentalBridge: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M8 7h8"/><path d="M9 8v4"/><path d="M15 8v4"/><path d="M10 12h4"/>`),
+    dentalDenture: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M7 14c2 3 8 3 10 0"/><path d="M8 16h8"/>`),
+    dentalOrtho: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M8 10h8"/><path d="M9 9v2"/><path d="M11 9v2"/><path d="M13 9v2"/><path d="M15 9v2"/>`),
+    dentalAligner: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M8 10c1 2 7 2 8 0"/><path d="M8 14c1 2 7 2 8 0"/>`),
+    dentalRetainer: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M8 12c1 2 7 2 8 0"/><path d="M8 12l-1 2"/><path d="M16 12l1 2"/>`),
+    dentalElastic: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M9 9c-2 2-2 4 0 6"/><path d="M15 9c2 2 2 4 0 6"/><path d="M10 12h4"/>`),
+    dentalCleaning: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M17 7l-3 3"/><path d="M14 10l-2 2"/>`),
+    dentalScaling: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M17 6l-4 4"/><path d="M13 10l-1 3"/>`),
+    dentalGum: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M7 12c2-2 4-2 6 0s4 2 6 0"/>`),
+    dentalBleeding: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M14 13c-1 2-2 3-2 4a2 2 0 0 0 4 0c0-1-1-2-2-4z"/>`),
+    dentalRecession: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M7 11c2-2 4-2 6 0s4 2 6 0"/><path d="M12 8v4"/>`),
+    dentalPocket: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M12 7v10"/><path d="M11 9h2"/><path d="M11 11h2"/><path d="M11 13h2"/>`),
+    dentalPlaque: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="10" cy="11" r="0.9"/><circle cx="13" cy="12" r="0.9"/><circle cx="11.5" cy="14" r="0.9"/>`),
+    dentalCalculus: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M9 14l2 2"/><path d="M13 14l-2 2"/><path d="M10 15h4"/>`),
+    dentalFluoride: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M12 9c-1 2-2 3-2 4a2 2 0 0 0 4 0c0-1-1-2-2-4z"/><path d="M12 13v4"/>`),
+    dentalSealant: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><path d="M9 8c1 1 5 1 6 0"/><path d="M10 9v6"/><path d="M14 9v6"/>`),
+    dentalExam: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="6" r="0.9"/>`),
+    dentalFollowup: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="18" cy="6" r="3"/><path d="M16 6c1 -1 2 -1 3 0s2 1 3 0"/>`),
+    dentalConsent: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="18" cy="6" r="3"/><path d="M16 6l2 2 4 -4"/>`),
+    dentalRisk: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="18" cy="6" r="3"/><path d="M16 4l4 4"/><path d="M20 4l-4 4"/>`),
+    dentalPain: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="18" cy="6" r="3"/><path d="M17 4l-1 3h2l-1 3 2 -3h-2z"/>`),
+    dentalBleed: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="18" cy="6" r="3"/><path d="M18 4c-1 2-2 3-2 4a2 2 0 0 0 4 0c0-1-1-2-2-4z"/>`),
+    dentalProtect: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="18" cy="6" r="3"/><path d="M18 4l2 1v3c0 2 -2 4 -2 4s-2 -2 -2 -4v-3z"/>`),
+    dentalWhitening: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="18" cy="6" r="3"/><path d="M18 4v4"/><path d="M16 6h4"/><path d="M17 5l2 2"/><path d="M19 5l-2 2"/>`),
+    dentalAnesthesia: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="6" cy="6" r="3"/><path d="M6 4v4"/><path d="M4 6h4"/>`),
+    dentalSedation: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="6" cy="6" r="3"/><path d="M4 6h4"/>`),
+    dentalEmergency: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="6" cy="6" r="3"/><path d="M4 4l4 4"/><path d="M8 4l-4 4"/>`),
+    dentalTrauma: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="6" cy="6" r="3"/><path d="M5 4l-1 3h2l-1 3 2 -3h-2z"/>`),
+    dentalSuture: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="6" cy="6" r="3"/><path d="M4 6l2 2 4 -4"/>`),
+    dentalRemoveSuture: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="6" cy="6" r="3"/><path d="M4 6h4"/>`),
+    dentalIncision: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="18" cy="18" r="3"/><path d="M18 16v4"/><path d="M16 18h4"/>`),
+    dentalDrain: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="18" cy="18" r="3"/><path d="M16 18c1 -1 2 -1 3 0s2 1 3 0"/>`),
+    dentalInfection: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="18" cy="18" r="3"/><path d="M16 16l4 4"/><path d="M20 16l-4 4"/>`),
+    dentalAntibiotic: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="18" cy="18" r="3"/><path d="M16 18l2 2 4 -4"/>`),
+    dentalAnalgesic: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="18" cy="18" r="3"/><path d="M17 16l-1 3h2l-1 3 2 -3h-2z"/>`),
+    dentalDisinfect: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="6" cy="18" r="3"/><path d="M6 16l2 1v3c0 2 -2 4 -2 4s-2 -2 -2 -4v-3z"/>`),
+    dentalSterile: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="6" cy="18" r="3"/><path d="M4 18l2 2 4 -4"/>`),
+    dentalPPE: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="6" cy="18" r="3"/><path d="M6 16l2 1v3c0 2 -2 4 -2 4s-2 -2 -2 -4v-3z"/>`),
+    dentalXrayFilm: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="6" r="0.9"/>`),
+    dentalPanoramic: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="18" cy="6" r="3"/><path d="M16 6c1 -1 2 -1 3 0s2 1 3 0"/>`),
+    dentalCBCT: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="18" cy="6" r="3"/><path d="M18 4v4"/><path d="M16 6h4"/><path d="M17 5l2 2"/><path d="M19 5l-2 2"/>`),
+    dentalPhoto: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="6" cy="6" r="3"/><circle cx="6" cy="6" r="0.9"/>`),
+    dentalOcclusion: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="6" cy="6" r="3"/><path d="M4 6c1 -1 2 -1 3 0s2 1 3 0"/>`),
+    dentalBite: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="6" cy="6" r="3"/><path d="M4 6l2 2 4 -4"/>`),
+    dentalBruxism: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="6" cy="6" r="3"/><path d="M5 4l-1 3h2l-1 3 2 -3h-2z"/>`),
+    dentalNightGuard: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="6" cy="6" r="3"/><path d="M6 4l2 1v3c0 2 -2 4 -2 4s-2 -2 -2 -4v-3z"/>`),
+    dentalMouthguard: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="18" cy="6" r="3"/><path d="M18 4l2 1v3c0 2 -2 4 -2 4s-2 -2 -2 -4v-3z"/>`),
+    dentalCleftCare: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="18" cy="6" r="3"/><path d="M16 6c1 -1 2 -1 3 0s2 1 3 0"/>`),
+    dentalOralLesion: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="18" cy="18" r="3"/><circle cx="18" cy="18" r="0.9"/>`),
+    dentalUlcer: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="18" cy="18" r="3"/><path d="M17 16l-1 3h2l-1 3 2 -3h-2z"/>`),
+    dentalBiopsy: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="18" cy="18" r="3"/><path d="M16 18l2 2 4 -4"/>`),
+    dentalCystPlan: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="6" cy="18" r="3"/><circle cx="6" cy="18" r="0.9"/>`),
+    dentalTumor: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="6" cy="18" r="3"/><circle cx="6" cy="18" r="0.9"/>`),
+    dentalFracture: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="6" cy="18" r="3"/><path d="M4 16l4 4"/><path d="M8 16l-4 4"/>`),
+    dentalTMJ: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="6" cy="18" r="3"/><path d="M4 18c1 -1 2 -1 3 0s2 1 3 0"/>`),
+    dentalTrismus: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="6" cy="18" r="3"/><path d="M4 18h4"/>`),
+    dentalSinusLift: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="18" cy="18" r="3"/><path d="M18 16v4"/><path d="M16 18h4"/>`),
+    dentalBoneGraft: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="18" cy="18" r="3"/><path d="M18 16v4"/><path d="M16 18h4"/>`),
+    dentalGBR: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="18" cy="18" r="3"/><path d="M18 16v4"/><path d="M16 18h4"/>`),
+    dentalGraft: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6 1 2 0 6 2 6 1 0 2-1 2-2 1-4 3-6 3-10 0-3-1-5-3-6-2-1-4-1-5 0z"/><circle cx="18" cy="18" r="3"/><path d="M18 16v4"/><path d="M16 18h4"/>`),
+    dentalToothbrush: s(`<rect x="4" y="4" width="7" height="3" rx="1"/><path d="M6 7v13"/><path d="M9 7v13"/><path d="M5 9h6"/>`),
+    dentalFloss: s(`<circle cx="8" cy="8" r="3"/><path d="M6 8h4"/><path d="M11 11l8 8"/><path d="M15 15h4"/>`),
+    dentalMouthwash: s(`<path d="M10 3h4"/><path d="M11 3v3"/><path d="M13 3v3"/><rect x="8" y="6" width="8" height="15" rx="2"/><path d="M10 11h4"/>`),
+    dentalMirror: s(`<circle cx="9" cy="9" r="3"/><path d="M11 11l8 8"/><path d="M17 17l2 2"/>`),
+    dentalProbe: s(`<path d="M6 20l10-10"/><path d="M16 10l2-2"/><path d="M15 11l2 2"/>`),
+    dentalScalerTool: s(`<path d="M6 20l9-9"/><path d="M15 11c2-2 3-3 3-5"/><path d="M16 10l2 1"/>`),
+    dentalSuctionTip: s(`<path d="M5 6l10 10"/><path d="M15 16h5"/><path d="M13 14l2-2"/><path d="M18 16v3"/>`),
+    dentalRubberDam: s(`<rect x="6" y="6" width="12" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M12 10v4"/>`),
+    dentalImpressionTray: s(`<path d="M7 11c0 6 10 6 10 0"/><path d="M8 11v-2"/><path d="M16 11v-2"/><path d="M12 17v4"/>`),
+    dentalChair: s(`<path d="M10 6h4"/><path d="M9 7v7a4 4 0 0 0 8 0V7"/><path d="M9 14h8"/><path d="M11 14v7"/><path d="M13 14v7"/>`),
+    dentalHandpiece: s(`<path d="M7 7l10 10"/><path d="M6 8l2-2"/><path d="M16 18l2-2"/><path d="M13 11l-2 2"/><path d="M18 6h-4l-2 2"/>`),
+    dentalCartridge: s(`<rect x="6" y="8" width="12" height="8" rx="2"/><path d="M8 12h8"/><path d="M16 10v4"/><path d="M18 12h2"/>`),
+    dentalLip: s(`<path d="M6 12c2 2 4 3 6 3s4-1 6-3"/><path d="M6 12c2-2 4-3 6-3s4 1 6 3"/>`),
+    dentalTongue: s(`<path d="M8 7v7a4 4 0 0 0 8 0V7"/><path d="M12 14v3"/><path d="M10 17h4"/>`),
+    dentalSalivary: s(`<circle cx="9" cy="11" r="2.5"/><circle cx="14.5" cy="13" r="2"/><path d="M11 12l2 1"/><path d="M6 16c2 2 6 2 8 0"/>`),
+    dentalPalate: s(`<path d="M7 10c2-4 8-4 10 0"/><path d="M7 10c2 6 8 6 10 0"/><path d="M12 9v6"/>`),
+    dentalJawArch: s(`<path d="M6 10c2-3 10-3 12 0"/><path d="M6 14c2 3 10 3 12 0"/><path d="M8 10v2"/><path d="M10 10v2"/><path d="M12 10v2"/><path d="M14 10v2"/><path d="M16 10v2"/>`),
+
+
 
   };
 
@@ -2595,6 +2698,108 @@ toothSparkle: s(`<path d="M8 3c-2 1-3 3-3 6 0 4 2 6 3 10 0 1 1 2 2 2 2 0 1-4 2-6
     meta('brain', '神经', '神经系统'),
     meta('bone', '骨科', '骨科/骨'),
     meta('tooth', '口腔', '口腔/牙'),
+
+    /* 口腔科扩展（100） */
+    meta('dentalCaries', '龋齿', '口腔/牙体牙髓/龋坏'),
+    meta('dentalDeepCaries', '深龋', '口腔/牙体牙髓/深龋'),
+    meta('dentalCavity', '龋洞', '口腔/龋洞/洞形'),
+    meta('dentalCrack', '牙裂', '口腔/牙体裂纹'),
+    meta('dentalChip', '牙体缺损', '口腔/缺损/崩裂'),
+    meta('dentalWear', '磨耗', '口腔/磨耗/咬合面'),
+    meta('dentalWedge', '楔状缺损', '口腔/颈部楔缺'),
+    meta('dentalPulpitis', '牙髓炎', '口腔/牙体牙髓/疼痛'),
+    meta('dentalApical', '根尖周炎', '口腔/根尖/炎症'),
+    meta('dentalAbscess', '根尖脓肿', '口腔/脓肿/肿胀'),
+    meta('dentalCyst', '颌骨囊肿', '口腔/囊肿/影像'),
+    meta('dentalCrown', '全冠', '修复/牙冠'),
+    meta('dentalVeneer', '贴面', '修复/贴面'),
+    meta('dentalInlay', '嵌体', '修复/嵌体'),
+    meta('dentalFilling', '充填', '修复/补牙'),
+    meta('dentalRootCanal', '根管治疗', '牙体牙髓/根管'),
+    meta('dentalRCTFill', '根充', '牙体牙髓/根充'),
+    meta('dentalRetreat', '再治疗', '根管/再治疗'),
+    meta('dentalExtraction', '拔牙', '外科/拔除'),
+    meta('dentalImpacted', '阻生齿', '外科/阻生/翻瓣'),
+    meta('dentalWisdom', '智齿', '外科/智齿'),
+    meta('dentalImplantTooth', '种植牙', '种植/修复'),
+    meta('dentalImplantPost', '种植体', '种植/螺纹'),
+    meta('dentalBridge', '固定桥', '修复/桥体'),
+    meta('dentalDenture', '义齿', '修复/义齿'),
+    meta('dentalOrtho', '正畸', '正畸/托槽'),
+    meta('dentalAligner', '透明矫治', '正畸/隐形'),
+    meta('dentalRetainer', '保持器', '正畸/保持器'),
+    meta('dentalElastic', '颌间牵引', '正畸/牵引'),
+    meta('dentalCleaning', '洁牙', '牙周/洁治'),
+    meta('dentalScaling', '刮治', '牙周/刮治'),
+    meta('dentalGum', '牙龈', '牙周/牙龈'),
+    meta('dentalBleeding', '牙龈出血', '牙周/出血'),
+    meta('dentalRecession', '牙龈退缩', '牙周/退缩'),
+    meta('dentalPocket', '牙周袋', '牙周/探诊'),
+    meta('dentalPlaque', '牙菌斑', '牙周/菌斑'),
+    meta('dentalCalculus', '牙结石', '牙周/结石'),
+    meta('dentalFluoride', '氟化', '预防/涂氟'),
+    meta('dentalSealant', '窝沟封闭', '预防/封闭'),
+    meta('dentalExam', '口腔检查', '口腔/检查/评估'),
+    meta('dentalFollowup', '复诊随访', '口腔/复诊/随访'),
+    meta('dentalConsent', '知情同意', '口腔/同意书/签署'),
+    meta('dentalRisk', '风险提示', '口腔/风险/注意'),
+    meta('dentalPain', '疼痛', '口腔/疼痛/急诊'),
+    meta('dentalBleed', '出血', '口腔/出血/止血'),
+    meta('dentalProtect', '防护', '口腔/防护/院感'),
+    meta('dentalWhitening', '美白', '口腔/美白/抛光'),
+    meta('dentalAnesthesia', '局麻', '口腔/麻醉/局部'),
+    meta('dentalSedation', '镇静', '口腔/镇静/舒适化'),
+    meta('dentalEmergency', '急诊', '口腔/急诊/处置'),
+    meta('dentalTrauma', '外伤', '口腔/外伤/软组织'),
+    meta('dentalSuture', '缝合', '口腔/缝合/清创'),
+    meta('dentalRemoveSuture', '拆线', '口腔/拆线/复查'),
+    meta('dentalIncision', '切开引流', '口腔/引流/感染'),
+    meta('dentalDrain', '引流', '口腔/引流/换药'),
+    meta('dentalInfection', '感染', '口腔/感染/抗感染'),
+    meta('dentalAntibiotic', '抗生素', '口腔/用药/抗生素'),
+    meta('dentalAnalgesic', '止痛', '口腔/用药/止痛'),
+    meta('dentalDisinfect', '消毒', '口腔/消毒/无菌'),
+    meta('dentalSterile', '无菌操作', '口腔/无菌/院感'),
+    meta('dentalPPE', '个人防护', '口腔/口罩/手套'),
+    meta('dentalXrayFilm', '牙片', '影像/口内片/根尖片'),
+    meta('dentalPanoramic', '全景片', '影像/全景/OPG'),
+    meta('dentalCBCT', 'CBCT', '影像/CBCT/三维'),
+    meta('dentalPhoto', '口内摄影', '影像/摄影/记录'),
+    meta('dentalOcclusion', '咬合', '修复/咬合/调整'),
+    meta('dentalBite', '咬合记录', '修复/咬合记录'),
+    meta('dentalBruxism', '磨牙症', '咬合/磨牙/夜磨'),
+    meta('dentalNightGuard', '夜磨垫', '防护/护牙/夜间'),
+    meta('dentalMouthguard', '运动护齿', '防护/护齿/运动'),
+    meta('dentalCleftCare', '唇腭裂护理', '口腔/唇腭裂/随访'),
+    meta('dentalOralLesion', '口腔黏膜病', '黏膜/病变/评估'),
+    meta('dentalUlcer', '口腔溃疡', '黏膜/溃疡/疼痛'),
+    meta('dentalBiopsy', '活检', '黏膜/活检/病理'),
+    meta('dentalCystPlan', '囊肿评估', '颌骨/囊肿/计划'),
+    meta('dentalTumor', '肿物评估', '颌面/肿物/计划'),
+    meta('dentalFracture', '骨折', '颌面/骨折/固定'),
+    meta('dentalTMJ', '颞下颌关节', 'TMJ/关节/疼痛'),
+    meta('dentalTrismus', '张口受限', 'TMJ/张口/受限'),
+    meta('dentalSinusLift', '上颌窦提升', '种植/上颌窦/提升'),
+    meta('dentalBoneGraft', '骨移植', '种植/骨增量/移植'),
+    meta('dentalGBR', 'GBR', '种植/引导骨再生'),
+    meta('dentalGraft', '软组织移植', '牙周/移植/美学'),
+    meta('dentalToothbrush', '牙刷', '口腔护理/刷牙/洁牙'),
+    meta('dentalFloss', '牙线', '口腔护理/牙线/邻面'),
+    meta('dentalMouthwash', '漱口水', '口腔护理/漱口/冲洗'),
+    meta('dentalMirror', '牙镜', '器械/口镜/检查'),
+    meta('dentalProbe', '探针', '器械/探诊/检查'),
+    meta('dentalScalerTool', '洁治器', '器械/洁治/刮治'),
+    meta('dentalSuctionTip', '吸唾管', '器械/吸引/负压'),
+    meta('dentalRubberDam', '橡皮障', '器械/橡皮障/隔湿'),
+    meta('dentalImpressionTray', '取模托盘', '修复/取模/托盘'),
+    meta('dentalChair', '牙科椅', '诊疗/牙椅/就诊'),
+    meta('dentalHandpiece', '牙科手机', '器械/手机/涡轮'),
+    meta('dentalCartridge', '麻药筒', '麻醉/局麻/卡式'),
+    meta('dentalLip', '唇部', '解剖/唇/创伤'),
+    meta('dentalTongue', '舌部', '解剖/舌/检查'),
+    meta('dentalSalivary', '唾液腺', '解剖/腺体/分泌'),
+    meta('dentalPalate', '腭部', '解剖/腭/口腔'),
+    meta('dentalJawArch', '牙弓', '解剖/牙弓/上下颌'),
     meta('lab', '化验', '实验室检查'),
     meta('microscope', '病理', '病理/显微'),
     meta('dna', '遗传', '基因/分子'),
@@ -3152,7 +3357,7 @@ function openSettings(){
   if (!__settings) __loadSettings();
   __applySettings();
   const about = document.getElementById('aboutVersion');
-  if (about) about.textContent = 'MyEMR V17';
+  if (about) about.textContent = 'MyEMR V18';
   openModal('settingsModal');
 }
 
@@ -4761,7 +4966,7 @@ function __defaultTokenDefs(){
   ];
 }
 
-/* ================== 字段元素：分组/筛选（V17） ================== */
+/* ================== 字段元素：分组/筛选（V18） ================== */
 const __TOKEN_GROUP_ORDER = ['通用','体征/定位','感染','囊肿','肿瘤/唾液腺','创伤/骨折','检查/影像','诊断/手术','出院/随访','自定义'];
 let __tokenInsertGroup = '全部';
 let __tokenManagerGroup = '全部';
@@ -5362,7 +5567,7 @@ function clearTokenValue(){
   if (grid) grid.querySelectorAll('.token-opt').forEach(el => el.classList.remove('is-selected'));
 }
 
-/* ================== 字段值：自动补单位（V17） ================== */
+/* ================== 字段值：自动补单位（V18） ================== */
 function __extractUnitFromName(name){
   const s = String(name ?? '').trim();
   const m = s.match(/(?:\(|（)\s*([^)）]{1,20})\s*(?:\)|）)\s*$/);
@@ -6652,7 +6857,7 @@ function deleteTemplate() {
 
 
 /* =========================
-   RTE：字号同步（V17）
+   RTE：字号同步（V18）
    - 目标：编辑窗口中的富文本字号与“新增模板”一致
    ========================= */
 let __tplEditorBaseFontSize = null;
@@ -7657,7 +7862,7 @@ function exportJsonBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V17_${getExportStamp()}.json`;
+  a.download = `EMR_V18_${getExportStamp()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -7678,7 +7883,7 @@ function exportWordBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `EMR_V17_${getExportStamp()}.doc`;
+  a.download = `EMR_V18_${getExportStamp()}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -7724,7 +7929,7 @@ function normalizeWordContentHtml(html) {
 }
 
 function buildWordBackupHtml(data) {
-  const versionLabel = 'MyEMR V17';
+  const versionLabel = 'MyEMR V18';
   const ts = data.timestamp || '';
   const cats = Array.isArray(data.categories) ? data.categories : [];
   const tpls = Array.isArray(data.templates) ? data.templates : [];
@@ -7835,7 +8040,7 @@ function buildWordBackupHtml(data) {
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="utf-8" />
-<title>MyEMR V17</title>
+<title>MyEMR V18</title>
 <style>
   @page { margin: 24mm 18mm; }
   body { font-family: "Microsoft YaHei", "PingFang SC", "SimSun", Arial; font-size: 11pt; line-height: 1.6; color: #111; }
